@@ -6,7 +6,7 @@ NS = {
     "xbrli": "http://www.xbrl.org/2003/instance",
     "xbrldi": "http://xbrl.org/2006/xbrldi",
     "xbrldie": "http://xbrl.org/2005/xbrldi/errors",
-    "xbrldt": "http://xbrl.org/2006/xbrldt",
+    "xbrldt": "http://xbrl.org/2005/xbrldt",
     "xbrldte": "http://xbrl.org/2005/xbrldt/errors",
     "catalog": "urn:oasis:names:tc:entity:xmlns:xml:catalog",
     "tp": "http://xbrl.org/2016/taxonomy-package",

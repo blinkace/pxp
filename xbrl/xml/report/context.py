@@ -44,7 +44,7 @@ class Context:
 
         for e in segmentContent + scenarioContent:
             if e.tag == etree.QName(NS['xbrldi'], "explicitMember"):
-                dimensions[e.get("dimension")] = parseQName(e.nsmap, e.text)
+                dimensions[parseQName(e.nsmap, e.get("dimension"))] = parseQName(e.nsmap, e.text)
             elif e.tag == etree.QName(NS['xbrldi'], "typedMember"):
                 raise ValueError("Typed dimensions not implemented")
             else:

@@ -3,8 +3,10 @@ from xbrl.const import NS
 from xbrl.document import SchemaRef
 from xbrl.documentloader import DocumentLoader
 from xbrl.xml.util import qname, childElements, childElement
+from xbrl.xbrlerror import XBRLError
 
 from .context import Context
+from .unit import Unit
 from urllib.parse import urljoin
 
 class XBRLReportParser:
@@ -18,6 +20,7 @@ class XBRLReportParser:
             tree = etree.parse(src)
         root = tree.getroot()
         self.contexts = self.parseContexts(root)
+        self.units = self.parseUnits(root)
         self.taxonomy = self.getTaxonomy(root, url)
         self.parseFacts(root)
 
@@ -36,8 +39,14 @@ class XBRLReportParser:
         for ce in childElements(root, 'xbrli', 'context'):
             c = Context.from_xml(ce)
             contexts[c.id] = c
-
         return contexts
+
+    def parseUnits(self, root):
+        units = dict()
+        for ue in childElements(root, 'xbrli', 'unit'):
+            u = Unit.from_xml(ue)
+            units[u.id] = u
+        return units
 
 
     def parseFacts(self, root):
@@ -48,6 +57,23 @@ class XBRLReportParser:
             concept = self.taxonomy.concepts.get(name, None)
             if concept is None:
                 raise XBRLError("oime:missingConceptDefinition", "Could not find concept definition for %s" % name.text)
+            cid = e.get("contextRef")
+            ctxt = self.contexts.get(cid, None)
+            if ctxt is None:
+                raise XBRLError("missingContext", "No context with ID '%s'" % cid)
+            for dim, dval in ctxt.dimensions.items():
+                dimconcept = self.taxonomy.concepts.get(dim, None)
+                if dimconcept is None:
+                    raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Could not find definition for dimension %s" % dim)
+                if not dimconcept.isDimension:
+                    raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Concept %s is not a dimension" % dim)
+
+            uid = e.get("unitRef", None)
+            if uid is not None:
+                unit = self.units.get(uid, None)
+                if unit is None:
+                    raise XBRLError("missingUnit", "No unit with ID '%s'" % cid)
+
             print("%s (%s) = %s" % (name.text, concept.itemType.text, e.text))
             
 
