@@ -1,14 +1,27 @@
-class PeriodDimension:
+from .dimensions import CoreDimension
 
-    pass
+class PeriodDimension(CoreDimension):
+    def __init__(self):
+        super().__init__("period")
+
 
 class DurationPeriod(PeriodDimension):
 
     def __init__(self, start = None, end = None):
+        super().__init__()
         self.start = start
         self.end = end
+
+    @property
+    def stringValue(self):
+        return "%s/%s" % (self.start.isoformat(), self.end.isoformat())
 
 class InstantPeriod(PeriodDimension):
 
     def __init__(self, instant):
+        super().__init__()
         self.instant = instant
+
+    @property
+    def stringValue(self):
+        return self.instant.isoformat()

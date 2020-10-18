@@ -58,10 +58,14 @@ class XBRLReportParser:
             dims = set()
             dims.add(report.ConceptCoreDimension(concept))
 
+
             cid = e.get("contextRef")
             ctxt = self.contexts.get(cid, None)
             if ctxt is None:
                 raise XBRLError("missingContext", "No context with ID '%s'" % cid)
+
+            dims.add(ctxt.period)
+
             for dim, dval in ctxt.dimensions.items():
                 dimconcept = self.taxonomy.concepts.get(dim, None)
                 if dimconcept is None:

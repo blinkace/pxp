@@ -11,9 +11,9 @@ class Unit:
     def from_xml(cls, elt):
         uid = elt.get('id')
         divide = childElement(elt, "xbrli", "divide")
-        if divide:
-            numerators = list(e.tag for e in childElement("divide", "xbrli", "unitNumerator"))
-            denominators = list(e.tag for e in childElement("divide", "xbrli", "unitDenominator"))
+        if divide is not None:
+            numerators = list(e.tag for e in childElement(divide, "xbrli", "unitNumerator"))
+            denominators = list(e.tag for e in childElement(divide, "xbrli", "unitDenominator"))
         else:
             numerators = list(e.tag for e in elt)
             denominators = None
