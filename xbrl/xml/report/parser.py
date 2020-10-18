@@ -4,6 +4,7 @@ from xbrl.document import SchemaRef
 from xbrl.documentloader import DocumentLoader
 from xbrl.xml.util import qname, childElements, childElement
 from xbrl.xbrlerror import XBRLError
+import xbrl.model.report as report 
 
 from .context import Context
 from .unit import Unit
@@ -11,27 +12,19 @@ from urllib.parse import urljoin
 
 class XBRLReportParser:
 
-    def __init__(self, url_resolver):
-        self.url_resolver = url_resolver
+    def __init__(self, processor):
+        self.processor = processor
+        self.idCount = 0
 
 
     def parse(self, url):
-        with self.url_resolver.open(url) as src:
+        with self.processor.resolver.open(url) as src:
             tree = etree.parse(src)
         root = tree.getroot()
         self.contexts = self.parseContexts(root)
         self.units = self.parseUnits(root)
         self.taxonomy = self.getTaxonomy(root, url)
         self.parseFacts(root)
-
-#         <xbrli:context id="context_2">
-#    <xbrli:entity>
-#      <xbrli:identifier scheme="http://www.fca.org.uk/register">898989</xbrli:identifier>
-#    </xbrli:entity>
-#    <xbrli:period>
-#      <xbrli:instant>2016-07-31</xbrli:instant>
-#    </xbrli:period>
-#  </xbrli:context>
 
 
     def parseContexts(self, root):
@@ -48,8 +41,12 @@ class XBRLReportParser:
             units[u.id] = u
         return units
 
+    def generateId(self):
+        self.idCount = self.idCount + 1
+        return self.idCount
 
     def parseFacts(self, root):
+        rpt = report.Report(self.taxonomy)
         for e in root:
             name = etree.QName(e.tag)
             if name.namespace in (NS['xbrli'], NS['link']):
@@ -57,6 +54,10 @@ class XBRLReportParser:
             concept = self.taxonomy.concepts.get(name, None)
             if concept is None:
                 raise XBRLError("oime:missingConceptDefinition", "Could not find concept definition for %s" % name.text)
+
+            dims = set()
+            dims.add(report.ConceptCoreDimension(concept))
+
             cid = e.get("contextRef")
             ctxt = self.contexts.get(cid, None)
             if ctxt is None:
@@ -67,6 +68,13 @@ class XBRLReportParser:
                     raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Could not find definition for dimension %s" % dim)
                 if not dimconcept.isDimension:
                     raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Concept %s is not a dimension" % dim)
+                valconcept = self.taxonomy.concepts.get(dval, None)
+                if valconcept is None:
+                    raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % dval)
+
+                dims.add(report.ExplicitTaxonomyDefinedDimension(dimconcept, valconcept))
+
+            dims.add(report.EntityCoreDimension(ctxt.scheme, ctxt.identifier))
 
             uid = e.get("unitRef", None)
             if uid is not None:
@@ -74,13 +82,18 @@ class XBRLReportParser:
                 if unit is None:
                     raise XBRLError("missingUnit", "No unit with ID '%s'" % cid)
 
-            print("%s (%s) = %s" % (name.text, concept.itemType.text, e.text))
+
+            f = report.Fact(e.get("id", self.generateId()), dimensions = dims, value = e.text)
+            rpt.addFact(f)
+            print(f)
+            #print("%s (%s) = %s" % (name.text, concept.itemType.text, e.text))
+
             
 
     def getTaxonomy(self, root, url):
         schemaRefs = list(SchemaRef(urljoin(url, e.get(etree.QName(NS['xlink'],"href")))) 
             for e in childElements(root, 'link', 'schemaRef'))
-        dl = DocumentLoader(url_resolver = self.url_resolver)
+        dl = DocumentLoader(url_resolver = self.processor.resolver)
         dts = dl.load(schemaRefs)
         return dts.buildTaxonomy()
 

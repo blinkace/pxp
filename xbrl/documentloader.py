@@ -11,28 +11,27 @@ class DocumentLoader:
 
     def __init__(self, url_resolver):
         self.queue = []
-        self.documents = set()
-        self.dts = None
+        self.documents = dict()
         self.url_resolver = url_resolver
 
     def load(self, entry):
-        self.dts = DTS()
+        dts = DTS(documentCache = self)
         for r in entry:
             self.enqueue(r)
-        self.discover()
-        return self.dts
+        self.discover(dts)
+        return dts
 
-    def discover(self):
+    def discover(self, dts):
         while len(self.queue) > 0:
             ref = self.queue[0]
             self.queue = self.queue[1:]
             doc = self.loadDTSReference(ref)
 
-            if doc is not None:
-                logging.info("Loaded %s" % ref.href)
-                self.dts.addDocument(ref.href, doc)
-                for d in doc.dtsReferences:
-                    self.enqueue(d)
+            logging.info("Loaded %s" % ref.href)
+            dts.addDocument(ref.href)
+            self.documents[ref.href] = doc
+            for d in doc.dtsReferences:
+                self.enqueue(d)
 
 
     def loadDTSReference(self, ref):
@@ -56,7 +55,9 @@ class DocumentLoader:
             parser = LinkbaseParser()
         else:
             raise ValueError("Unknown document type with root element %s" % root.tag)
-        return parser.parse(tree, ref.href)
+        doc = parser.parse(tree, ref.href)
+        doc.documentCache = self
+        return doc
 
     def loadSchema(self, url):
         return parser.parse(url)
@@ -67,6 +68,9 @@ class DocumentLoader:
 
     def enqueue(self, ref):
         if ref.href not in self.documents:
-            self.documents.add(ref.href)
+            self.documents[ref.href] = None
             self.queue.append(ref)
 
+
+    def getDocument(self, href):
+        return self.documents[href]

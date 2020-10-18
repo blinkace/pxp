@@ -6,21 +6,23 @@ from .xbrlerror import XBRLError
 
 class DTS:
 
-    def __init__(self):
-        self.documents = dict()
+    def __init__(self, documentCache):
+        self.documents = set()
+        self.documentCache = documentCache
 
-    def addDocument(self, url, doc):
-        doc.setDTS(self)
-        self.documents[url] = doc
+    def addDocument(self, url):
+        self.documents.add(url)
 
     def getDocument(self, url):
         return self.documents[url]
 
     def buildTaxonomy(self):
-
         taxonomy = Taxonomy()
-        for url, d in self.documents.items():
+        for url in self.documents:
+            d = self.documentCache.getDocument(url)
             if isinstance(d, SchemaDocument):
+                if d.preferredPrefix is not None:
+                    taxonomy.addPrefix(d.preferredPrefix, d.targetNamespace)
                 for n, e in d.elements.items():
                     if etree.QName(NS['xbrli'], 'item') in e.substitutionGroups():
                         itemType = next((dt for dt in e.datatypeChain() if dt.namespace == NS['xbrli']), None)

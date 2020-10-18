@@ -29,7 +29,7 @@ class SchemaDocument(DTSDocument):
         i = self.imports.get(ns)
         if i is None:
             raise ValueError("Failed to find import for %s" % ns)
-        return self.dts.getDocument(i.href)
+        return self.documentCache.getDocument(i.href)
 
     def getElement(self, name):
         return self.elements[name]

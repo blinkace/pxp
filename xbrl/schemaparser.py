@@ -10,6 +10,7 @@ class SchemaParser:
         schema = SchemaDocument(url)
         root = tree.getroot()
         schema.targetNamespace = root.get('targetNamespace')
+        schema.preferredPrefix = next((p for p, ns in root.nsmap.items() if ns == schema.targetNamespace and p is not None), None)
         for e in root:
             if isinstance(e.tag, str):
                 tag = etree.QName(e)

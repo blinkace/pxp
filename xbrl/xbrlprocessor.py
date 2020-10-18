@@ -12,7 +12,7 @@ class XBRLProcessor:
 
 
     def loadXBRLReport(self, report):
-        rp = XBRLReportParser(url_resolver = self.resolver)
+        rp = XBRLReportParser(processor = self)
         rp.parse(report)
 
 
