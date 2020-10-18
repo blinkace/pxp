@@ -40,7 +40,7 @@ class DocumentLoader:
             tree = etree.parse(src)
         root = tree.getroot()
 
-        isSchema = root.tag == etree.QName(NS["xsd"], "schema")
+        isSchema = root.tag == etree.QName(NS["xs"], "schema")
         isLinkbase = root.tag == etree.QName(NS["link"], "linkbase")
 
         if isinstance(ref, DTSSchema) and not isSchema:

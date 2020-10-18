@@ -1,7 +1,8 @@
 from lxml import etree
-from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition
+from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition
 from .qname import parseQName
 from .const import NS
+from xbrl.xml.util import childElement
 
 
 class SchemaParser:
@@ -16,11 +17,13 @@ class SchemaParser:
                 tag = etree.QName(e)
                 ns = tag.namespace
                 name = tag.localname
-                if ns == NS["xsd"]:
+                if ns == NS["xs"]:
                     if name == 'element':
                         self.parseElementDefinition(schema, e)
                     elif name == 'complexType':
                         self.parseComplexTypeDefinition(schema, e)
+                    elif name == 'simpleType':
+                        self.parseSimpleTypeDefinition(schema, e)
                     elif name == 'annotation':
                         self.parseAnnotation(schema, e)
                     elif name == 'import':
@@ -28,7 +31,7 @@ class SchemaParser:
         return schema
 
     def parseAnnotation(self, schema, annotation):
-        for href in annotation.xpath("xsd:appinfo/link:linkbaseRef/@xlink:href", namespaces = NS):
+        for href in annotation.xpath("xs:appinfo/link:linkbaseRef/@xlink:href", namespaces = NS):
             schema.addLinkbaseRef(href)
 
     def parseElementDefinition(self, schema, e):
@@ -41,7 +44,7 @@ class SchemaParser:
         dtQName = e.get("type", None)
         dte = e
         if dtQName is None:
-            dte = next(iter(e.xpath("xsd:complexType/xsd:simpleContent/xsd:restriction", namespaces = NS)),None)
+            dte = next(iter(e.xpath("xs:complexType/xs:simpleContent/xs:restriction", namespaces = NS)),None)
             if dte is not None:
                 dtQName = dte.get("base", None)
 
@@ -53,7 +56,7 @@ class SchemaParser:
         schema.addElement(ElementDefinition(e.get("name"), sg, datatype))
 
     def parseComplexTypeDefinition(self, schema, e):
-        basetypeElement = next(iter(e.xpath("xsd:simpleContent/xsd:restriction", namespaces = NS)), None)
+        basetypeElement = next(iter(e.xpath("xs:simpleContent/xs:restriction | xs:simpleContent/xs:extension", namespaces = NS)), None)
         if basetypeElement is not None:
             basetype = basetypeElement.get("base")
         else:
@@ -64,6 +67,17 @@ class SchemaParser:
 
         schema.addType(ComplexTypeDefinition(e.get("name"), basetype))
 
+    def parseSimpleTypeDefinition(self, schema, e):
+        basetypeElement = childElement(e, "xs", "restriction")
+        if basetypeElement is not None:
+            basetype = basetypeElement.get("base")
+        else:
+            basetype = None
+
+        if basetype:
+            basetype = parseQName(e.nsmap, basetype)
+
+        schema.addType(SimpleTypeDefinition(e.get("name"), basetype))
 
             
 

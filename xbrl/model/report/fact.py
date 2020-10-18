@@ -25,3 +25,6 @@ class Fact:
     def taxonomyDefinedDimensions(self):
         return (d for d in self.dimensions if isinstance(d, TaxonomyDefinedDimension))
         
+    @property
+    def isNumeric(self):
+        return self.concept.isNumeric

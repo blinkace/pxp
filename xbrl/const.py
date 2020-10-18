@@ -1,6 +1,6 @@
 
 NS = {
-    "xsd": 'http://www.w3.org/2001/XMLSchema',
+    "xs": 'http://www.w3.org/2001/XMLSchema',
     "link": 'http://www.xbrl.org/2003/linkbase',
     "xlink": "http://www.w3.org/1999/xlink",
     "xbrli": "http://www.xbrl.org/2003/instance",

@@ -30,8 +30,8 @@ class DTS:
                             raise XBRLError("xbrl21e:invalidItemType", "Concept '%s' is not derived from an XBRL Item Type" % e.name, spec_ref = '5.1.1.3')
                         c = Concept(
                                 etree.QName(d.targetNamespace, e.name), 
-                                itemType, 
-                                isDimension = (etree.QName(NS['xbrldt'], "dimensionItem") in e.substitutionGroups())
+                                e.datatypeChain(), 
+                                e.substitutionGroups()
                                 )
                         taxonomy.addConcept(c)
 

@@ -1,4 +1,5 @@
 from .document import DTSDocument, XSDImport
+from xbrl.const import NS
 
 class SchemaDocument(DTSDocument):
 
@@ -53,20 +54,30 @@ class ElementDefinition:
         return sgs
 
     def datatypeChain(self):
-        datatypes = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname).datatypeChain()
+        if self.datatype.namespace != NS['xs']:
+            datatypes = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname).datatypeChain()
         return [self.datatype] + datatypes
         
 
-class ComplexTypeDefinition:
+class TypeDefinition:
     def __init__(self, name, base):
         self.name = name
         self.base = base
 
     def datatypeChain(self):
         if self.base is not None:
-            datatypes = self.schemaDocument.getSchemaForNamespace(self.base.namespace).getType(self.base.localname).datatypeChain()
-            return [self.base] + datatypes
+            if self.base.namespace != NS['xs']:
+                datatypes = self.schemaDocument.getSchemaForNamespace(self.base.namespace).getType(self.base.localname).datatypeChain()
+                return [self.base] + datatypes
+            return [self.base]
 
         else:
             return []
+
+class ComplexTypeDefinition(TypeDefinition):
+    pass
+
+class SimpleTypeDefinition(TypeDefinition):
+    pass
+
 
