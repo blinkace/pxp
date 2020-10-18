@@ -5,6 +5,7 @@ import logging
 import os
 import os.path
 import argparse
+from xbrl.json.report import JSONSerialiser
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -27,14 +28,10 @@ if args.packages is not None:
         processor.addTaxonomyPackage(tp)
 
 try:
-    processor.loadXBRLReport(args.reports[0])
+    report = processor.loadXBRLReport(args.reports[0])
+    js = JSONSerialiser()
+    print(js.serialise(report))
+
 except xbrl.XBRLError as e:
     print("[%s] %s" % (e.code_as_qname, e.message))
-
-#for url, doc in dts.documents.items():
-#    print(url)
-#    for n, e in doc.elements.items():
-#        print(n)
-#        print("  " + ", ".join(list(str(sg) for sg in e.substitutionGroups())))
-    
 

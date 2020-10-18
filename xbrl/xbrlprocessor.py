@@ -13,8 +13,7 @@ class XBRLProcessor:
 
     def loadXBRLReport(self, report):
         rp = XBRLReportParser(processor = self)
-        rp.parse(report)
-
+        return rp.parse(report)
 
     def addTaxonomyPackage(self, path):
         self.resolver.addPackage(TaxonomyPackage(path))

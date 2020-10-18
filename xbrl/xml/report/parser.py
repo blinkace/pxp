@@ -24,7 +24,7 @@ class XBRLReportParser:
         self.contexts = self.parseContexts(root)
         self.units = self.parseUnits(root)
         self.taxonomy = self.getTaxonomy(root, url)
-        self.parseFacts(root)
+        return self.parseFacts(root)
 
 
     def parseContexts(self, root):
@@ -43,7 +43,7 @@ class XBRLReportParser:
 
     def generateId(self):
         self.idCount = self.idCount + 1
-        return self.idCount
+        return "f%d" % self.idCount
 
     def parseFacts(self, root):
         rpt = report.Report(self.taxonomy)
@@ -87,6 +87,7 @@ class XBRLReportParser:
             rpt.addFact(f)
             print(f)
             #print("%s (%s) = %s" % (name.text, concept.itemType.text, e.text))
+        return rpt
 
             
 

@@ -5,7 +5,7 @@ class Taxonomy:
 
     def __init__(self):
         self.concepts = dict()
-        self.ns_to_prefix = dict()
+        self.ns_to_prefix = PREFIX.copy()
         self.prefix_to_ns = dict()
 
     def addConcept(self, c):
@@ -22,19 +22,15 @@ class Taxonomy:
             i = 0
             while True:
                 p = "%s%s" % (prefix, str(i) if i > 0 else "")
-                if p not in self.prefix_to_ns:
+                if p not in self.ns_to_prefix.values():
                     break
-            self.prefix_to_ns[p] = ns 
             self.ns_to_prefix[ns] = p
         return self.ns_to_prefix[ns]
 
-    def asQName(self, qname):
-        """
-        Converts an lxml QName object to QName notation using preferred prefixes
-        """
-        ns = qname.namespace
-        prefix = PREFIX.get(ns, self.ns_to_prefix.get(ns, self.addPrefix("ns", ns)))
-        return "%s:%s" % (prefix, qname.localname)
+    def getPrefix(self, ns, default = None):
+        return self.ns_to_prefix.get(ns, default)
+
+
 
 
 

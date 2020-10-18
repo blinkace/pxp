@@ -6,13 +6,15 @@ class Fact:
     def __init__(self, factId, dimensions = set(), value = None, decimals = None):
         self.id = factId
         self.dimensions = dimensions
+        for d in self.dimensions:
+            d.fact = self
         self.value = value
         self.decimals = None
         self.report = None
 
     def __repr__(self):
-        dims = "; ".join("%s = %s" % (self.report.taxonomy.asQName(d.dimension.name), self.report.taxonomy.asQName(d.value.name)) for d in self.dimensions if isinstance(d, TaxonomyDefinedDimension))
-        s = "%s[%s] = %s" % (self.report.taxonomy.asQName(self.concept.name), dims, self.value)
+        dims = "; ".join("%s = %s" % (self.report.asQName(d.name), self.report.asQName(d.value.name)) for d in self.dimensions if isinstance(d, TaxonomyDefinedDimension))
+        s = "%s[%s] = %s" % (self.report.asQName(self.concept.name), dims, self.value)
 
         return s
 
@@ -22,5 +24,4 @@ class Fact:
 
     def taxonomyDefinedDimensions(self):
         return (d for d in self.dimensions if isinstance(d, TaxonomyDefinedDimension))
-
         
