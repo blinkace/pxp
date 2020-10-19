@@ -2,7 +2,7 @@ from lxml import etree
 from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition
 from .qname import parseQName
 from .const import NS
-from xbrl.xml.util import childElement
+from xbrl.xml.util import qname
 
 
 class SchemaParser:
@@ -68,7 +68,7 @@ class SchemaParser:
         schema.addType(ComplexTypeDefinition(e.get("name"), basetype))
 
     def parseSimpleTypeDefinition(self, schema, e):
-        basetypeElement = childElement(e, "xs", "restriction")
+        basetypeElement = e.childElement(qname("xs:restriction"))
         if basetypeElement is not None:
             basetype = basetypeElement.get("base")
         else:

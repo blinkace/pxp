@@ -2,7 +2,7 @@ from lxml import etree
 from xbrl.const import NS
 from xbrl.document import SchemaRef
 from xbrl.documentloader import DocumentLoader
-from xbrl.xml.util import qname, childElements, childElement
+from xbrl.xml import qname, parser
 from xbrl.xbrlerror import XBRLError
 import xbrl.model.report as report 
 
@@ -19,7 +19,7 @@ class XBRLReportParser:
 
     def parse(self, url):
         with self.processor.resolver.open(url) as src:
-            tree = etree.parse(src)
+            tree = etree.parse(src, parser())
         root = tree.getroot()
         self.contexts = self.parseContexts(root)
         self.units = self.parseUnits(root)
@@ -29,14 +29,14 @@ class XBRLReportParser:
 
     def parseContexts(self, root):
         contexts = dict()
-        for ce in childElements(root, 'xbrli', 'context'):
+        for ce in root.childElements(qname('xbrli:context')):
             c = Context.from_xml(ce)
             contexts[c.id] = c
         return contexts
 
     def parseUnits(self, root):
         units = dict()
-        for ue in childElements(root, 'xbrli', 'unit'):
+        for ue in root.childElements(qname('xbrli:unit')):
             u = Unit.from_xml(ue)
             units[u.id] = u
         return units
@@ -97,7 +97,7 @@ class XBRLReportParser:
 
     def getTaxonomy(self, root, url):
         schemaRefs = list(SchemaRef(urljoin(url, e.get(etree.QName(NS['xlink'],"href")))) 
-            for e in childElements(root, 'link', 'schemaRef'))
+            for e in root.childElements(qname('link:schemaRef')))
         dl = DocumentLoader(url_resolver = self.processor.resolver)
         dts = dl.load(schemaRefs)
         return dts.buildTaxonomy()

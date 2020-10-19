@@ -1,4 +1,4 @@
-from xbrl.xml.util import qname, childElements, childElement
+from xbrl.xml import qname
 
 class Unit:
 
@@ -10,10 +10,10 @@ class Unit:
     @classmethod
     def from_xml(cls, elt):
         uid = elt.get('id')
-        divide = childElement(elt, "xbrli", "divide")
+        divide = elt.childElement(qname("xbrli:divide"))
         if divide is not None:
-            numerators = list(e.tag for e in childElement(divide, "xbrli", "unitNumerator"))
-            denominators = list(e.tag for e in childElement(divide, "xbrli", "unitDenominator"))
+            numerators = list(e.tag for e in divide.childElement(qname("xbrli:unitNumerator")))
+            denominators = list(e.tag for e in divide.childElement(qname("xbrli:unitDenominator")))
         else:
             numerators = list(e.tag for e in elt)
             denominators = None

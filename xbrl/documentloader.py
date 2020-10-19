@@ -5,6 +5,7 @@ from .dts import DTS
 from lxml import etree
 from .const import NS
 from .xbrlerror import XBRLError
+import xbrl.xml
 import logging
 
 class DocumentLoader:
@@ -37,7 +38,7 @@ class DocumentLoader:
     def loadDTSReference(self, ref):
 
         with self.url_resolver.open(ref.href) as src:
-            tree = etree.parse(src)
+            tree = etree.parse(src, xbrl.xml.parser())
         root = tree.getroot()
 
         isSchema = root.tag == etree.QName(NS["xs"], "schema")

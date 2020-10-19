@@ -1,6 +1,6 @@
 from zipfile import ZipFile
 from lxml import etree
-from .xml.util import childElements
+from xbrl.xml import parser, qname
 import os.path
 import logging
 
@@ -24,9 +24,9 @@ class TaxonomyPackage:
             catalogPath = "%s/META-INF/catalog.xml" % self.tld
 
             with package.open(catalogPath) as catalogXML:
-                catalog = etree.parse(catalogXML)
+                catalog = etree.parse(catalogXML, parser())
 
-                for rewrite in childElements(catalog.getroot(), 'catalog', "rewriteURI"):
+                for rewrite in catalog.getroot().childElements(qname("catalog:rewriteURI")):
                     rewriteFrom = rewrite.get("uriStartString")
                     rewriteTo = rewrite.get("rewritePrefix")
                     self.mappings[rewriteFrom] = rewriteTo
@@ -36,9 +36,9 @@ class TaxonomyPackage:
     def loadMetaData(self, package):
         mdPath = "%s/META-INF/taxonomyPackage.xml" % self.tld
         with package.open(mdPath) as metadataXML:
-            metadata = etree.parse(metadataXML)
+            metadata = etree.parse(metadataXML, parser())
             root = metadata.getroot()
-            names = childElements(root, "tp", "name")
+            names = root.childElements(qname("tp:name"))
             self.name = next(names).text
 
 

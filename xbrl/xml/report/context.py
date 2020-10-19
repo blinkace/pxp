@@ -1,5 +1,5 @@
 from xbrl.model.report.period import InstantPeriod, DurationPeriod
-from xbrl.xml.util import qname, childElements, childElement
+from xbrl.xml.util import qname
 from xbrl.const import NS
 from xbrl.xbrlerror import XBRLError
 from xbrl.qname import parseQName
@@ -28,8 +28,9 @@ class Context:
     @classmethod
     def from_xml(cls, elt):
         cid = elt.get('id')
-        entityElt = next(childElements(elt, 'xbrli', 'entity'))
-        identifierElt = next(childElements(entityElt, 'xbrli', 'identifier'))
+        entityElt = elt.childElement(qname('xbrli:entity'))
+        identifierElt = entityElt.childElement(qname('xbrli:identifier'))
+
         scheme = identifierElt.get('scheme')
         identifier = identifierElt.text
 
@@ -60,10 +61,10 @@ class Context:
                 dimensions = dimensions)
 
     def parse_period(contextElt):
-        pe = childElement(contextElt, "xbrli", "period")
-        instant = childElement(pe, "xbrli", "instant")
-        start = childElement(pe, "xbrli", "startDate")
-        end = childElement(pe, "xbrli", "endDate")
+        pe = contextElt.childElement(qname("xbrli:period"))
+        instant = pe.childElement(qname("xbrli:instant"))
+        start = pe.childElement(qname("xbrli:startDate"))
+        end = pe.childElement(qname("xbrli:endDate"))
         if instant is not None:
             period = InstantPeriod(Context.parseDateTimeDateUnion(instant.text))
         else:
