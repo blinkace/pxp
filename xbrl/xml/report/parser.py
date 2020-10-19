@@ -4,6 +4,7 @@ from xbrl.document import SchemaRef
 from xbrl.documentloader import DocumentLoader
 from xbrl.xml import qname, parser
 from xbrl.xbrlerror import XBRLError
+from math import log10, fabs, floor
 import xbrl.model.report as report 
 
 from .context import Context
@@ -51,6 +52,7 @@ class XBRLReportParser:
             name = etree.QName(e.tag)
             if name.namespace in (NS['xbrli'], NS['link']):
                 continue;
+
             concept = self.taxonomy.concepts.get(name, None)
             if concept is None:
                 raise XBRLError("oime:missingConceptDefinition", "Could not find concept definition for %s" % name.text)
@@ -62,7 +64,7 @@ class XBRLReportParser:
             cid = e.get("contextRef")
             ctxt = self.contexts.get(cid, None)
             if ctxt is None:
-                raise XBRLError("missingContext", "No context with ID '%s'" % cid)
+                raise XBRLError("xbrl21e:missingContext", "No context with ID '%s'" % cid)
 
             dims.add(ctxt.period)
 
@@ -84,17 +86,35 @@ class XBRLReportParser:
             if uid is not None:
                 unit = self.units.get(uid, None)
                 if unit is None:
-                    raise XBRLError("missingUnit", "No unit with ID '%s'" % cid)
+                    raise XBRLError("xbrl21e:missingUnit", "No unit with ID '%s'" % cid)
                 if not unit.isPure:
                     dims.add(report.UnitCoreDimension(unit.numerators, unit.denominators))
 
-            f = report.Fact(e.get("id", self.generateId()), dimensions = dims, value = e.text)
+            decimals = self.parseDecimals(e)
+
+            f = report.Fact(e.get("id", self.generateId()), dimensions = dims, value = e.text, decimals = decimals)
             rpt.addFact(f)
-            print(f)
-            #print("%s (%s) = %s" % (name.text, concept.itemType.text, e.text))
         return rpt
 
-            
+    def parseDecimals(self, fact):
+        d = fact.get("decimals", None)
+        if d is None:
+            p = fact.get("precision", None)
+            if p is None or p == "INF":
+                return None
+
+            precision = int(p)
+            if precision == 0:
+                raise XBRLError("xbrl21e:invalidPrecision", "precision = 0 not supported")
+            value = float(fact.text)
+            if value == 0:
+                return XBRLError("xbrl21e:invalidPrecision", "precision for a value of 0 is meaningless")
+            else:
+                return precision - int(floor(log10(fabs(value)))) - 1
+
+        if d == "INF":
+            return None
+        return int(d)
 
     def getTaxonomy(self, root, url):
         schemaRefs = list(SchemaRef(urljoin(url, e.get(etree.QName(NS['xlink'],"href")))) 

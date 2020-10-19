@@ -9,7 +9,7 @@ class Fact:
         for d in self.dimensions:
             d.fact = self
         self.value = value
-        self.decimals = None
+        self.decimals = decimals
         self.report = None
 
     def __repr__(self):

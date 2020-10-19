@@ -11,7 +11,6 @@ class JSONSerialiser:
                 "namespaces": {}
             },
             "facts": {
-
             }
         }
 
@@ -27,6 +26,8 @@ class JSONSerialiser:
                 else:
                     name = report.asQName(d.name)
                 fjson["dimensions"][name] = d.stringValue
+            if f.decimals is not None:
+                fjson["decimals"] = f.decimals
             out["facts"][f.id] = fjson
             
         out["documentInfo"]["namespaces"] = report.usedPrefixMap()

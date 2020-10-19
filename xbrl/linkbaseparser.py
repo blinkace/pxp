@@ -27,11 +27,5 @@ class LinkbaseParser:
                 href = urldefrag(loc.get(etree.QName(NS["xlink"], "href"))).url
                 linkbase.addLoc(href)
 
-        print(linkbase.dtsReferences)
         return linkbase
-
-
-
-
-
 

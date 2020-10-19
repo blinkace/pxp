@@ -15,8 +15,6 @@ class Concept:
     @property
     def isNumeric(self):
         numericTypes = set(etree.QName(NS['xs'], t) for t in ('decimal', 'float', 'double'))
-        print(list(t.text for t in numericTypes))
-        print(list(t.text for t in self.typeChain))
         return not set(self.typeChain).isdisjoint(numericTypes)
 
     @property
