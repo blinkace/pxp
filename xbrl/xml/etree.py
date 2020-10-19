@@ -1,4 +1,5 @@
 import lxml.etree as etree
+from xbrl.qname import parseQName
 
 def parser():
     parser_lookup = etree.ElementDefaultClassLookup(element=Element)
@@ -19,3 +20,7 @@ class Element(etree.ElementBase):
     def childElement(self, tag = None):
         return next(self.childElements(tag = tag), None)
         return (e for e in self if isinstance(e, Element) and (tag is None or e.tag == tag))
+
+    @property
+    def qnameValue(self):
+        return parseQName(self.nsmap, self.text)

@@ -12,10 +12,10 @@ class Unit:
         uid = elt.get('id')
         divide = elt.childElement(qname("xbrli:divide"))
         if divide is not None:
-            numerators = list(e.tag for e in divide.childElement(qname("xbrli:unitNumerator")))
-            denominators = list(e.tag for e in divide.childElement(qname("xbrli:unitDenominator")))
+            numerators = list(e.qnameValue for e in divide.childElement(qname("xbrli:unitNumerator")))
+            denominators = list(e.qnameValue for e in divide.childElement(qname("xbrli:unitDenominator")))
         else:
-            numerators = list(e.tag for e in elt)
+            numerators = list(e.qnameValue for e in elt)
             denominators = None
 
         return cls(
@@ -23,3 +23,8 @@ class Unit:
                 numerators = numerators,
                 denominators = denominators
                 )
+
+    @property
+    def isPure(self):
+        return self.denominators is None and self.numerators == [qname('xbrli:pure')]
+

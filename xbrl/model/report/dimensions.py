@@ -30,8 +30,24 @@ class ConceptCoreDimension(CoreDimension):
         return self.fact.report.asQName(self.concept.name)
 
 
-class PeriodCoreDimension(CoreDimension):
-    pass
+class UnitCoreDimension(CoreDimension):
+
+    def __init__(self, numerators, denominators):
+        super().__init__("unit")
+        self.numerators = numerators
+        self.denominators = denominators
+
+
+    @property
+    def stringValue(self):
+        numStr = "*".join(sorted(self.fact.report.asQName(n) for n in self.numerators))
+        if self.denominators is not None and len(self.denominators) > 0:
+            denomStr = "*".join(sorted(self.fact.report.asQName(n) for n in self.denominators))
+            return "(%s)/(%s)" % (numStr, denomStr)
+        else:
+            return numStr
+
+
 
 class EntityCoreDimension(CoreDimension):
 

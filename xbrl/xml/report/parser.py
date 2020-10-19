@@ -85,7 +85,8 @@ class XBRLReportParser:
                 unit = self.units.get(uid, None)
                 if unit is None:
                     raise XBRLError("missingUnit", "No unit with ID '%s'" % cid)
-
+                if not unit.isPure:
+                    dims.add(report.UnitCoreDimension(unit.numerators, unit.denominators))
 
             f = report.Fact(e.get("id", self.generateId()), dimensions = dims, value = e.text)
             rpt.addFact(f)

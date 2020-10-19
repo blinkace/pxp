@@ -13,7 +13,10 @@ NS = {
     "oime": "http://www.xbrl.org/DCR/YYYY-MM-DD/oim/error",
     "xbrlxe": "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-xml/error",
     "xbrl21e": "http://www.blinkace.com/python-xbrl-oim/xbrl-2.1/error",
-    "xbrl": "http://www.xbrl.org/WGWD/YYYY-MM-DD"
+    "xbrl": "http://www.xbrl.org/WGWD/YYYY-MM-DD",
+    "iso4217": "http://www.xbrl.org/2003/iso4217",
+    "utr": "http://www.xbrl.org/2009/utr"
+
 }
 
 
