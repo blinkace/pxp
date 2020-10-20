@@ -1,6 +1,7 @@
 from .urlresolver import URLResolver
 from .taxonomypackage import TaxonomyPackage
 from .xml.report import XBRLReportParser
+from .xml.report import IXBRLReportParser
 
 class XBRLProcessor:
 
@@ -13,6 +14,10 @@ class XBRLProcessor:
 
     def loadXBRLReport(self, report):
         rp = XBRLReportParser(processor = self)
+        return rp.parse(report)
+
+    def loadIXBRLReport(self, report):
+        rp = IXBRLReportParser(processor = self)
         return rp.parse(report)
 
     def addTaxonomyPackage(self, path):

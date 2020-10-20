@@ -28,7 +28,8 @@ if args.packages is not None:
         processor.addTaxonomyPackage(tp)
 
 try:
-    report = processor.loadXBRLReport(args.reports[0])
+    #report = processor.loadXBRLReport(args.reports[0])
+    report = processor.loadIXBRLReport(args.reports[0])
     js = JSONSerialiser()
     print(js.serialise(report))
 

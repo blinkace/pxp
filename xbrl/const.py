@@ -15,7 +15,8 @@ NS = {
     "xbrl21e": "http://www.blinkace.com/python-xbrl-oim/xbrl-2.1/error",
     "xbrl": "http://www.xbrl.org/WGWD/YYYY-MM-DD",
     "iso4217": "http://www.xbrl.org/2003/iso4217",
-    "utr": "http://www.xbrl.org/2009/utr"
+    "utr": "http://www.xbrl.org/2009/utr",
+    "ix": "http://www.xbrl.org/2013/inlineXBRL"
 }
 
 

@@ -24,3 +24,9 @@ class Element(etree.ElementBase):
     @property
     def qnameValue(self):
         return parseQName(self.nsmap, self.text)
+
+    def qnameAttrValue(self, name):
+        v = self.get(name, None)
+        if v is not None:
+            return parseQName(self.nsmap, v)
+        return None

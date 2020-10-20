@@ -6,6 +6,8 @@ from xbrl.qname import parseQName
 from lxml import etree
 import dateutil.parser
 import dateutil.relativedelta
+import logging
+import xbrl.model.report as report 
 
 class Context:
 
@@ -47,7 +49,7 @@ class Context:
             if e.tag == etree.QName(NS['xbrldi'], "explicitMember"):
                 dimensions[parseQName(e.nsmap, e.get("dimension"))] = parseQName(e.nsmap, e.text)
             elif e.tag == etree.QName(NS['xbrldi'], "typedMember"):
-                raise ValueError("Typed dimensions not implemented")
+                logging.error("Typed dimensions not implemented")
             else:
                 raise XBRLError("xbrlxe:nonDimensionalSegmentScenarioContent", "Non-dimensional content found in context '%s': %s" % (cid, e.tag))
 
@@ -80,3 +82,24 @@ class Context:
         if "T" not in dtdu and defaultToEndOfDay:
             t = t + dateutil.relativedelta.relativedelta(days = 1)
         return t
+
+    def asDimensions(self, taxonomy):
+        dims = set()
+
+        dims.add(self.period)
+
+        for dim, dval in self.dimensions.items():
+            dimconcept = taxonomy.concepts.get(dim, None)
+            if dimconcept is None:
+                raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Could not find definition for dimension %s" % dim)
+            if not dimconcept.isDimension:
+                raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Concept %s is not a dimension" % dim)
+            valconcept = taxonomy.concepts.get(dval, None)
+            if valconcept is None:
+                raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % dval)
+
+            dims.add(report.ExplicitTaxonomyDefinedDimension(dimconcept, valconcept))
+
+        dims.add(report.EntityCoreDimension(self.scheme, self.identifier))
+
+        return dims

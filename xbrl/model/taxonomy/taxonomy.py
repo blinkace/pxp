@@ -24,6 +24,7 @@ class Taxonomy:
                 p = "%s%s" % (prefix, str(i) if i > 0 else "")
                 if p not in self.ns_to_prefix.values():
                     break
+                i += 1
             self.ns_to_prefix[ns] = p
         return self.ns_to_prefix[ns]
 

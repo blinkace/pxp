@@ -1,4 +1,5 @@
 from xbrl.xml import qname
+import xbrl.model.report as report 
 
 class Unit:
 
@@ -27,4 +28,10 @@ class Unit:
     @property
     def isPure(self):
         return self.denominators is None and self.numerators == [qname('xbrli:pure')]
+
+    def asDimensions(self):
+        if not self.isPure:
+            return set((report.UnitCoreDimension(self.numerators, self.denominators),))
+
+        return set()
 
