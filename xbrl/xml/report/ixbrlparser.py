@@ -11,6 +11,8 @@ import logging
 from .context import Context
 from .unit import Unit
 from urllib.parse import urljoin
+from .trrv3 import TRRv3
+from .trrv1 import TRRv1
 
 from .parser import XBRLReportParser
 
@@ -47,6 +49,7 @@ class IXBRLReportParser(XBRLReportParser):
 
     def buildReport(self):
         rpt = report.Report(self.taxonomy)
+        trr = TRRv1()
         for fe in self.ixFactElements:
             conceptName = fe.qnameAttrValue("name")
             concept = self.taxonomy.concepts.get(conceptName)
@@ -80,6 +83,13 @@ class IXBRLReportParser(XBRLReportParser):
                     raise XBRLError("ixbrle:missingUnit", "No unit with ID '%s'" % cid)
                 dims.update(unit.asDimensions())
 
+            fmt = fe.qnameAttrValue("format")
+            if fmt is not None:
+                transform = trr.getTransform(fmt)
+                if transform is None:
+                    logging.error("Unknown transform: %s" % fmt.text)
+                else:
+                    content = transform.transform(content)
 
             f = report.Fact(fe.get("id", self.generateId()), dimensions = dims, value = content, decimals = self.parseDecimals(fe))
             rpt.addFact(f)

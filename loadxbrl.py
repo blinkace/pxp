@@ -24,7 +24,6 @@ processor = xbrl.XBRLProcessor()
 
 if args.packages is not None:
     for tp in args.packages:
-        print(tp)
         processor.addTaxonomyPackage(tp)
 
 try:

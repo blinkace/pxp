@@ -2,7 +2,6 @@ from xbrl.model.report.period import InstantPeriod, DurationPeriod
 from xbrl.xml.util import qname
 from xbrl.const import NS
 from xbrl.xbrlerror import XBRLError
-from xbrl.qname import parseQName
 from lxml import etree
 import dateutil.parser
 import dateutil.relativedelta
@@ -47,7 +46,7 @@ class Context:
 
         for e in segmentContent + scenarioContent:
             if e.tag == etree.QName(NS['xbrldi'], "explicitMember"):
-                dimensions[parseQName(e.nsmap, e.get("dimension"))] = parseQName(e.nsmap, e.text)
+                dimensions[e.qnameAttrValue("dimension")] = e.qnameValue
             elif e.tag == etree.QName(NS['xbrldi'], "typedMember"):
                 logging.error("Typed dimensions not implemented")
             else:
