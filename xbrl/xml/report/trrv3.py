@@ -1,5 +1,6 @@
 from .trr import TRRegistry, IXTransform
 import re
+from . import trrv1 as trrv1
 
 class IXNumDotDecimal(IXTransform):
 
