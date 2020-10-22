@@ -3,10 +3,11 @@ from xbrl.xml import qname
 
 class Concept:
 
-    def __init__(self, name, typeChain, substitutionGroupChain):
+    def __init__(self, name, typeChain, substitutionGroupChain, typedDomainRef = None):
         self.name = name
         self.typeChain = typeChain
         self.substitutionGroupChain = substitutionGroupChain
+        self.typedDomainRef = typedDomainRef
 
     @property
     def itemType(self):
@@ -21,3 +22,6 @@ class Concept:
     def isDimension(self):
         return qname("xbrldt:dimensionItem") in self.substitutionGroupChain
 
+    @property
+    def isTypedDimension(self):
+        return self.typedDomainRef is not None

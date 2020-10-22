@@ -48,6 +48,17 @@ class Context:
             if e.tag == qname("xbrldi:explicitMember"):
                 dimensions[e.qnameAttrValue("dimension")] = e.qnameValue
             elif e.tag == qname("xbrldi:typedMember"):
+                name = e.qnameAttrValue("dimension")
+                typedDimElts = list(e.childElements())
+                if len(typedDimElts) != 1:
+                    raise XBRLError("invalidTypedMember", "xbrldi:typedMember element did not have exactly one child")
+                typedDimElt = typedDimElts[0]
+                if len(list(typedDimElt.childElements())) != 0:
+                    raise XBRLError("xbrlxe:unsupportedComplexTypedDimension", "Complex typed dimensions are not supported (%s)" % (name))
+
+                # XXX need to check for QName type
+                dimensions[e.qnameAttrValue("dimension")] = typedDimElt.text
+
                 logging.error("Typed dimensions not implemented")
             else:
                 raise XBRLError("xbrlxe:nonDimensionalSegmentScenarioContent", "Non-dimensional content found in context '%s': %s" % (cid, e.tag))
@@ -93,11 +104,13 @@ class Context:
                 raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Could not find definition for dimension %s" % dim)
             if not dimconcept.isDimension:
                 raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Concept %s is not a dimension" % dim)
-            valconcept = taxonomy.concepts.get(dval, None)
-            if valconcept is None:
-                raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % dval)
-
-            dims.add(report.ExplicitTaxonomyDefinedDimension(dimconcept, valconcept))
+            if dimconcept.isTypedDimension:
+                dims.add(report.TypedTaxonomyDefinedDimension(dimconcept, value))
+            else:
+                valconcept = taxonomy.concepts.get(dval, None)
+                if valconcept is None:
+                    raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % dval)
+                dims.add(report.ExplicitTaxonomyDefinedDimension(dimconcept, valconcept))
 
         dims.add(report.EntityCoreDimension(self.scheme, self.identifier))
 

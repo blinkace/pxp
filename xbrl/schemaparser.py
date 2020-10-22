@@ -53,7 +53,7 @@ class SchemaParser:
         else:
             datatype = None
 
-        schema.addElement(ElementDefinition(e.get("name"), sg, datatype))
+        schema.addElement(ElementDefinition(e.get("name"), sg, datatype, e.get(qname("xbrldt:typedDomainRef"),None)))
 
     def parseComplexTypeDefinition(self, schema, e):
         basetypeElement = next(iter(e.xpath("xs:simpleContent/xs:restriction | xs:simpleContent/xs:extension", namespaces = NSMAP)), None)

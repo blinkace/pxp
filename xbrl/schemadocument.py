@@ -40,10 +40,11 @@ class SchemaDocument(DTSDocument):
 
 
 class ElementDefinition:
-    def __init__(self, name, substitutionGroup, datatype):
+    def __init__(self, name, substitutionGroup, datatype, typedDomainRef = None):
         self.name = name
         self.substitutionGroup = substitutionGroup
         self.datatype = datatype
+        self.typedDomainRef = typedDomainRef
 
     def substitutionGroups(self):
         sgs = []

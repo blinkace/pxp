@@ -32,7 +32,8 @@ class DTS:
                         c = Concept(
                                 etree.QName(d.targetNamespace, e.name), 
                                 e.datatypeChain(), 
-                                e.substitutionGroups()
+                                e.substitutionGroups(),
+                                e.typedDomainRef
                                 )
                         taxonomy.addConcept(c)
 

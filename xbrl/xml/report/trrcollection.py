@@ -1,6 +1,7 @@
 from .trrv1 import TRRv1
 from .trrv2 import TRRv2
 from .trrv3 import TRRv3
+from xbrl.xbrlerror import XBRLError
 
 class TRRCollection:
 
