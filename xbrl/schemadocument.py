@@ -54,7 +54,7 @@ class ElementDefinition:
         return sgs
 
     def datatypeChain(self):
-        if self.datatype.namespace != NS['xs']:
+        if self.datatype.namespace != NS.xs:
             datatypes = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname).datatypeChain()
         return [self.datatype] + datatypes
         
@@ -66,7 +66,7 @@ class TypeDefinition:
 
     def datatypeChain(self):
         if self.base is not None:
-            if self.base.namespace != NS['xs']:
+            if self.base.namespace != NS.xs:
                 datatypes = self.schemaDocument.getSchemaForNamespace(self.base.namespace).getType(self.base.localname).datatypeChain()
                 return [self.base] + datatypes
             return [self.base]

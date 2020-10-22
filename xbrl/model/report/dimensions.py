@@ -15,7 +15,7 @@ class Dimension:
 class CoreDimension(Dimension):
 
     def __init__(self, name):
-        super().__init__(etree.QName(NS['xbrl'], name))
+        super().__init__(etree.QName(NS.xbrl, name))
         self.isCore = True
 
 class ConceptCoreDimension(CoreDimension):

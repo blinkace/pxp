@@ -12,6 +12,7 @@ from .context import Context
 from .unit import Unit
 from urllib.parse import urljoin
 from .trrv3 import TRRv3
+from .trrv2 import TRRv2
 from .trrv1 import TRRv1
 
 from .parser import XBRLReportParser
@@ -33,7 +34,7 @@ class IXBRLReportParser(XBRLReportParser):
 
         for e in parent.childElements():
             name = etree.QName(e.tag)
-            if name.namespace == NS["ix"]:
+            if name.namespace in [NS.ix, NS.ix10]:
                 if name.localname == 'header':
                     self.parseIXHeader(e)
                 elif name.localname in ["fraction", "nonFraction", "nonNumeric"]:
@@ -49,7 +50,7 @@ class IXBRLReportParser(XBRLReportParser):
 
     def buildReport(self):
         rpt = report.Report(self.taxonomy)
-        trr = TRRv1()
+        trr = TRRv2()
         for fe in self.ixFactElements:
             conceptName = fe.qnameAttrValue("name")
             concept = self.taxonomy.concepts.get(conceptName)

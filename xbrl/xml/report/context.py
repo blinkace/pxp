@@ -1,6 +1,6 @@
 from xbrl.model.report.period import InstantPeriod, DurationPeriod
 from xbrl.xml.util import qname
-from xbrl.const import NS
+from xbrl.const import NSMAP
 from xbrl.xbrlerror import XBRLError
 from lxml import etree
 import dateutil.parser
@@ -35,9 +35,9 @@ class Context:
         scheme = identifierElt.get('scheme')
         identifier = identifierElt.text
 
-        segmentContent = entityElt.xpath("xbrli:segment/*", namespaces = NS)
+        segmentContent = entityElt.xpath("xbrli:segment/*", namespaces = NSMAP)
 
-        scenarioContent = elt.xpath("xbrli:scenario/*", namespaces = NS)
+        scenarioContent = elt.xpath("xbrli:scenario/*", namespaces = NSMAP)
 
         if len(segmentContent) > 0 and len(scenarioContent) > 0:
             raise XBRLError("xbrlxe:unexpectedContextContent", "Content found in both segment and scenario containers for context with ID '%s'" % cid)
@@ -45,9 +45,9 @@ class Context:
         dimensions = dict()
 
         for e in segmentContent + scenarioContent:
-            if e.tag == etree.QName(NS['xbrldi'], "explicitMember"):
+            if e.tag == qname("xbrldi:explicitMember"):
                 dimensions[e.qnameAttrValue("dimension")] = e.qnameValue
-            elif e.tag == etree.QName(NS['xbrldi'], "typedMember"):
+            elif e.tag == qname("xbrldi:typedMember"):
                 logging.error("Typed dimensions not implemented")
             else:
                 raise XBRLError("xbrlxe:nonDimensionalSegmentScenarioContent", "Non-dimensional content found in context '%s': %s" % (cid, e.tag))

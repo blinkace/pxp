@@ -1,5 +1,5 @@
 from lxml import etree
-from .const import NS, PREFIX
+from .const import NSMAP, PREFIX
 
 class XBRLError(Exception):
 
@@ -9,7 +9,7 @@ class XBRLError(Exception):
         else:
             (prefix, localpart) = ("pyxbrle", code)
 
-        self.code = etree.QName(NS[prefix], localpart)
+        self.code = etree.QName(NSMAP[prefix], localpart)
         self.message = message
         self.spec_ref = spec_ref
 

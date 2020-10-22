@@ -3,6 +3,7 @@ from .schemadocument import SchemaDocument
 from lxml import etree
 from .model.taxonomy import Concept, Taxonomy
 from .xbrlerror import XBRLError
+from xbrl.xml import qname
 
 class DTS:
 
@@ -24,8 +25,8 @@ class DTS:
                 if d.preferredPrefix is not None:
                     taxonomy.addPrefix(d.preferredPrefix, d.targetNamespace)
                 for n, e in d.elements.items():
-                    if etree.QName(NS['xbrli'], 'item') in e.substitutionGroups():
-                        itemType = next((dt for dt in e.datatypeChain() if dt.namespace == NS['xbrli']), None)
+                    if qname('xbrli:item') in e.substitutionGroups():
+                        itemType = next((dt for dt in e.datatypeChain() if dt.namespace == NS.xbrli), None)
                         if itemType is None:
                             raise XBRLError("xbrl21e:invalidItemType", "Concept '%s' is not derived from an XBRL Item Type" % e.name, spec_ref = '5.1.1.3')
                         c = Concept(

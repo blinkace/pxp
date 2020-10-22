@@ -49,7 +49,7 @@ class XBRLReportParser:
         rpt = report.Report(self.taxonomy)
         for e in root:
             name = etree.QName(e.tag)
-            if name.namespace in (NS['xbrli'], NS['link']):
+            if name.namespace in (NS.xbrli, NS.link):
                 continue;
 
             concept = self.taxonomy.concepts.get(name, None)
@@ -98,7 +98,7 @@ class XBRLReportParser:
         return int(d)
 
     def getTaxonomy(self, root):
-        schemaRefs = list(SchemaRef(urljoin(self.url, e.get(etree.QName(NS['xlink'],"href")))) 
+        schemaRefs = list(SchemaRef(urljoin(self.url, e.get(qname("xlink:href")))) 
             for e in root.childElements(qname('link:schemaRef')))
         dl = DocumentLoader(url_resolver = self.processor.resolver)
         dts = dl.load(schemaRefs)

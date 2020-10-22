@@ -3,9 +3,9 @@ from .linkbaseparser import LinkbaseParser
 from .document import DTSSchema, LinkbaseRef, Loc
 from .dts import DTS
 from lxml import etree
-from .const import NS
 from .xbrlerror import XBRLError
 import xbrl.xml
+from xbrl.xml import qname
 import logging
 
 class DocumentLoader:
@@ -41,8 +41,8 @@ class DocumentLoader:
             tree = etree.parse(src, xbrl.xml.parser())
         root = tree.getroot()
 
-        isSchema = root.tag == etree.QName(NS["xs"], "schema")
-        isLinkbase = root.tag == etree.QName(NS["link"], "linkbase")
+        isSchema = root.tag == qname("xs:schema")
+        isLinkbase = root.tag == qname("link:linkbase")
 
         if isinstance(ref, DTSSchema) and not isSchema:
             raise XBRLError("xbrl21e:invalidDTSReferenceTarget", "Expected schema but found %s when loading %s" % (root.tag, ref.href))
