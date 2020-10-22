@@ -17,6 +17,5 @@ class TypedTaxonomyDefinedDimension(TaxonomyDefinedDimension):
 
     @property
     def stringValue(self):
-        print("Typed dim: %s" % self.value)
         return self.value
 

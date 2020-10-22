@@ -59,7 +59,6 @@ class Context:
                 # XXX need to check for QName type
                 dimensions[e.qnameAttrValue("dimension")] = typedDimElt.text
 
-                logging.error("Typed dimensions not implemented")
             else:
                 raise XBRLError("xbrlxe:nonDimensionalSegmentScenarioContent", "Non-dimensional content found in context '%s': %s" % (cid, e.tag))
 
@@ -100,12 +99,13 @@ class Context:
 
         for dim, dval in self.dimensions.items():
             dimconcept = taxonomy.concepts.get(dim, None)
+            # XXX Wrong error codes for typed dimensions
             if dimconcept is None:
                 raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Could not find definition for dimension %s" % dim)
             if not dimconcept.isDimension:
                 raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Concept %s is not a dimension" % dim)
             if dimconcept.isTypedDimension:
-                dims.add(report.TypedTaxonomyDefinedDimension(dimconcept, value))
+                dims.add(report.TypedTaxonomyDefinedDimension(dimconcept, dval))
             else:
                 valconcept = taxonomy.concepts.get(dval, None)
                 if valconcept is None:
