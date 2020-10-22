@@ -142,9 +142,15 @@ class NumUnitDecimal(IXTransform):
     INPUT_RE = r'(?P<I>[0０]|([1-9１-９][0-9０-９]{0,2}((\.|,|，)?[0-9０-９]{3})*))([^0-9,.，．０-９]+)(?P<F>[0-9０-９]{1,2})([^0-9,.，．０-９]*)'
 
     def _transform(self, vin):
-        m = re.fullmatch(NumUnitDecimal.INPUT_RE, unicodedata.normalize('NFKC', vin))
-        i = re.sub('[^０-９0-9]','',m.group('I'))
-        f = re.sub('[^０-９0-9]','',m.group('F'))
+        m = re.fullmatch(type(self).INPUT_RE, unicodedata.normalize('NFKC', vin))
+        gd = m.groupdict()
+        # Match groups will be I, I2, I3 for integer part, and F, F2, F2 for fraction part
+        i = next(v for k, v in gd.items() if k.startswith("I") and v is not None)
+        f = next(v for k, v in gd.items() if k.startswith("F") and v is not None)
+        if f == None:
+            f = ""
+        i = re.sub('[^０-９0-9]','',i)
+        f = re.sub('[^０-９0-9]','',f)
         if f != '':
             return "%s.%02d" % (i, int(f))
         else:
