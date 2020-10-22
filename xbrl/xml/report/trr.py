@@ -96,4 +96,3 @@ class TRRegistry:
             return None
 
         return self.transforms.get(name.localname, None)
-

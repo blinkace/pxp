@@ -11,9 +11,7 @@ import logging
 from .context import Context
 from .unit import Unit
 from urllib.parse import urljoin
-from .trrv3 import TRRv3
-from .trrv2 import TRRv2
-from .trrv1 import TRRv1
+from .trrcollection import buildTRRCollection
 
 from .parser import XBRLReportParser
 
@@ -50,7 +48,7 @@ class IXBRLReportParser(XBRLReportParser):
 
     def buildReport(self):
         rpt = report.Report(self.taxonomy)
-        trr = TRRv2()
+        trr = buildTRRCollection()
         for fe in self.ixFactElements:
             conceptName = fe.qnameAttrValue("name")
             concept = self.taxonomy.concepts.get(conceptName)
