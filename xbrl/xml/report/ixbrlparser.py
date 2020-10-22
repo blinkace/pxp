@@ -41,6 +41,8 @@ class IXBRLReportParser(XBRLReportParser):
                 elif name.localname == 'continuation':
                     self.ixContinuations[e.get("id")] = e
                     self.parseChildren(e)
+                elif name.localname == 'exclude':
+                    pass
                 else:
                     logging.error("Unhandled ix element: ix:%s" % name.localname)
             else:
