@@ -7,6 +7,7 @@ import dateutil.parser
 import dateutil.relativedelta
 import logging
 import xbrl.model.report as report 
+from xbrl.model.taxonomy import TypedDimension
 
 class Context:
 
@@ -104,7 +105,7 @@ class Context:
                 raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Could not find definition for dimension %s" % dim)
             if not dimconcept.isDimension:
                 raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Concept %s is not a dimension" % dim)
-            if dimconcept.isTypedDimension:
+            if isinstance(dimconcept,TypedDimension):
                 dims.add(report.TypedTaxonomyDefinedDimension(dimconcept, dval))
             else:
                 valconcept = taxonomy.concepts.get(dval, None)

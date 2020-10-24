@@ -7,12 +7,15 @@ class SchemaDocument(DTSDocument):
         super().__init__(url)
         self.targetNamespace = None
         self.elements = dict()
+        self.elementsById = dict()
         self.types = dict()
         self.imports = dict()
 
 
     def addElement(self, elt):
         self.elements[elt.name] = elt
+        if elt.id:
+            self.elementsById[elt.id] = elt
         elt.schemaDocument = self
 
     def addType(self, datatype):
@@ -35,12 +38,16 @@ class SchemaDocument(DTSDocument):
     def getElement(self, name):
         return self.elements[name]
 
+    def getElementById(self, id):
+        return self.elementsById[id]
+
     def getType(self, datatype):
         return self.types[datatype]
 
 
 class ElementDefinition:
-    def __init__(self, name, substitutionGroup, datatype, typedDomainRef = None):
+    def __init__(self, name, substitutionGroup, datatype, typedDomainRef = None, elementId = None):
+        self.id = elementId
         self.name = name
         self.substitutionGroup = substitutionGroup
         self.datatype = datatype

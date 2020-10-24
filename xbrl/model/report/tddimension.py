@@ -17,5 +17,5 @@ class TypedTaxonomyDefinedDimension(TaxonomyDefinedDimension):
 
     @property
     def stringValue(self):
-        return self.value
+        return self.dimension.typedDomainDatatype.stringValue(self.value)
 
