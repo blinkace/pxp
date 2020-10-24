@@ -1,0 +1,348 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type='text/xsl' href='tests.xsl'?>
+<testcase
+  xmlns="http://xbrl.org/2011/conformance-rendering/transforms"
+  xmlns:case="http://xbrl.org/2011/conformance-rendering/transforms" 
+  xmlns:ixt="http://www.xbrl.org/inlineXBRL/transformation/2011-07-31"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  target="http://www.xbrl.org/inlineXBRL/transformation/2011-07-31"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2011/conformance-rendering/transforms tests.xsd"
+  >
+  <!--
+       Invalidity in these tests refers to the input data, not
+       to the output value.  The output value should only be 
+       provided for inputs which are valid and then they should
+       always be the correct output values.
+       -->
+
+  <transform name="ixt:booleanfalse" outputType="xs:boolean">
+      <variation input="Anydata" output="false" result="valid" />
+      <variation input="偽"      output="false" result="valid" />
+      <variation input="" output="false" result="valid" description="Empty input"/>
+  </transform>
+
+  <transform name="ixt:booleantrue" outputType="xs:boolean">
+      <variation input="Anydata" output="true" result="valid" />
+      <variation input="真"      output="true" result="valid" />
+      <variation input="" output="true" result="valid" description="Empty input"/>
+  </transform>
+
+  <transform name="ixt:datedaymonth" outputType="xs:gMonthDay">
+      <variation input="13/08" output="--08-13" result="valid" />
+      <variation input="3/8" output="--08-03" result="valid" description="Single digit day and month" />
+      <variation input="13.08" output="--08-13" result="valid" description="Alternative separator" />
+      <variation input="13-08" output="--08-13" result="valid" />
+      <variation input="13 08" output="--08-13" result="valid" />
+      <variation input="13\08" output="--08-13" result="valid" />
+      <variation input="13!08" output="--08-13" result="valid" />
+      <variation input="13,08" output="--08-13" result="valid" />
+      <variation input="13 / 08" output="--08-13" result="valid" description="More than one character separator" />
+      <variation input="13asdf08" output="--08-13" result="valid" />
+      <variation input="13 monkeys landed on the moon in '08" output="--08-13" result="valid" />
+      <variation input="30/02" output="" result="invalid" description="Invalid xs:gMonthDay" />
+  </transform>
+
+  <transform name="ixt:datedaymonthen" outputType="xs:gMonthDay">
+      <variation input="13 August" output="--08-13" result="valid" />
+      <variation input="13 Aug"    output="--08-13" result="valid" />
+      <variation input="22nd of August"    output="--08-22" result="valid" />
+      <variation input="1&#x02e2;&#x1d57; of August"    output="--08-01" result="valid" description="unicode superscript"/>
+      <variation input="13 AUGUST" output="--08-13" result="valid" description="Capitalised long form" />
+      <variation input="13 AUG" output="--08-13" result="valid" description="Capitalised short form" />
+      <variation input="1 August" output="--08-01" result="valid" description="Single digit day" />
+      <variation input="01 August" output="--08-01" result="valid" description="Day beginning with 0" />
+      <variation input="30th day of January, March and April" output="--04-30" result="valid" description="Month as separator" />
+      <variation input="13 SEPT"    output="" result="invalid" />
+      <variation input="13 Augusts" output="" result="invalid" />
+      <variation input="22nd day of August, which is the sixth month"    output="" result="invalid" />
+      <variation input="13 august" output="" result="invalid" description="Lower case not permitted" />
+      <variation input="30th February" output="" result="invalid" description="Invalid xs:gMonthDay" />
+  </transform>
+
+  <transform name="ixt:datedaymonthyear" outputType="xs:date">
+      <variation input="13/08/32" output="2032-08-13" result="valid" />
+      <variation input="13.08.32" output="2032-08-13" result="valid" />
+      <variation input="8.8.32" output="2032-08-08" result="valid" description="Single digit day and month" />
+      <variation input="13.08.3" output="2003-08-13" result="valid" description="Single digit year" />
+      <variation input="13.08.1998" output="1998-08-13" result="valid" description="Four digit year" />
+      <variation input="01.08.32" output="2032-08-01" result="valid" description="Day beginning with 0" />
+      <variation input="13.08.0203" output="0203-08-13" result="valid" description="Year beginning with 0" />
+      <variation input="13.08.03" output="2003-08-13" result="valid" description="Year beginning with 0" />
+      <variation input="13.08.00" output="2000-08-13" result="valid" description="Millenium roll test" />
+      <variation input="13.08.203" output="" result="invalid" description="Three digit year" />
+      <variation input="30.02.09" output="" result="invalid" description="Invalid xs:date" />
+  </transform>
+
+  <transform name="ixt:datedaymonthyearen" outputType="xs:date">
+      <variation input="01 August 2009" output="2009-08-01" result="valid" />
+      <variation input="1 August 2009" output="2009-08-01" result="valid" />
+      <variation input="1 August 09" output="2009-08-01" result="valid" />
+      <variation input="1 August 9" output="2009-08-01" result="valid" />
+      <variation input="1 Aug 2009"    output="2009-08-01" result="valid" />
+      <variation input="1st Aug 2009"    output="2009-08-01" result="valid" />
+      <variation input="30th day of January, in the year of our Lord 1649"    output="1649-01-30" result="valid" />
+      <variation input="30th day of January, March and April, 1969"    output="1969-04-30" result="valid" description="Multiple months (last is matched)"/>
+      <variation input="14 October １０６６ was an inauspicious day, or should I say '66" output="2066-10-14" result="valid" description="Misleading use of Japanese characters in English date"/>
+        
+      <variation input="1 AUGUST 2009" output="2009-08-01" result="valid" description="Capitalised long form" />
+      <variation input="1 AUG 2009" output="2009-08-01" result="valid" description="Capitalised short form" />
+      <variation input="01 August 0203" output="0203-08-01" result="valid" description="Year beginning with 0" />
+      <variation input="1 aug 2009" output="" result="invalid" description="Lower case not permitted" />
+      <variation input="01 August 203" output="" result="invalid" description="Three digit year" />
+      <variation input="30 February 2009" output="" result="invalid" description="Invalid xs:date" />
+      <variation input="13 August 00" output="2000-08-13" result="valid" description="Millenium roll test" />
+      <variation input="13 August 0" output="2000-08-13" result="valid" description="Millenium roll test" />
+  </transform>
+
+  <transform name="ixt:dateerayearmonthdayjp" outputType="xs:date">
+      <variation input="平成元年5月31日" output="1989-05-31" result="valid" />
+      <variation input="平成 元 年 5 月 31 日" output="1989-05-31" result="valid" />
+      <variation input="平成22年5月31日" output="2010-05-31" result="valid" />
+      <variation input="平22年5月31日"   output="2010-05-31" result="valid" />
+      <variation input="平 22 年 5 月 31 日"   output="2010-05-31" result="valid" />
+      <variation input="平２２年５月３１日"   output="2010-05-31" result="valid" />
+      <variation input="昭和86年5月31日" output="2011-05-31" result="valid" description="Still a valid date even though the era only lasted 63 years" />
+      <variation input="平&#160;22&#160;年&#160;5&#160;月&#160;31&#160;日" output="2010-05-31" result="valid" description="With non-breaking spaces" />
+      <variation input="創業年22年5月31日" output="" result="invalid" />
+      <variation input="平成100年5月31日" output="" result="invalid" description="More than 2 digits for year" />
+      <variation input="平成元年2月30日" output="" result="invalid" description="Invalid xs:date" />
+      <variation input="平22年5月03日" output="2010-05-03" result="valid" description="Day beginning with 0"/>
+      <variation input="平22年02月13日" output="2010-02-13" result="valid" description="Month beginning with 0"/>
+      <variation input="平成32年5月1日" output="2020-05-01" result="valid" description="Still a valid date even though the era only lasted 31 years" />
+      <variation input="平32年5月1日" output="2020-05-01" result="valid" description="Still a valid date even though the era only lasted 31 years" />
+      <variation input="令和元年5月1日" output="2019-05-01" result="valid" />
+      <variation input="令元年5月1日" output="2019-05-01" result="valid" />
+      <variation input="令和2年5月31日" output="2020-05-31" result="valid" />
+      <variation input="令2年5月31日"   output="2020-05-31" result="valid" />
+  </transform>
+
+  <transform name="ixt:dateerayearmonthjp" outputType="xs:gYearMonth">
+      <variation input="平成元年5月" output="1989-05" result="valid" />
+      <variation input="平成22年5月" output="2010-05" result="valid" />
+      <variation input="平成 22 年 5 月" output="2010-05" result="valid" />
+      <variation input="平22年5月  " output="2010-05" result="valid" />
+      <variation input="平 22 年 5 月  " output="2010-05" result="valid" />
+      <variation input="平２２年５月"   output="2010-05" result="valid" />
+      <variation input="平&#160;22&#160;年&#160;5&#160;月" output="2010-05" result="valid" description="With non-breaking spaces" />
+      <variation input="創業22年5月" output="" result="invalid" />
+      <variation input="平成元年13月" output="" result="invalid" description="Invalid xs:gYearMonth" />
+      <variation input="平22年02月" output="2010-02" result="valid" description="Month beginning with 0"/>
+      <variation input="平成32年5月" output="2020-05" result="valid" description="Still a valid date even though the era only lasted 31 years" />
+      <variation input="平32年5月" output="2020-05" result="valid" description="Still a valid date even though the era only lasted 31 years" />
+      <variation input="令和元年5月" output="2019-05" result="valid" />
+      <variation input="令元年5月" output="2019-05" result="valid" />
+      <variation input="令和2年5月" output="2020-05" result="valid" />
+      <variation input="令2年5月"   output="2020-05" result="valid" />
+  </transform>
+
+  <transform name="ixt:datemonthday" outputType="xs:gMonthDay ">
+      <variation input="08/13" output="--08-13" result="valid" />
+      <variation input="8/1" output="--08-01" result="valid" />
+      <variation input="08.13" output="--08-13" result="valid" description="Alternative separator" />
+      <variation input="08 / 13" output="--08-13" result="valid" description="More than one character separator" />
+      <variation input="02/30"  output="" result="invalid" description="Invalid xs:gMonthDay" />
+  </transform>
+
+  <transform name="ixt:datemonthdayen" outputType="xs:gMonthDay ">
+      <variation input="August 13" output="--08-13" result="valid" />
+      <variation input="Aug 13"    output="--08-13" result="valid" />
+      <variation input="AUGUST 13" output="--08-13" result="valid" description="Capitalised long form" />
+      <variation input="AUG 13"    output="--08-13" result="valid" description="Capitalised short form" />
+      <variation input="Aug 3"     output="--08-03" result="valid" description="Single digit for day" />
+      <variation input="Aug 03"    output="--08-03" result="valid" description="Day starting with 0" />
+      <variation input="January, March and April 30" output="--01-30" result="valid" description="Month as separator" />
+      <variation input="SEPT 13" output="--09-13" result="valid" description="Invalid month" />
+      <variation input="August 13th" output="--08-13" result="valid" description="Ordinal after the day" />
+      <variation input="August 13xX" output="--08-13" result="valid" description="Characters after the day" />
+      <variation input="August 1&#x02e2;&#x1d57;" output="" result="invalid" description="unicode superscript"/>
+      <variation input="February 30" output="" result="invalid" description="Invalid xs:gMonthDay" />
+  </transform>
+
+  <transform name="ixt:datemonthdayyear" outputType="xs:date">
+      <variation input="08.13.32" output="2032-08-13" result="valid" />
+      <variation input="08/13/32" output="2032-08-13" result="valid" />
+      <variation input="08.13.3" output="2003-08-13" result="valid" description="Single digit year" />
+      <variation input="8.3.32" output="2032-08-03" result="valid" description="Single digit for day and month" />
+      <variation input="08.13.1998" output="1998-08-13" result="valid" description="Four digit year" />
+      <variation input="08.13.0203" output="0203-08-13" result="valid" description="Year beginning with 0" />
+      <variation input="08.13.203" output="" result="invalid" description="Three digit year" />
+      <variation input="02.30.09" output="" result="invalid" description="Invalid xs:date" />
+      <variation input="08.13.00" output="2000-08-13" result="valid" description="Millenium roll test" />
+      <variation input="08.13.0" output="2000-08-13" result="valid" description="Millenium roll test" />
+  </transform>
+
+  <transform name="ixt:datemonthdayyearen" outputType="xs:date">
+      <variation input="August 13, 2032" output="2032-08-13" result="valid" />
+      <variation input="August 13th, 2032" output="2032-08-13" result="valid" description="ordinal suffix allowed"/>
+      <variation input="August 13 2032" output="2032-08-13" result="valid" description="comma not required"/>
+      <variation input="Aug 13, 2032"    output="2032-08-13" result="valid" />
+      <variation input="Aug 3, 2032"    output="2032-08-03" result="valid" description="Single digit for day" />
+      <variation input="Aug 03, 2032"    output="2032-08-03" result="valid" description="Day beginning with 0" />
+      <variation input="August 13, 9" output="2009-08-13" result="valid" description="Single digit year" />
+      <variation input="August 13, 11" output="2011-08-13" result="valid" description="Two digit year" />
+      <variation input="Martians13x2032"    output="2032-03-13" result="valid" description="Unhelpful separators allowed"/>
+      <variation input="January, March and April the 30th, 1969" output="1969-01-30" result="valid" description="Month as separator" />
+      <variation input="Aug 13 0203" output="0203-08-13" result="valid" description="Year beginning with 0" />
+      <variation input="Aug 13 203" output="" result="invalid" description="Three digit year" />
+      <variation input="February 30th, 2009" output="" result="invalid" description="Invalid xs:date" />
+      <variation input="August 13 00" output="2000-08-13" result="valid" description="Millenium roll test" />
+      <variation input="August 13 0" output="2000-08-13" result="valid" description="Millenium roll test" />
+  </transform>
+
+  <transform name="ixt:datemonthyearen" outputType="xs:gYearMonth">
+      <variation input="August 2032" output="2032-08" result="valid" />
+      <variation input="Aug 2032"    output="2032-08" result="valid" />
+      <variation input="August 9" output="2009-08" result="valid" description="Single digit year" />
+      <variation input="August 11" output="2011-08" result="valid" description="Two digit year" />
+      <variation input="January, March and April, 1969" output="1969-01" result="valid" description="Month as separator" />
+      <variation input="Marvin the paranoid android detests the number 42" output="2042-03" result="valid" description="Unhelpful separators allowed" />
+      <variation input="Aug 0203" output="0203-08" result="valid" description="Year beginning with 0" />
+      <variation input="Aug 203" output="" result="invalid" description="Three digit year" />
+      <variation input="August 00" output="2000-08" result="valid" description="Millenium roll test" />
+      <variation input="August 0" output="2000-08" result="valid" description="Millenium roll test" />
+  </transform>
+
+  <transform name="ixt:dateyearmonthdaycjk" outputType="xs:date">
+      <variation input="2010年5月31日" output="2010-05-31" result="valid" />
+      <variation input="２０１０年５月３１日" output="2010-05-31" result="valid" description="Full width digits" />
+      <variation input="2010 年 5 月 31 日" output="2010-05-31" result="valid" description="With whitespace" />
+      <variation input="2010&#160;年&#160;5&#160;月&#160;31&#160;日" output="2010-05-31" result="valid" description="With non-breaking spaces" />
+      <variation input="2010年12月3日"  output="2010-12-03" result="valid" description="Single digit day"/>
+      <variation input="2010年12月31日" output="2010-12-31" result="valid" description="Two digit month"/>
+      <variation input="0203年5月31日"  output="0203-05-31" result="valid" description="Year beginning with 0" />
+      <variation input="2010年5月03日"  output="2010-05-03" result="valid" description="Day beginning with 0"/>
+      <variation input="2010年02月13日" output="2010-02-13" result="valid" description="Month beginning with 0"/>
+      <variation input="1年5月31日"     output="2001-05-31" result="valid" description="Single digit year" />
+      <variation input="10年5月31日"    output="2010-05-31" result="valid" description="Two digit year" />
+      <variation input="203年5月31日"   output="" result="invalid" description="Three digit year" />
+      <variation input="2010年2月30日"  output="" result="invalid" description="Invalid xs:date" />
+  </transform>
+
+  <transform name="ixt:dateyearmonthen" outputType="xs:gYearMonth">
+      <variation input="2032 August" output="2032-08" result="valid" />
+      <variation input="2032 Aug"    output="2032-08" result="valid" />
+      <variation input="2032 AUG"    output="2032-08" result="valid" />
+      <variation input="2032 AUGUST" output="2032-08" result="valid" />
+      <variation input="1969, January, March and April" output="1969-04" result="valid" description="Month as separator" />
+      <variation input="9 August"    output="2009-08" result="valid" description="Single digit year" />
+      <variation input="11 August"   output="2011-08" result="valid" description="Two digit year" />
+      <variation input="0203 August" output="0203-08" result="valid" description="Year beginning with 0" />
+      <variation input="203 August"  output="" result="invalid" description="Three digit year" />
+      <variation input="2032 Augusts"    output="" result="invalid" />
+      <variation input="00 August" output="2000-08" result="valid" description="Millenium roll test" />
+      <variation input="0 August" output="2000-08" result="valid" description="Millenium roll test" />
+  </transform>
+
+  <transform name="ixt:dateyearmonthcjk" outputType="xs:gYearMonth">
+      <variation input="2010年5月" output="2010-05" result="valid" />
+      <variation input="２０１０年５月" output="2010-05" result="valid" description="Full width digits" />
+      <variation input="2010 年 5 月" output="2010-05" result="valid" description="With whitespace" />
+      <variation input="2010&#160;年&#160;5&#160;月" output="2010-05" result="valid" description="With non-breaking spaces" />
+      <variation input="2010年12月" output="2010-12" result="valid" description="Two digit month"/>
+      <variation input="0203年5月"  output="0203-05" result="valid" description="Year beginning with 0" />
+      <variation input="2010年02月" output="2010-02" result="valid" description="Month beginning with 0"/>
+      <variation input="1年5月"     output="2001-05" result="valid" description="Single digit year" />
+      <variation input="10年5月"    output="2010-05" result="valid" description="Two digit year" />
+      <variation input="203年5月"   output="" result="invalid" description="Three digit year" />
+      <variation input="2010年13月" output="" result="invalid" description="Invalid xs:gYearMonth" />
+  </transform>
+
+  <transform name="ixt:nocontent" outputType="ixt:nocontentType">
+      <variation input="any string test data" output="" result="valid" />
+      <variation input="" output="" result="valid" description="Empty input" />
+  </transform>
+
+  <transform name="ixt:numcommadecimal" outputType="ixt:nonNegativeDecimalType">
+      <variation input="123456,78" output="123456.78" result="valid" />
+      <variation input="123.456,78" output="123456.78" result="valid" />
+      <variation input="123 456,78" output="123456.78" result="valid" />
+      <variation input="123&#160;456,78" output="123456.78" result="valid" />
+      <variation input="123456" output="123456" result="valid" />
+      <variation input="123.456 789,012" output="123456789.012" result="valid" />
+      <variation input="123 456.789" output="123456789" result="valid" /><!-- controversial but correct -->
+      <variation input="123 456&#160;789" output="123456789" result="valid" />
+      <variation input="-123,45" output="" result="invalid" />
+      <variation input=",45" output="" result="invalid" />
+      <variation input="123 456.78" output="" result="invalid" />
+      <variation input="123,456.78" output="" result="invalid" />
+      <variation input="123E456,78" output="" result="invalid" description="Forbidden separator" />
+  </transform>
+  
+  <transform name="ixt:zerodash" outputType="ixt:zeroIntegerType">
+      <variation input="&#x002D;" output="0" result="valid" description="HYPHEN-MINUS" />
+      <variation input="&#x058A;" output="0" result="valid" description="ARMENIAN HYPHEN" />
+      <variation input="&#x05BE;" output="0" result="valid" description="HEBREW PUNCTUATION MAQAF" />
+      <variation input="&#x2010;" output="0" result="valid" description="HYPHEN" />
+      <variation input="&#x2011;" output="0" result="valid" description="NON-BREAKING HYPHEN" />
+      <variation input="&#x2012;" output="0" result="valid" description="FIGURE DASH" />
+      <variation input="&#x2013;" output="0" result="valid" description="EN DASH" />
+      <variation input="&#x2014;" output="0" result="valid" description="EM DASH" />
+      <variation input="&#x2015;" output="0" result="valid" description="HORIZONTAL BAR" />
+      <variation input="&#xFE58;" output="0" result="valid" description="SMALL EM DASH" />
+      <variation input="&#xFE63;" output="0" result="valid" description="SMALL HYPHEN-MINUS" />
+      <variation input="&#xFF0D;" output="0" result="valid" description="FULLWIDTH HYPHEN-MINUS" />
+      <variation input="_" output="" result="invalid" description="underscore"/>
+      <variation input="&#x1400;" output="" result="invalid" description="CANADIAN SYLLABICS HYPHEN" />
+      <variation input="&#x1806;" output="" result="invalid" description="MONGOLIAN TODO SOFT HYPHEN" />
+      <variation input="&#x2E17;" output="" result="invalid" description="DOUBLE OBLIQUE HYPHEN" />
+      <variation input="&#x2E1A;" output="" result="invalid" description="HYPHEN WITH DIAERESIS" />
+      <variation input="&#x301C;" output="" result="invalid" description="WAVE DASH" />
+      <variation input="&#x3030;" output="" result="invalid" description="WAVY DASH" />
+      <variation input="&#x30A0;" output="" result="invalid" description="KATAKANA-HIRAGANA DOUBLE HYPHEN" />
+      <variation input="&#xFE31;" output="" result="invalid" description="PRESENTATION FORM FOR VERTICAL EM DASH" />
+      <variation input="&#xFE32;" output="" result="invalid" description="PRESENTATION FORM FOR VERTICAL EN DASH" />
+  </transform>
+
+  <transform name="ixt:numdotdecimal" outputType="ixt:nonNegativeDecimalType">
+      <variation input="123,456.78" output="123456.78" result="valid" />
+      <variation input="123456.78" output="123456.78" result="valid" />
+      <variation input="123 456.78" output="123456.78" result="valid" />
+      <variation input="123 456,789" output="123456789" result="valid" /><!-- controversial but correct -->
+      <variation input="123 456&#160;789" output="123456789" result="valid" />
+      <variation input="123&#160;456.78" output="123456.78" result="valid" />
+      <variation input="123456" output="123456" result="valid" />
+      <variation input="123,456 789.012" output="123456789.012" result="valid" />
+      <variation input="123 456,78" output="" result="invalid" />
+      <variation input="123,45" output="" result="invalid" />
+      <variation input="-123.45" output="" result="invalid" />
+      <variation input=".45" output="" result="invalid" />
+      <variation input="123.456 789,012" output="" result="invalid" />
+      <variation input="123,456E78" output="" result="invalid" description="Forbidden separator" />
+  </transform>
+
+  <transform name="ixt:numunitdecimal" outputType="ixt:nonNegativeDecimalType">
+      <variation input="72円30銭" output="72.30" result="valid" />
+      <variation input="3,000円5銭" output="3000.05" result="valid" />
+      <variation input="3,000円50銭" output="3000.50" result="valid" />
+      <variation input="3 dollar 5 cent" output="3.05" result="valid" />
+      <variation input="３，０００円５銭" output="3000.05" result="valid" />
+      <variation input="１，０００円１５銭" output="1000.15" result="valid" />
+      <variation input="１，０００，０００円１５銭" output="1000000.15" result="valid" />
+      <variation input="30.000 euro 5 cent" output="30000.05" result="valid" />
+      <variation input="30.000 euro 40 cent" output="30000.40" result="valid" />
+      <variation input="30.000 euro 40" output="30000.40" result="valid" />
+      <variation input="３，０００円 5銭" output="3000.05" result="valid" />
+      <variation input="3,000x50" output="3000.50" result="valid" />
+      <variation input="10-50" output="10.50" result="valid" />
+      <variation input="10/50" output="10.50" result="valid" />
+      <variation input="10+50" output="10.50" result="valid" />
+      <variation input="10*50" output="10.50" result="valid" />
+      <variation input="10^50" output="10.50" result="valid" />
+      <variation input="10 50" output="10.50" result="valid" />
+      <variation input="10.50" output="" result="invalid" description="Full stop prohibited as major unit"/>
+      <variation input="10,50" output="" result="invalid" description="Comma prohibited as major unit"/>
+      <variation input="10&#xFF0E;50" output="" result="invalid" description="Full-width full stop prohibited as major unit"/>
+      <variation input="10&#xFF0C;50" output="" result="invalid" description="Full-width comma prohibited as major unit"/>
+      <variation input="10 50." output="" result="invalid" description="Full stop prohibited as minor unit"/>
+      <variation input="10 50," output="" result="invalid" description="Comma prohibited as minor unit"/>
+      <variation input="10 50&#xFF0E;" output="" result="invalid" description="Full-width full stop prohibited as minor unit"/>
+      <variation input="10 50&#xFF0C;" output="" result="invalid" description="Full-width comma prohibited as minor unit"/>
+      <variation input="30E000 euro 40 cent" output="" result="invalid" description="Forbidden separator" />
+      <variation input="30.000 euro 500 cent" output="" result="invalid" description="Fraction part not in hundredths" />
+      <variation input="30 Euro" output="" result="invalid" description="Missing minor value"/>
+      <variation input="euro 40 cent" output="" result="invalid" description="Missing major value"/>
+      <variation input="-30.000 euro 40 cent" output="" result="invalid" description="Negative major value"/>
+  </transform>
+
+</testcase>

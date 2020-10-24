@@ -63,4 +63,3 @@ class DTSDocument:
     def addArcroleRef(self, url):
         self.dtsReferences.add(ArcroleRef(self.resolveURL(url)))
 
-
