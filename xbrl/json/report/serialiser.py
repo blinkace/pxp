@@ -17,7 +17,7 @@ class JSONSerialiser:
         for fid, f in report.facts.items():
             fjson = {
                 "dimensions": {},
-                "value":  f.value,
+                "value":  f.concept.datatype.stringValue(f.value),
                 "numeric": f.isNumeric
             }
             for d in f.dimensions:
