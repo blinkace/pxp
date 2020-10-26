@@ -19,10 +19,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 parser = argparse.ArgumentParser(description="XBRL Processor")
 parser.add_argument('--addTaxonomy', dest="packages", action="append")
+parser.add_argument('--packages', '-p', dest="packageDir", action="append")
 parser.add_argument('reports', metavar='REPORT', nargs="+")
 args = parser.parse_args()
 
-processor = xbrl.XBRLProcessor()
+processor = xbrl.XBRLProcessor(packageDirs=args.packageDir)
 
 if args.packages is not None:
     for tp in args.packages:

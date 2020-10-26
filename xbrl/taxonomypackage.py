@@ -1,6 +1,7 @@
 from zipfile import ZipFile
 from lxml import etree
 from xbrl.xml import parser, qname
+from xbrl.xbrlerror import XBRLError
 import os.path
 import logging
 
@@ -15,7 +16,7 @@ class TaxonomyPackage:
             self.contents = package.namelist()
             top = {item.split('/')[0] for item in self.contents}
             if len(top) != 1:
-                raise ValueError("Multiple top-level directories")
+                raise XBRLError("tpe:invalidDirectoryStructure", "Multiple top-level directories")
 
             self.tld = list(top)[0]
 
@@ -23,18 +24,22 @@ class TaxonomyPackage:
 
             catalogPath = "%s/META-INF/catalog.xml" % self.tld
 
-            with package.open(catalogPath) as catalogXML:
-                catalog = etree.parse(catalogXML, parser())
+            if catalogPath in package.namelist():
+                with package.open(catalogPath) as catalogXML:
+                    catalog = etree.parse(catalogXML, parser())
 
-                for rewrite in catalog.getroot().childElements(qname("catalog:rewriteURI")):
-                    rewriteFrom = rewrite.get("uriStartString")
-                    rewriteTo = rewrite.get("rewritePrefix")
-                    self.mappings[rewriteFrom] = rewriteTo
-            self.prefixes = list(reversed(sorted(self.mappings.keys(), key = lambda x: len(x))))
+                    for rewrite in catalog.getroot().childElements(qname("catalog:rewriteURI")):
+                        rewriteFrom = rewrite.get("uriStartString")
+                        rewriteTo = rewrite.get("rewritePrefix")
+                        self.mappings[rewriteFrom] = rewriteTo
+                self.prefixes = list(reversed(sorted(self.mappings.keys(), key = lambda x: len(x))))
             logging.info("Loaded '%s'" % self.name)
 
     def loadMetaData(self, package):
         mdPath = "%s/META-INF/taxonomyPackage.xml" % self.tld
+        if mdPath not in package.namelist():
+            raise XBRLError("tpe:metadataFileNotFound", "%s not found" % mdPath)
+
         with package.open(mdPath) as metadataXML:
             metadata = etree.parse(metadataXML, parser())
             root = metadata.getroot()

@@ -20,6 +20,7 @@ class NS:
     ix10 = "http://www.xbrl.org/2008/inlineXBRL"
     ixe = "http://www.xbrl.org/2013/inlineXBRL/error"
     pyxbrle = "https://blinkace.com/pyxbrl/error"
+    tpe = 'http://xbrl.org/2016/taxonomy-package/errors'
 
 
 PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}
