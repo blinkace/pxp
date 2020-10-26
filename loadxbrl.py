@@ -35,9 +35,11 @@ try:
     # This probably won't work with Windows-style c:\ URLs
     url = urlparse(src)
     if url.scheme == '':
-        src = "file:%s" % pathname2url(src)
+        src = "file:%s" % pathname2url(os.path.abspath(src))
+
+    print("Loading: %s" % src)
     
-    report = processor.loadIXBRLReport(src)
+    report = processor.loadXBRLReport(src)
     js = JSONSerialiser()
     print(js.serialise(report))
 
