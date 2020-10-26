@@ -3,6 +3,7 @@ from .dimensions import CoreDimension
 class PeriodCoreDimension(CoreDimension):
     def __init__(self):
         super().__init__("period")
+        self.isDuration = False
 
 
 class DurationPeriod(PeriodCoreDimension):
@@ -11,6 +12,7 @@ class DurationPeriod(PeriodCoreDimension):
         super().__init__()
         self.start = start
         self.end = end
+        self.isDuration = True
 
     @property
     def stringValue(self):

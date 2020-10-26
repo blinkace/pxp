@@ -20,11 +20,11 @@ class JSONSerialiser:
                 "value":  f.concept.datatype.stringValue(f.value),
                 "numeric": f.isNumeric
             }
-            for d in f.dimensions:
+            for n, d in f.dimensions.items():
                 if d.isCore:
-                    name = d.name.localname
+                    name = n.localname
                 else:
-                    name = report.asQName(d.name)
+                    name = report.asQName(n)
                 fjson["dimensions"][name] = d.stringValue
             if f.decimals is not None:
                 fjson["decimals"] = f.decimals

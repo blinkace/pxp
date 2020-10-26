@@ -64,7 +64,7 @@ class XBRLReportParser:
             if ctxt is None:
                 raise XBRLError("xbrl21e:missingContext", "No context with ID '%s'" % cid)
 
-            dims.update(ctxt.asDimensions(taxonomy))
+            dims.update(ctxt.asDimensions(self.taxonomy))
 
             uid = e.get("unitRef", None)
             if uid is not None:
@@ -73,7 +73,7 @@ class XBRLReportParser:
                     raise XBRLError("xbrl21e:missingUnit", "No unit with ID '%s'" % cid)
                 dims.update(unit.asDimensions())
 
-            f = report.Fact(e.get("id", self.generateId()), dimensions = dims, value = e.text, decimals = self.parseDecimals(f))
+            f = report.Fact(e.get("id", self.generateId()), dimensions = dims, value = e.text, decimals = self.parseDecimals(e))
             rpt.addFact(f)
         return rpt
 
