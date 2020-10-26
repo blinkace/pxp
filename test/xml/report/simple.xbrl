@@ -11,8 +11,29 @@
     <scenario>
    </scenario>
   </context>
+  <context id="ctx2">
+    <entity>
+      <identifier scheme="http://www.example.com/entity">12345678</identifier>
+    </entity>
+    <period>
+      <instant>2005-06-01</instant>
+    </period>
+    <scenario>
+   </scenario>
+  </context>
   <unit id="EUR">
     <measure>iso4217:EUR</measure>
   </unit>
+  <unit id="EPS">
+    <divide>
+        <unitNumerator>
+            <measure>iso4217:EUR</measure>
+        </unitNumerator>
+        <unitDenominator>
+            <measure>shares</measure>
+        </unitDenominator>
+    </divide>
+  </unit>
   <pr:RevenueTotal id="f1" unitRef="EUR" contextRef="ctx1" decimals="2"> 1234 </pr:RevenueTotal>
+  <pr:Assets id="f2" unitRef="EPS" contextRef="ctx2" decimals="2">4321.37</pr:Assets>
 </xbrl>
