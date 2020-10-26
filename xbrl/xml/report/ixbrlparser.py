@@ -92,7 +92,7 @@ class IXBRLReportParser(XBRLReportParser):
                 else:
                     content = transform.transform(content)
 
-            f = report.Fact(fe.get("id", self.generateId()), dimensions = dims, value = content, decimals = self.parseDecimals(fe))
+            f = report.Fact(fe.get("id", self.generateId()), dimensions = dims, value = content, decimals = self.parseDecimals(fe, value = content))
             rpt.addFact(f)
         return rpt
             

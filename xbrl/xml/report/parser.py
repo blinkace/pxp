@@ -77,7 +77,7 @@ class XBRLReportParser:
             rpt.addFact(f)
         return rpt
 
-    def parseDecimals(self, fact):
+    def parseDecimals(self, fact, value = None):
         d = fact.get("decimals", None)
         if d is None:
             p = fact.get("precision", None)
@@ -87,11 +87,11 @@ class XBRLReportParser:
             precision = int(p)
             if precision == 0:
                 raise XBRLError("xbrl21e:invalidPrecision", "precision = 0 not supported")
-            value = float(fact.text)
-            if value == 0:
+            v = float(value) if value is not None else float(fact.text)
+            if v == 0:
                 return XBRLError("xbrl21e:invalidPrecision", "precision for a value of 0 is meaningless")
             else:
-                return precision - int(floor(log10(fabs(value)))) - 1
+                return precision - int(floor(log10(fabs(v)))) - 1
 
         if d == "INF":
             return None
