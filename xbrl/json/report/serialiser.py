@@ -31,5 +31,5 @@ class JSONSerialiser:
             out["facts"][f.id] = fjson
             
         out["documentInfo"]["namespaces"] = report.usedPrefixMap()
-        return json.dumps(out, indent = 2)
+        return out
 
