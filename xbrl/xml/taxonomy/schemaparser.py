@@ -1,7 +1,7 @@
 from lxml import etree
 from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition
-from .qname import parseQName
-from .const import NS, NSMAP
+from xbrl.qname import parseQName
+from xbrl.const import NS, NSMAP
 from xbrl.xml.util import qname
 
 

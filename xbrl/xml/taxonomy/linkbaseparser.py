@@ -1,6 +1,6 @@
 from lxml import etree
 from .linkbase import Linkbase
-from .qname import parseQName
+from xbrl.qname import parseQName
 import logging
 from .document import Loc
 from urllib.parse import urldefrag

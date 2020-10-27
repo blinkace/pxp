@@ -1,6 +1,6 @@
-from .schemaparser import SchemaParser
-from .linkbaseparser import LinkbaseParser
-from .document import DTSSchema, LinkbaseRef, Loc
+from .xml.taxonomy.schemaparser import SchemaParser
+from .xml.taxonomy.linkbaseparser import LinkbaseParser
+from .xml.taxonomy.document import DTSSchema, LinkbaseRef, Loc
 from .dts import DTS
 from lxml import etree
 from .xbrlerror import XBRLError

@@ -1,5 +1,5 @@
 from .const import NS
-from .schemadocument import SchemaDocument
+from .xml.taxonomy.schemadocument import SchemaDocument
 from lxml import etree
 from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype
 from .xbrlerror import XBRLError

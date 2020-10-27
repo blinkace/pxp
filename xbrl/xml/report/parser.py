@@ -1,6 +1,6 @@
 from lxml import etree
 from xbrl.const import NS
-from xbrl.document import SchemaRef
+from xbrl.xml.taxonomy.document import SchemaRef
 from xbrl.documentloader import DocumentLoader
 from xbrl.xml import qname, parser
 from xbrl.xbrlerror import XBRLError
