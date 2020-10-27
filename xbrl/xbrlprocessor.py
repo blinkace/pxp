@@ -21,9 +21,12 @@ class XBRLProcessor:
         rp = XBRLReportParser(processor = self)
         return rp.parse(report)
 
-    def loadIXBRLReport(self, report):
+    def loadIXBRLReport(self, url, src=None):
+        """
+        Load an iXBRL report, optionally taking an open file object from which to pull data
+        """
         rp = IXBRLReportParser(processor = self)
-        return rp.parse(report)
+        return rp.parse(url, src=src)
 
     def addTaxonomyPackage(self, path):
         self.resolver.addPackage(TaxonomyPackage(path))

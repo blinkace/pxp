@@ -18,8 +18,11 @@ from .parser import XBRLReportParser
 class IXBRLReportParser(XBRLReportParser):
 
 
-    def parse(self, url):
-        with self.processor.resolver.open(url) as src:
+    def parse(self, url, src=None):
+        if src is None:
+            with self.processor.resolver.open(url) as src:
+                tree = etree.parse(src, parser())
+        else:
             tree = etree.parse(src, parser())
         root = tree.getroot()
         self.ixFactElements = []
