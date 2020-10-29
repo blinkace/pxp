@@ -5,12 +5,45 @@ from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype
 from .xbrlerror import XBRLError
 from xbrl.xml import qname
 from urllib.parse import urldefrag, urlparse
+import logging
 
 class DTS:
 
-    def __init__(self, documentCache):
-        self.documents = set()
+    def __init__(self, entryPoint, documentCache):
+        self.documents = dict()
+        self.entryPoint = entryPoint
         self.documentCache = documentCache
+
+    def discover(self):
+        self.queue = []
+        for ep in self.entryPoint:
+            self.enqueue(ep)
+
+        while len(self.queue) > 0:
+            ref = self.queue[0]
+            self.queue = self.queue[1:]
+
+            # Already loaded this document, so just remove it from the queue
+            # and continue
+            if ref.href in self.documents:
+                continue
+
+            doc = self.documentCache.loadDTSReference(ref)
+            logging.info("Loaded %s" % ref.href)
+            self.documents[ref.href] = doc
+            for d in doc.dtsReferences:
+                self.enqueue(d)
+
+    def loadSchema(self, url):
+        return parser.parse(url)
+
+    def loadLinkbase(self, url):
+        parser = LinkbaseParser(url_resolver = self.url_resolver)
+        return parser.parse(url)
+
+    def enqueue(self, ref):
+        if ref.href not in self.documents:
+            self.queue.append(ref)
 
     def addDocument(self, url):
         self.documents.add(url)

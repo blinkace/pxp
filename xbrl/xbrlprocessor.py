@@ -2,6 +2,7 @@ from .urlresolver import URLResolver
 from .taxonomypackage import TaxonomyPackage
 from .xml.report import XBRLReportParser
 from .xml.report import IXBRLReportParser
+from .dts import DTS
 import logging
 from xbrl.xbrlerror import XBRLError
 from xbrl.documentloader import DocumentLoader
@@ -33,6 +34,10 @@ class XBRLProcessor:
     def addTaxonomyPackage(self, path):
         self.resolver.addPackage(TaxonomyPackage(path))
 
+    def loadTaxonomy(self, entryPoint):
+        dts = DTS(entryPoint, self.documentLoader)
+        dts.discover()
+        return dts.buildTaxonomy()
 
     def loadPackages(self, packageDir):
         if not os.path.isdir(packageDir):

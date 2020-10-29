@@ -99,6 +99,7 @@ class XBRLReportParser:
     def getTaxonomy(self, root):
         schemaRefs = list(SchemaRef(urljoin(self.url, e.get(qname("xlink:href")))) 
             for e in root.childElements(qname('link:schemaRef')))
-        dts = self.processor.documentLoader.load(schemaRefs)
+        return self.processor.loadTaxonomy(schemaRefs)
+        documentLoader.load(schemaRefs)
         return dts.buildTaxonomy()
 
