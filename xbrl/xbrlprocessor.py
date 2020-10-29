@@ -4,6 +4,7 @@ from .xml.report import XBRLReportParser
 from .xml.report import IXBRLReportParser
 import logging
 from xbrl.xbrlerror import XBRLError
+from xbrl.documentloader import DocumentLoader
 import os.path
 
 class XBRLProcessor:
@@ -15,6 +16,7 @@ class XBRLProcessor:
         if packageDirs is not None:
             for d in packageDirs:
                 self.packages = self.loadPackages(d)
+        self.documentLoader = DocumentLoader(url_resolver = self.resolver)
 
 
     def loadXBRLReport(self, report):

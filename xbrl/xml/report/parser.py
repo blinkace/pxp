@@ -1,7 +1,6 @@
 from lxml import etree
 from xbrl.const import NS
 from xbrl.xml.taxonomy.document import SchemaRef
-from xbrl.documentloader import DocumentLoader
 from xbrl.xml import qname, parser
 from xbrl.xbrlerror import XBRLError
 from math import log10, fabs, floor
@@ -100,7 +99,6 @@ class XBRLReportParser:
     def getTaxonomy(self, root):
         schemaRefs = list(SchemaRef(urljoin(self.url, e.get(qname("xlink:href")))) 
             for e in root.childElements(qname('link:schemaRef')))
-        dl = DocumentLoader(url_resolver = self.processor.resolver)
-        dts = dl.load(schemaRefs)
+        dts = self.processor.documentLoader.load(schemaRefs)
         return dts.buildTaxonomy()
 

@@ -17,7 +17,6 @@ class DTS:
 
     def getDocument(self, url):
         if url not in self.documents:
-            print(url)
             raise XBRLError("outOfDTSReference", "Reference to '%s' is not in the DTS" % (url))
         return self.documentCache.getDocument(url)
 
@@ -25,11 +24,6 @@ class DTS:
         doc = self.getDocument(urldefrag(url).url)
         u = urlparse(url)
         return doc.getElementById(u.fragment)
-
-
-
-        
-
 
     def buildTaxonomy(self):
         taxonomy = Taxonomy()
@@ -48,8 +42,6 @@ class DTS:
                         conceptName = etree.QName(d.targetNamespace, e.name)
                         if e.typedDomainRef:
                             tde = self.getElementByURL(d.resolveURL(e.typedDomainRef))
-                            print(tde.name)
-                            print(list(dt.text for dt in tde.datatypeChain()))
                             c = TypedDimension(
                                 conceptName,
                                 datatype,

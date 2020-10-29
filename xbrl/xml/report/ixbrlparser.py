@@ -108,11 +108,6 @@ class IXBRLReportParser(XBRLReportParser):
             s += c.tail if c.tail is not None else ""
         return s
 
-    def parseIXFactElement(self, e):
-        content = self.getRelevantContent(e)
-        print("%s = '%s'" % (e.get("name"), content) )
-
-
     def parseIXHeader(self, header):
         hidden = header.childElement(qname("ix:hidden"))
         if hidden is not None:

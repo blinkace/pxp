@@ -27,7 +27,6 @@ class DocumentLoader:
             ref = self.queue[0]
             self.queue = self.queue[1:]
             doc = self.loadDTSReference(ref)
-
             logging.info("Loaded %s" % ref.href)
             dts.addDocument(ref.href)
             self.documents[ref.href] = doc
