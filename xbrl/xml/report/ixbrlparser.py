@@ -109,15 +109,15 @@ class IXBRLReportParser(XBRLReportParser):
         return s
 
     def parseIXHeader(self, header):
-        hidden = header.childElement(qname("ix:hidden"))
+        hidden = header.childElement([qname("ix:hidden"), qname("ix10:resources")])
         if hidden is not None:
             self.parseIXHidden(hidden)
 
-        resources = header.childElement(qname("ix:resources"))
+        resources = header.childElement([qname("ix:resources"), qname("ix10:resources")])
         if resources is not None:
             self.parseIXResources(resources)
 
-        for e in header.childElements(qname("ix:references")):
+        for e in header.childElements([qname("ix:references"), qname("ix10:references")]):
             td = e.get("target", None) 
             if td is not None:
                 logging.error("Ignoring target document '%s'" % td)

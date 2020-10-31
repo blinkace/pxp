@@ -15,7 +15,10 @@ class Element(etree.ElementBase):
         return self.tag is not etree.Comment and self.tag is not etree.PI
 
     def childElements(self, tag = None):
-        return (e for e in self if isinstance(e, Element) and (tag is None or e.tag == tag))
+        if tag is not None:
+            if type(tag) != list:
+                tag = [tag]
+        return (e for e in self if isinstance(e, Element) and (tag is None or e.tag in tag))
 
     def childElement(self, tag = None):
         return next(self.childElements(tag = tag), None)
