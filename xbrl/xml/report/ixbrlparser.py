@@ -66,7 +66,7 @@ class IXBRLReportParser(XBRLReportParser):
             cid = fe.get("contextRef")
             ctxt = self.contexts.get(cid, None)
             if ctxt is None:
-                raise XBRLError("ixbrle:missingContext", "No context with ID '%s'" % cid)
+                raise XBRLError("ixe:missingContext", "No context with ID '%s'" % cid)
 
             dims.update(ctxt.asDimensions(self.taxonomy))
             content = ''
@@ -78,13 +78,13 @@ class IXBRLReportParser(XBRLReportParser):
                     break
                 ce = self.ixContinuations.get(contId, None)
                 if ce is None:
-                    raise XBRLError("ixbrle:missingContext", "No continuation element with ID '%s'" % cid)
+                    raise XBRLError("ixe:missingContext", "No continuation element with ID '%s'" % cid)
 
             uid = fe.get("unitRef", None)
             if uid is not None:
                 unit = self.units.get(uid, None)
                 if unit is None:
-                    raise XBRLError("ixbrle:missingUnit", "No unit with ID '%s'" % cid)
+                    raise XBRLError("ixe:missingUnit", "No unit with ID '%s'" % cid)
                 dims.update(unit.asDimensions())
 
             fmt = fe.qnameAttrValue("format")
