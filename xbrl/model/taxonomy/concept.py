@@ -1,5 +1,6 @@
 from xbrl.const import NS
 from xbrl.xml import qname
+from .datatype import Datatype
 
 class Concept:
 
@@ -19,3 +20,5 @@ class Concept:
     @property
     def isDimension(self):
         return qname("xbrldt:dimensionItem") in self.substitutionGroupChain
+
+NoteConcept = Concept(qname("xbrl:note"), Datatype([qname("xs:string")]), [ qname("xbrli:item") ])

@@ -21,8 +21,13 @@ class NS:
     ixe = "http://www.xbrl.org/2013/inlineXBRL/error"
     pyxbrle = "https://blinkace.com/pyxbrl/error"
     tpe = 'http://xbrl.org/2016/taxonomy-package/errors'
-
+    xhtml = 'http://www.w3.org/1999/xhtml'
 
 PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}
 NSMAP = {k: v for k, v in NS.__dict__.items() if not k.startswith("_")}
 
+class LinkType:
+    factFootnote = 'http://www.xbrl.org/2003/arcrole/fact-footnote'
+
+class LinkGroup:
+    default = 'http://www.xbrl.org/2003/role/link'

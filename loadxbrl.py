@@ -5,6 +5,7 @@ import logging
 import os
 import os.path
 import argparse
+import json
 from xbrl.json.report import JSONSerialiser
 from urllib.parse import urlparse
 from urllib.request import pathname2url
@@ -38,11 +39,12 @@ try:
     if url.scheme == '':
         src = "file:%s" % pathname2url(os.path.abspath(src))
 
-    print("Loading: %s" % src)
+    #print("Loading: %s" % src)
     
-    report = processor.loadXBRLReport(src)
+    #report = processor.loadXBRLReport(src)
+    report = processor.loadIXBRLReport(src)
     js = JSONSerialiser()
-    print(js.serialise(report))
+    print(json.dumps(js.serialise(report), indent=2))
 
 except xbrl.XBRLError as e:
     print("[%s] %s" % (e.code_as_qname, e.message))

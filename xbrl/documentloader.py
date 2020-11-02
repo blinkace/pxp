@@ -33,6 +33,7 @@ class DocumentLoader:
         isSchema = root.tag == qname("xs:schema")
         isLinkbase = root.tag == qname("link:linkbase")
 
+        # XXX This check needs to be moved so it applies to cached documents
         if isinstance(ref, DTSSchema) and not isSchema:
             raise XBRLError("xbrl21e:invalidDTSReferenceTarget", "Expected schema but found %s when loading %s" % (root.tag, ref.href))
 
