@@ -62,8 +62,13 @@ class ElementDefinition:
         return sgs
 
     def datatypeChain(self):
+        # The XML Schema for schemas won't be referenced explicitly, so stop
+        # searching for definitions once we get to the XSD namespace - we don't
+        # need any further details
         if self.datatype.namespace != NS.xs:
             datatypes = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname).datatypeChain()
+        else:
+            datatypes = []
         return [self.datatype] + datatypes
         
 
