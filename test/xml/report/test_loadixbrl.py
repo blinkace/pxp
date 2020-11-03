@@ -50,8 +50,8 @@ def test_loadixbrl():
 
     f = report.facts.get("f5")
     assert f is not None
-    assert f.value == "567000"
-    assert f.stringValue == "567000"
+    assert f.value == "-567000"
+    assert f.stringValue == "-567000"
     assert f.isNumeric
     assert f.decimals == 0
     assert f.unit.stringValue == 'iso4217:EUR'

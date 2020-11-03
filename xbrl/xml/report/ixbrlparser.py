@@ -44,7 +44,7 @@ class IXBRLReportParser(XBRLReportParser):
                 if name.localname == 'header':
                     self.hasHeader = True
                     self.parseIXHeader(e)
-                elif name.localname in ["fraction", "nonFraction", "nonNumeric"]:
+                elif name.localname in ["nonFraction", "nonNumeric"]:
                     self.ixFactElements.append(e)
                     self.parseChildren(e)
                 elif name.localname == 'continuation':
@@ -109,6 +109,11 @@ class IXBRLReportParser(XBRLReportParser):
                     logging.error("Unknown transform: %s" % fmt.text)
                 else:
                     content = transform.transform(content)
+
+            if etree.QName(fe.tag).localname == 'nonFraction':
+                content = content.strip()
+                if fe.get("sign", None) == "-":
+                    content = "-" + content
 
             rels = self.relationships.get(fe.get("id", None), {})
             links = {}
