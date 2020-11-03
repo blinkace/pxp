@@ -10,7 +10,7 @@ def test_loadixbrl():
     
     url = "file:" + pathname2url(os.path.abspath(os.path.join(os.path.dirname(__file__), "simple-ixbrl.xhtml")))
     report = processor.loadIXBRLReport(url)
-    assert len(report.facts) == 7
+    assert len(report.facts) == 8
 
     f = report.facts.get("f1")
     assert f is not None
@@ -59,6 +59,15 @@ def test_loadixbrl():
     assert f.period.stringValue == '2017-01-01T00:00:00/2018-01-01T00:00:00'
     assert f.period.start == datetime.datetime(2017, 1, 1, 0, 0, 0)
     assert f.period.end == datetime.datetime(2018, 1, 1, 0, 0, 0)
+    assert f.entity.scheme == 'http://www.example.com/entity'
+    assert f.entity.identifier == '12345678'
+
+    f = report.facts.get("f15")
+    assert f is not None
+    assert f.value == "And <b>a</b> nested &lt; fact."
+    assert not f.isNumeric
+    assert f.period.isDuration
+    assert f.period.stringValue == '2017-01-01T00:00:00/2018-01-01T00:00:00'
     assert f.entity.scheme == 'http://www.example.com/entity'
     assert f.entity.identifier == '12345678'
 

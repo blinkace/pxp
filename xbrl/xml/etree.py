@@ -1,6 +1,6 @@
 import lxml.etree as etree
 from xbrl.qname import parseQName
-from xml.sax.saxutils import escape, quoteattr
+import xml.sax.saxutils as saxutils 
 
 def parser():
     parser_lookup = etree.ElementDefaultClassLookup(element=Element)
@@ -35,8 +35,14 @@ class Element(etree.ElementBase):
             return parseQName(self.nsmap, v.strip())
         return None
 
+    def boolAttrValue(self, name, default = False):
+        v = self.get(name, None)
+        if v is None:
+            return default
+        v = v.strip()
+        return v in ["1", "true"]
 
-    def fragmentToString(self, current_ns = "", include_tag = False):
+    def fragmentToString(self, current_ns = "", include_tag = False, escape = False):
         """
         A modified serialiser that always uses the default namespace and which
         allows the top-level enclosing tag to be omitted and a default
@@ -50,7 +56,7 @@ class Element(etree.ElementBase):
                 ns = ""
             if ns != current_ns:
                 
-                x.append('xmlns=%s' % (quoteattr(ns)))
+                x.append('xmlns=%s' % (saxutils.quoteattr(ns)))
 
             s = "<%s>" % (" ".join(x))
         else:
@@ -58,7 +64,10 @@ class Element(etree.ElementBase):
             s = ''
 
         if self.text is not None:
-            s += escape(self.text)
+            s += saxutils.escape(self.text)
+
+        if escape:
+            s = saxutils.escape(s)
 
         for e in self:
             if e.tag is not etree.Comment and e.tag is not etree.PI:
@@ -68,8 +77,11 @@ class Element(etree.ElementBase):
 
 
         if include_tag:
-            s += "</%s>" % q.localname
+            t = "</%s>" % q.localname
             if self.tail is not None:
-                s += escape(self.tail)
+                t += saxutils.escape(self.tail)
+            if escape:
+                t = saxutils.escape(t)
+            s += t
 
         return s

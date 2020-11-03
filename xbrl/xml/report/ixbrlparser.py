@@ -81,11 +81,17 @@ class IXBRLReportParser(XBRLReportParser):
             cid = fe.get("contextRef")
             ctxt = self.getContext(cid)
 
+
             dims.update(ctxt.asDimensions(self.taxonomy))
+
+            escape = etree.QName(fe.tag).localname == 'nonNumeric' and fe.boolAttrValue("escape")
             content = ''
             ce = fe
             while True:
-                content += self.getRelevantContent(ce)
+                if escape:
+                    content += self.getRelevantContentWithTags(ce).fragmentToString(current_ns = NS.xhtml, escape = True)
+                else:
+                    content += self.getRelevantContent(ce)
                 contId = ce.get("continuedAt", None)
                 if contId is None:
                     break
@@ -112,6 +118,7 @@ class IXBRLReportParser(XBRLReportParser):
                 content = content.strip()
                 if fe.get("sign", None) == "-":
                     content = "-" + content
+
 
             rels = self.relationships.get(fe.get("id", None), {})
             links = {}

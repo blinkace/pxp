@@ -13,7 +13,6 @@ def runTRRTests(path, trr):
         name = test.qnameAttrValue("name")
 
         transform = trr.getTransform(name)
-        print(name.localname)
         for v in test.childElements(etree.QName(TEST_CASE_NS, "variation")):
             testsRun += 1
             if transform is None:
