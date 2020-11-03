@@ -16,6 +16,7 @@ class XBRLReportParser:
         self.processor = processor
         self.idCount = 0
         self.contexts = dict()
+        self.contextElements = dict()
         self.units = dict()
 
 
@@ -58,11 +59,7 @@ class XBRLReportParser:
             dims = set()
             dims.add(report.ConceptCoreDimension(concept))
 
-            cid = e.get("contextRef")
-            ctxt = self.contexts.get(cid, None)
-            if ctxt is None:
-                raise XBRLError("xbrl21e:missingContext", "No context with ID '%s'" % cid)
-
+            ctxt = self.getContext(e.get("contextRef"))
             dims.update(ctxt.asDimensions(self.taxonomy))
 
             uid = e.get("unitRef", None)
@@ -103,3 +100,12 @@ class XBRLReportParser:
         documentLoader.load(schemaRefs)
         return dts.buildTaxonomy()
 
+    def getContext(self, cid):
+        c = self.contexts.get(cid)
+        if c is None:
+            ce = self.contextElements.get(cid)
+            if ce is None:
+                raise XBRLError("ixe:missingContext", "No context with ID '%s'" % cid)
+            c = Context.from_xml(ce)
+            self.contexts[cid] = c
+        return c

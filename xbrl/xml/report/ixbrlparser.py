@@ -79,9 +79,7 @@ class IXBRLReportParser(XBRLReportParser):
             dims.add(report.ConceptCoreDimension(concept))
 
             cid = fe.get("contextRef")
-            ctxt = self.contexts.get(cid, None)
-            if ctxt is None:
-                raise XBRLError("ixe:missingContext", "No context with ID '%s'" % cid)
+            ctxt = self.getContext(cid)
 
             dims.update(ctxt.asDimensions(self.taxonomy))
             content = ''
@@ -172,8 +170,7 @@ class IXBRLReportParser(XBRLReportParser):
     def parseIXResources(self, resources):
         for e in resources.childElements():
             if e.tag == qname("xbrli:context"):
-                c = Context.from_xml(e)
-                self.contexts[c.id] = c
+                self.contextElements[e.get("id")] = e
             elif e.tag == qname("xbrli:unit"):
                 u = Unit.from_xml(e)
                 self.units[u.id] = u
