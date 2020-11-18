@@ -2,7 +2,7 @@ from lxml import etree
 from xbrl.const import NS, LinkType, LinkGroup
 from xbrl.xml.taxonomy.document import SchemaRef
 from xbrl.documentloader import DocumentLoader
-from xbrl.xml import qname, parser
+from xbrl.xml import qname, parser, qnameset
 from xbrl.xbrlerror import XBRLError
 from math import log10, fabs, floor
 import xbrl.model.report as report 
@@ -158,15 +158,15 @@ class IXBRLReportParser(XBRLReportParser):
         return new
 
     def parseIXHeader(self, header):
-        hidden = header.childElement(qname({"ix","ix10"}, "hidden"))
+        hidden = header.childElement(qnameset({"ix","ix10"}, "hidden"))
         if hidden is not None:
             self.parseIXHidden(hidden)
 
-        resources = header.childElement(qname({"ix", "ix10"}, "resources"))
+        resources = header.childElement(qnameset({"ix", "ix10"}, "resources"))
         if resources is not None:
             self.parseIXResources(resources)
 
-        for e in header.childElements(qname({"ix", "ix10"}, "references")):
+        for e in header.childElements(qnameset({"ix", "ix10"}, "references")):
             td = e.get("target", None) 
             if td is not None:
                 logging.error("Ignoring target document '%s'" % td)
@@ -181,7 +181,7 @@ class IXBRLReportParser(XBRLReportParser):
             elif e.tag == qname("xbrli:unit"):
                 u = Unit.from_xml(e)
                 self.units[u.id] = u
-            elif e.tag in qname({"ix", "ix10"}, "relationship"):
+            elif e.tag in qnameset({"ix", "ix10"}, "relationship"):
                 for f in e.get("fromRefs").split():
                     self.relationships.setdefault(f,{}) \
                         .setdefault(e.get("arcrole", LinkType.factFootnote),{}) \

@@ -1,5 +1,5 @@
 from xbrl.const import NS
-from xbrl.xml import qname
+from xbrl.xml import qname, qnameset
 
 class Datatype:
 
@@ -13,7 +13,7 @@ class Datatype:
 
     @property
     def isNumeric(self):
-        numericTypes = set(qname("xs", t) for t in (
+        numericTypes = qnameset("xs", {
             'decimal', 
             'float', 
             'double', 
@@ -33,7 +33,7 @@ class Datatype:
             'unsignedShort', 
             'byte', 
             'unsignedByte', 
-            ))
+            })
         return not set(self.datatypeChain).isdisjoint(numericTypes)
 
     def stringValue(self, v):

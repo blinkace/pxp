@@ -1,23 +1,25 @@
 from lxml import etree
-from xbrl.const import NSMAP
+from xbrl.const import NSMAP 
 
-def qname(prefix, local = None):
+def qname(qstr, nsmap = NSMAP):
     """
     Converts QNames to etree.QName
 
-    Usage:
-
         qname("xs:foo")
-        qname("xs", "foo")
-        qname({"ns1", "ns2"}, "foo")
 
     Prefixes are taken from xbrl.NS
 
-    If a set of prefixes is provided.
     """
-    if type(prefix) == set:
-        return set(qname(p, local) for p in prefix)
-    if ":" in prefix:
-        (prefix, local) = prefix.split(":")
-    return etree.QName(NSMAP[prefix], local)
+    if ":" in qstr:
+        (prefix, local) = qstr.split(":")
+    else:
+        (prefix, local) = (None, qstr)
+    return etree.QName(nsmap[prefix], local)
 
+def qnameset(prefixset, localset, nsmap = NSMAP):
+    if type(prefixset) != set:
+        prefixset = set([prefixset])
+    if type(localset) != set:
+        localset = set([localset,])
+
+    return set(etree.QName(nsmap[p], local) for p in prefixset for local in localset)
