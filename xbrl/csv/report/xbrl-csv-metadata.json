@@ -1,0 +1,394 @@
+{
+    "type": "object",
+    "properties": {
+        "documentInfo": {
+            "$ref": "#/definitions/DocumentInfo"
+        },
+        "tableTemplates": {
+            "$ref": "#/definitions/TableTemplates"
+        },
+        "tables": {
+            "$ref": "#/definitions/Tables"
+        },
+        "parameters": {
+            "$ref": "#/definitions/Parameters"
+        },
+        "parameterURL": {
+            "type": "string"
+        },
+        "dimensions": {
+            "$ref": "#/definitions/Dimensions"
+        },
+        "decimals": {
+            "type": [
+                "number",
+                "string"
+            ]
+        },
+        "links": {
+            "$ref": "#/definitions/Links"
+        }
+    },
+    "patternProperties": {
+        "^.*:.*": {
+            "$ref": "#/definitions/AnyValue"
+        }
+    },
+    "required": [
+        "documentInfo"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "DocumentInfo": {
+            "type": "object",
+            "properties": {
+                "documentType": {
+                    "type": "string"
+                },
+                "namespaces": {
+                    "$ref": "#/definitions/URIMap"
+                },
+                "taxonomy": {
+                    "$ref": "#/definitions/Taxonomy"
+                },
+                "linkTypes": {
+                    "$ref": "#/definitions/URIMap"
+                },
+                "linkGroups": {
+                    "$ref": "#/definitions/URIMap"
+                },
+                "extends": {
+                    "$ref": "#/definitions/URIList"
+                },
+                "final": {
+                    "$ref": "#/definitions/Final"
+                },
+                "features": {
+                    "$ref": "#/definitions/Features"
+                },
+                "baseURL": {
+                    "$ref": "#/definitions/URI"
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "required": [
+                "documentType"
+            ],
+            "additionalProperties": false
+        },
+        "TableTemplates": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "$ref": "#/definitions/TableTemplate"
+                }
+            },
+            "additionalProperties": false
+        },
+        "TableTemplate": {
+            "type": "object",
+            "properties": {
+                "rowIdColumn": {
+                    "type": "string"
+                },
+                "columns": {
+                    "$ref": "#/definitions/Columns"
+                },
+                "decimals": {
+                    "type": [
+                        "number",
+                        "string"
+                    ]
+                },
+                "dimensions": {
+                    "$ref": "#/definitions/Dimensions"
+                },
+                "propertiesFrom": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "required": [
+                "columns"
+            ],
+            "additionalProperties": false
+        },
+        "Columns": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "$ref": "#/definitions/Column"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Column": {
+            "type": "object",
+            "properties": {
+                "decimals": {
+                    "type": [
+                        "number",
+                        "string"
+                    ]
+                },
+                "dimensions": {
+                    "$ref": "#/definitions/Dimensions"
+                },
+                "propertyGroups": {
+                    "$ref": "#/definitions/PropertyGroups"
+                },
+                "propertiesFrom": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "default": {
+                    "type": "string"
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Tables": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "$ref": "#/definitions/Table"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Table": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "parameters": {
+                    "$ref": "#/definitions/Parameters"
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "required": [
+                "url"
+            ],
+            "additionalProperties": false
+        },
+        "Parameters": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "type": [
+                        "string",
+                        "number"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "Dimensions": {
+            "type": "object",
+            "properties": {
+                "concept": {
+                    "$ref": "#/definitions/Concept"
+                },
+                "entity": {
+                    "$ref": "#/definitions/Entity"
+                },
+                "period": {
+                    "$ref": "#/definitions/Period"
+                },
+                "noteId": {
+                    "$ref": "#/definitions/NoteId"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "language": {
+                    "$ref": "#/definitions/Lang"
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/ValueOrNull"
+                }
+            },
+            "additionalProperties": false
+        },
+        "PropertyGroups": {
+            "type": "object",
+            "patternProperties": {
+                ".+": {
+                    "$ref": "#/definitions/PropertyGroup"
+                }
+            },
+            "additionalProperties": false
+        },
+        "PropertyGroup": {
+            "type": "object",
+            "properties": {
+                "decimals": {
+                    "type": [
+                        "number",
+                        "string"
+                    ]
+                },
+                "dimensions": {
+                    "$ref": "#/definitions/Dimensions"
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Final": {
+            "type": "object",
+            "properties": {
+                "namespaces": {
+                    "type": "boolean"
+                },
+                "linkTypes": {
+                    "type": "boolean"
+                },
+                "linkGroups": {
+                    "type": "boolean"
+                },
+                "tableTemplates": {
+                    "type": "boolean"
+                },
+                "tables": {
+                    "type": "boolean"
+                },
+                "dimensions": {
+                    "type": "boolean"
+                },
+                "taxonomy": {
+                    "type": "boolean"
+                },
+                "parameters": {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Taxonomy": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "URIMap": {
+            "type": "object",
+            "patternProperties": {
+                ".+": {
+                    "$ref": "#/definitions/URI"
+                }
+            },
+            "additionalProperties": false
+        },
+        "URIList": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "URI": {
+            "type": "string"
+        },
+        "Links": {
+            "type": "object",
+            "patternProperties": {
+                "[^:\\s]+": {
+                    "type": "object",
+                    "patternProperties": {
+                        "[^:\\s]+": {
+                            "type": "object",
+                            "patternProperties": {
+                                "[^:\\s]+": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "Features": {
+            "type": "object",
+            "patternProperties": {
+                "^.+": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "additionalProperties": false
+        },
+        "AnyValue": {
+            "type": [
+                "string",
+                "number",
+                "object",
+                "boolean",
+                "null",
+                "array"
+            ],
+            "items": {},
+            "additionalProperties": true
+        },
+        "Concept": {
+            "type": "string"
+        },
+        "Period": {
+            "type": "string"
+        },
+        "Entity": {
+            "type": "string"
+        },
+        "NoteId": {
+            "type": "string"
+        },
+        "Lang": {
+            "type": "string"
+        },
+        "ValueOrNull": {
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    }
+}

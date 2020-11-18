@@ -2,6 +2,8 @@ from .urlresolver import URLResolver
 from .taxonomypackage import TaxonomyPackage
 from .xml.report import XBRLReportParser
 from .xml.report import IXBRLReportParser
+from .csv.report import XBRLCSVReportParser
+from .conformance.loader import SuiteLoader
 from .dts import DTS
 import logging
 from xbrl.xbrlerror import XBRLError
@@ -30,6 +32,14 @@ class XBRLProcessor:
         """
         rp = IXBRLReportParser(processor = self)
         return rp.parse(url, src=src)
+
+    def loadXBRLCSVReport(self, report):
+        rp = XBRLCSVReportParser(processor = self)
+        return rp.parse(report)
+
+    def loadTestSuite(self, suite):
+        cl = SuiteLoader(processor = self)
+        return cl.load(suite)
 
     def addTaxonomyPackage(self, path):
         self.resolver.addPackage(TaxonomyPackage(path))

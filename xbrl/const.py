@@ -11,6 +11,7 @@ class NS:
     catalog = "urn:oasis:names:tc:entity:xmlns:xml:catalog"
     tp = "http://xbrl.org/2016/taxonomy-package"
     oime = "http://www.xbrl.org/DCR/YYYY-MM-DD/oim/error"
+    oimce = "http://www.xbrl.org/((~status_date_uri~))/oim-common/error"
     xbrlxe = "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-xml/error"
     xbrl21e = "http://www.blinkace.com/python-xbrl-oim/xbrl-2.1/error"
     xbrl = "http://www.xbrl.org/WGWD/YYYY-MM-DD"
@@ -22,6 +23,7 @@ class NS:
     pyxbrle = "https://blinkace.com/pyxbrl/error"
     tpe = 'http://xbrl.org/2016/taxonomy-package/errors'
     xhtml = 'http://www.w3.org/1999/xhtml'
+    xbrlce = 'http://www.xbrl.org/((~status_date_uri~))/oim/csv/error'
 
 PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}
 NSMAP = {k: v for k, v in NS.__dict__.items() if not k.startswith("_")}
@@ -31,3 +33,6 @@ class LinkType:
 
 class LinkGroup:
     default = 'http://www.xbrl.org/2003/role/link'
+
+class DocumentType:
+    xbrlcsv = 'http://www.xbrl.org/((~status_date_uri~))/xbrl-csv'
