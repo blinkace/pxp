@@ -46,12 +46,13 @@ class SchemaDocument(DTSDocument):
 
 
 class ElementDefinition:
-    def __init__(self, name, substitutionGroup, datatype, typedDomainRef = None, elementId = None):
+    def __init__(self, name, substitutionGroup, datatype, typedDomainRef = None, elementId = None, isComplex = False):
         self.id = elementId
         self.name = name
         self.substitutionGroup = substitutionGroup
         self.datatype = datatype
         self.typedDomainRef = typedDomainRef
+        self.isComplex = isComplex
 
     def substitutionGroups(self):
         sgs = []
@@ -65,6 +66,8 @@ class ElementDefinition:
         # The XML Schema for schemas won't be referenced explicitly, so stop
         # searching for definitions once we get to the XSD namespace - we don't
         # need any further details
+        if self.datatype is None:
+            return []
         if self.datatype.namespace != NS.xs:
             datatypes = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname).datatypeChain()
         else:
@@ -73,9 +76,10 @@ class ElementDefinition:
         
 
 class TypeDefinition:
-    def __init__(self, name, base):
+    def __init__(self, name, base, isComplex = False):
         self.name = name
         self.base = base
+        self.isComplex = isComplex
 
     def datatypeChain(self):
         if self.base is not None:

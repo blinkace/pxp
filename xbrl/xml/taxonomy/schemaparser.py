@@ -43,12 +43,17 @@ class SchemaParser:
 
         dtQName = e.get("type", None)
         dte = e
+        isComplex = False
         if dtQName is None:
-            dte = next(iter(e.xpath("xs:complexType/xs:simpleContent/xs:restriction", namespaces = NSMAP)),None)
-            if dte is not None:
-                dtQName = dte.get("base", None)
+            if len(e.xpath("xs:complexType/xs:complexContent", namespaces = NSMAP)) > 0:
+                dtQName = None
+                isComplex = True
+            else:
+                dte = next(iter(e.xpath("xs:complexType/xs:simpleContent/xs:restriction", namespaces = NSMAP)),None)
+                if dte is not None:
+                    dtQName = dte.get("base", None)
 
-        if dtQName:
+        if dtQName is not None:
             datatype = parseQName(dte.nsmap, dtQName)
         else:
             datatype = None
@@ -58,20 +63,24 @@ class SchemaParser:
             sg, 
             datatype, 
             typedDomainRef = e.get(qname("xbrldt:typedDomainRef"),None),
-            elementId = e.get("id", None) 
+            elementId = e.get("id", None),
+            isComplex = isComplex
             ))
 
     def parseComplexTypeDefinition(self, schema, e):
-        basetypeElement = next(iter(e.xpath("xs:simpleContent/xs:restriction | xs:simpleContent/xs:extension", namespaces = NSMAP)), None)
-        if basetypeElement is not None:
-            basetype = basetypeElement.get("base")
+        if e.childElement("xs:complexContent") is not None:
+            schema.addType(ComplexTypeDefinition(e.get("name"), None, isComplex = True))
         else:
-            basetype = None
+            basetypeElement = next(iter(e.xpath("xs:simpleContent/xs:restriction | xs:simpleContent/xs:extension", namespaces = NSMAP)), None)
+            if basetypeElement is not None:
+                basetype = basetypeElement.get("base")
+            else:
+                basetype = None
 
-        if basetype:
-            basetype = parseQName(e.nsmap, basetype)
+            if basetype:
+                basetype = parseQName(e.nsmap, basetype)
 
-        schema.addType(ComplexTypeDefinition(e.get("name"), basetype))
+            schema.addType(ComplexTypeDefinition(e.get("name"), basetype))
 
     def parseSimpleTypeDefinition(self, schema, e):
         basetypeElement = e.childElement(qname("xs:restriction"))

@@ -75,11 +75,15 @@ class DTS:
                         conceptName = etree.QName(d.targetNamespace, e.name)
                         if e.typedDomainRef:
                             tde = self.getElementByURL(d.resolveURL(e.typedDomainRef))
+                            if not tde.isComplex:
+                                tddt = Datatype(tde.datatypeChain()) 
+                            else:
+                                tddt = None
                             c = TypedDimension(
                                 conceptName,
                                 datatype,
                                 e.substitutionGroups(),
-                                Datatype(tde.datatypeChain())
+                                tddt
                                 )
                         else:
                             c = Concept(
