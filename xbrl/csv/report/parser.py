@@ -1,8 +1,11 @@
 import json
 import os.path
-from xbrl.json.schema import json_validate
-
 from urllib.parse import urljoin
+import io
+import csv
+import urllib
+
+from xbrl.json.schema import json_validate
 from xbrl.xbrlerror import XBRLError
 from xbrl.xml import qname
 from xbrl.const import NS, DocumentType
@@ -15,6 +18,7 @@ from .column import Column, FactColumn
 from .values import ParameterReference
 from .validators import isValidIdentifier
 from .specialvalues import processSpecialValues
+from .csvdialect import XBRLCSVDialect
 
 class XBRLCSVReportParser:
 
@@ -50,7 +54,8 @@ class XBRLCSVReportParser:
         for name, table in metadata.get("tables",{}).items():
             if not(isValidIdentifier(name)):
                 raise XBRLError("xbrlce:invalidIdentifier", "Table name '%s' is not a valid identifier" % name)
-            templateName = table.get("template")
+            # Template name defaults to table name
+            templateName = table.get("template", name)
             if not(isValidIdentifier(templateName)):
                 raise XBRLError("xbrlce:invalidIdentifier", "Template name '%s' is not a valid identifier" % templateName)
             template = templates.get(templateName, None)
@@ -58,10 +63,12 @@ class XBRLCSVReportParser:
                 raise XBRLError("xbrlce:unknownTableTemplate", "Template definition not found for %s (table: %s)" % (templateName, name));
             tables.append(Table(name, template, urljoin(url, table.get("url")), dict(), optional = table.get("optional", False)))
 
+        parameters = self.parseReportParameters(url, metadata)
+
         report = Report(
             templates = templates, 
             dimensions = self.parseDimensions(metadata.get("dimensions",{}),nsmap),
-            parameters = dict(), 
+            parameters = parameters,
             nsmap = nsmap,
             tables = tables)
 
@@ -146,6 +153,8 @@ class XBRLCSVReportParser:
                 if processedValue.startswith("$"):
                     processedValue = processedValue[1:]
                     if not processedValue.startswith("$"):
+                        if not isValidIdentifier(processedValue):
+                            raise XBRLError("xbrlce:invalidReference", "'$%s' is not a valid row number reference or parameter reference" % processedValue)
                         processedValue = ParameterReference(processedValue)
             if dimQName == qname("xbrl:concept"):
                 if processedValue is None:
@@ -164,8 +173,56 @@ class XBRLCSVReportParser:
          
 
 
+    def parseReportParameters(self, primaryURL, metadata):
+        reportParameters = metadata.get("parameters", {})
+        parameterURL = metadata.get("parameterURL")
+        if parameterURL is not None:
+            url = urljoin(primaryURL, parameterURL)
+            try:
+                with self.processor.resolver.open(url) as fin:
+                    reader = csv.reader(io.TextIOWrapper(fin, "utf-8-sig"), XBRLCSVDialect)
+                    headerRow = next(reader, None)
+                    if headerRow is None:
+                        raise XBRLError("xbrlce:invalidParameterCSVFile", "Parameter CSV file '%s' must contain at least a head row" % url)
+                    r = iter(headerRow)
+                    if ("name", "value") != (next(r, ""), next(r, "")):
+                        raise XBRLError("xbrlce:invalidParameterCSVFile", "Invalid parameter CSV file '%s': header row must contain only \"name\" and \"value\"" % url)
+                    for c in r:
+                        if r != "":
+                            raise XBRLError("xbrlce:invalidParameterCSVFile", "Invalid parameter CSV file '%s': header row must contain only \"name\" and \"value\"" % url)
 
+                    rownum = 1
+
+                    for row in reader:
+                        r = iter(row)
+                        name = next(r, None)
+                        if name is not None:
+                            value = next(r, "")
+                            if value == "":
+                                raise XBRLError("xbrlce:invalidParameterCSVFile", "Invalid parameter CSV file '%s': value must be supplied for parameter (use '#empty' or '#none' for empty string or no-value)" % url)
+
+                            if name in reportParameters:
+                                raise XBRLError("xbrlce:illegalReportParameterRedefinition", "Parameter '%s' redefined in parameter CSV file '%s'" % (name, url))
+                            reportParameters[name] = value
+
+
+                        for c in r:
+                            if r != "":
+                                raise XBRLError("xbrlce:invalidParameterCSVFile", "Invalid parameter CSV file '%s': trailing content on row %d" % (url, rownum))
+
+                        rownum += 1
+
+
+            except urllib.error.URLError as e:
+                if isinstance(e.reason, FileNotFoundError):
+                    raise XBRLError("xbrlce:missingParametersFile", "Parameter CSV file '%s' does not exist" % url)
+                raise e
+            except csv.Error as e:
+                raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
+            except UnicodeDecodeError as e:
+                raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
             
+        return reportParameters
             
 
 
