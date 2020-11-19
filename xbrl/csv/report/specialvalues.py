@@ -12,6 +12,8 @@ def processSpecialValues(value, allowNone = True):
         return ExplicitNoValue()
     elif value.startswith('##'):
         return value[1:]
+    elif value.startswith('#'):
+        raise XBRLError("xbrlce:unknownSpecialValue", '"%s" is an unknown special value (must be "#empty", "#nil" or "#none")' % value)
     return value
 
 
