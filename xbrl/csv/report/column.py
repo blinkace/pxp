@@ -1,3 +1,5 @@
+from .values import ExplicitNoValue
+
 class Column:
 
     def __init__(self, name):
@@ -7,7 +9,19 @@ class Column:
 
 class FactColumn(Column):
 
-    def __init__(self, name, columns):
+    def __init__(self, name, dimensions):
         super().__init__(name)
-        self.columns = columns
+        self.dimensions = dimensions
+        self.template = None
+
+    def getEffectiveDimensions(self):
+        dims = dict()
+        for dimSet in (self.template.report.dimensions, self.template.dimensions, self.dimensions):
+            for k, v in dimSet.items():
+                if isinstance(v, ExplicitNoValue):
+                    dims.pop(k)
+                else:
+                    dims[k] = v
+
+        return dims
 

@@ -4,5 +4,9 @@ class TableTemplate:
         self.name = name
         self.columns = columns
         self.dimensions = dimensions
+        for c in self.columns.values():
+            c.template = self
+        self.report = None
+
 
 

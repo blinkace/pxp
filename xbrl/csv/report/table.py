@@ -3,6 +3,7 @@ from .csvdialect import XBRLCSVDialect
 from .validators import isValidIdentifier
 from .column import FactColumn
 from .specialvalues import processSpecialValues
+from .values import ParameterReference
 from xbrl.xbrlerror import XBRLError
 import urllib.error
 import io
@@ -46,6 +47,14 @@ class Table:
                         except IndexError:
                             next
                         value = processSpecialValues(rawValue, allowNone = False)
+                        dims = self.template.columns[fc.name].getEffectiveDimensions()
+                        for k, v in dims.items():
+                            if isinstance(v, ParameterReference):
+                                param = v.name
+                                if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
+                                    raise XBRLError("xbrlce:invalidParameterReference", "Could not resolve parameter '%s'" % param)
+
+                        
 
 
 
