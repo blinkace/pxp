@@ -110,6 +110,21 @@ class XBRLCSVReportParser:
             raise XBRLError("xbrlce:invalidJSONStructure", err)
 
 
+        extensible = {
+            "documentInfo": {
+                "namespaces": dict,
+                "linkTypes": dict,
+                "linkGroups": dict,
+                "features": dict,
+                "taxonomy": list,
+                "documentType": None
+            },
+            "tableTemplates": dict,
+            "tables": dict,
+            "dimensions": dict,
+            "final": dict,
+            "parameters": dict,
+        }
 
         taxonomy = []
         for e in docInfo.get("extends", []):
@@ -117,35 +132,32 @@ class XBRLCSVReportParser:
             importedDocType = m["documentInfo"]["documentType"]
             if importedDocType != docType:
                 raise XBRLError("xbrlce:multipleDocumentTypesInExtensionChain", "Document type for %s conflicts with document type for %s (%s vs %s)" % (e, url, importedDocType, docType))
-            for path in (
-                    ("documentInfo", "namespaces"),
-                    ("documentInfo", "linkTypes"),
-                    ("documentInfo", "linkGroups"),
-                    ("documentInfo", "features"),
-                    ("tableTemplates",),
-                    ("tables",),
-                    ("dimensions",),
-                    ("final",),
-                    ("parameters",),
-                    ):
-                self.mergeDict(path, j, m)
-            taxonomy.extend(m.get("documentInfo").get("taxonomy",[]))
-            taxonomy.extend(docInfo.get("taxonomy",[]))
-            docInfo["taxonomy"] = taxonomy
+
+            self.mergeDict(j, m, extensible)
 
         return j
 
-    def mergeDict(self, path, a, b):
-        for p in path:
-            a = a.setdefault(p, {})
-            b = b.get(p, {})
+    def mergeDict(self, a, b, extensible):
         for k, v in b.items():
-            if k in a:
-                if a[k] != v:
-                    errorPath = "/" + "/".join(path + (k,))
-                    raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (errorPath, a[k], v))
-            else:
-                a[k] = v
+            if k in extensible:
+                ext = extensible[k]
+                if type(ext) == dict:
+                    self.mergeDict(a.setdefault(k, {}), b[k], extensible[k])
+                elif ext == dict:
+                    if k in a:
+                        if a[k] != b:
+                            raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (k, a[k], v))
+                    else:
+                        a[k] = b
+                elif ext == list:
+                    a[k] = b[k] + a.get(k, [])
+                elif ext is not None:
+                    raise ValueError("Unexpected value in extensible dict: %s" % v)
+
+
+            elif k in a:
+                raise XBRLError("xbrlce:illegalRedefinitionOfNonExtensibleProperty", "'%s' cannot appear in more than one metadata file" % k)
+
 
     def parseDimensions(self, dimensions, nsmap):
         processedDims = dict()
@@ -172,6 +184,9 @@ class XBRLCSVReportParser:
                         processedValue = qname(processedValue, nsmap)
                     except KeyError:
                         raise XBRLError("oimce:unboundPrefix", "Missing namespace prefix (%s)" % processedValue)
+
+            processedDims[dimQName] = processedValue
+
 
         return processedDims
          
