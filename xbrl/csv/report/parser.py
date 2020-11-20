@@ -40,6 +40,8 @@ class XBRLCSVReportParser:
                 raise XBRLError("xbrlce:invalidIdentifier", "Table template name '%s' is not a valid identifier" % name)
             columns = dict()
             for colname, coldef in template.get("columns", {}).items():
+                if not(isValidIdentifier(colname)):
+                    raise XBRLError("xbrlce:invalidIdentifier", "Column name '%s' is not a valid identifier" % colname)
                 if {"dimensions", "propertiesFrom"} & coldef.keys():
                     if "propertyGroups" in coldef:
                         raise XBRLError("xbrlce:conflictingColumnType", 'If "dimensions" or "propertiesFrom" is present on column definition, "propertyGroups" must be absent %s/%s' % (name, colname))
