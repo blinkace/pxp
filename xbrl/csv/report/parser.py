@@ -48,6 +48,8 @@ class XBRLCSVReportParser:
                     dims = self.parseDimensions(coldef.get("dimensions",{}), nsmap)
                     columns[colname] = FactColumn(colname, dims)
                 else:
+                    if "decimals" in coldef:
+                        raise XBRLError("xbrlce:misplacedDecimalsOnNonFactColumn", "Decimals property may not appear on non-fact column '%s'" % colname)
                     columns[colname] = Column(colname)
 
             templates[name] = TableTemplate(name, columns, self.parseDimensions(template.get("dimensions", {}), nsmap))
