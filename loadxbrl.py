@@ -18,7 +18,6 @@ def runSuite(src):
     run = 0
     for v in suite.variations:
         if args.variations is None or v.id in args.variations:
-            print(v.id)
             run += 1
             if len(v.inputs) != 1:
                 print("Variation has %d inputs" % len(v.inputs))
@@ -34,11 +33,11 @@ def runSuite(src):
                     errors = { etree.QName("{}UncaughtException") }
                     print(traceback.format_exc())
                 if (errors == v.errors):
-                    print("Pass (%d errors expected)" % len(errors))
+                    print("%-7s ok" % v.id)
                     passed += 1
                 else:
-                    print("Fail")
-                    print("Got: %s Expected: %s" % ("".join(e.text for e in errors), "".join(e.text for e in v.errors)))
+                    print("%-7s fail" % v.id)
+                    print("  Got: %s Expected: %s" % ("".join(e.text for e in errors), "".join(e.text for e in v.errors)))
 
     print("%d of %d passed (%.1f%%)" % (passed, run, (100*passed/(run or 1))))
 
