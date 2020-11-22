@@ -6,6 +6,10 @@ class Column:
         self.name = name
         pass
 
+class PropertyGroupColumn(Column):
+
+    pass
+
 
 class FactColumn(Column):
 

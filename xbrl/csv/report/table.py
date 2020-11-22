@@ -1,9 +1,10 @@
 import csv
 from .csvdialect import XBRLCSVDialect
 from .validators import isValidIdentifier
-from .column import FactColumn
+from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
 from .values import ParameterReference
+from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 import urllib.error
 import io
@@ -25,6 +26,7 @@ class Table:
                 columns = dict()
                 colMap = dict()
                 factColumns = []
+                propertyGroupColumns = []
                 for (index, h) in enumerate(headerRow):
                     if h != "":
                         if not isValidIdentifier(h):
@@ -40,19 +42,52 @@ class Table:
                         if isinstance(column, FactColumn):
                             factColumns.append(column)
 
+                        if isinstance(column, PropertyGroupColumn):
+                            propertyGroupColumns.append(column)
+
                 for row in reader:
+                    for pgc in propertyGroupColumns:
+                        # Ensure that illegalUseOfNone gets raised for PG columns
+                        processSpecialValues(row[colMap[pgc.name]], allowNone = False)
+
                     for fc in factColumns:
                         try:
                             rawValue = row[colMap[fc.name]]
                         except IndexError:
                             next
+                        if rawValue == "":
+                            next
                         value = processSpecialValues(rawValue, allowNone = False)
                         dims = self.template.columns[fc.name].getEffectiveDimensions()
+                        factDims = {}
                         for k, v in dims.items():
                             if isinstance(v, ParameterReference):
                                 param = v.name
                                 if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
                                     raise XBRLError("xbrlce:invalidParameterReference", "Could not resolve parameter '%s'" % param)
+                                paramCol = colMap.get(param)
+                                if paramCol is not None and row[paramCol] != "":
+                                    val = row[paramCol]
+                                else:
+                                    val = self.parameters.get(param, self.template.report.parameters.get(param))
+                                if val is not None:
+                                    val = processSpecialValues(val)
+                            else:
+                                val = v
+
+                            if val is not None:
+                                factDims[k] = val
+
+                        if qname("xbrl:concept") not in factDims:
+                            raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact in column %s" % fc.name)
+
+
+
+
+
+
+
+
 
                         
 
@@ -62,7 +97,8 @@ class Table:
             if isinstance(e.reason, FileNotFoundError):
                 if not self.optional:
                     raise XBRLError("xbrlce:missingRequiredCSVFile", "File '%s' does not exist" % self.url)
-            raise e
+            else:
+                raise e
         except csv.Error as e:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
         except UnicodeDecodeError as e:

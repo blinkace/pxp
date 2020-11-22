@@ -10,7 +10,7 @@ class NS:
     xbrldte = "http://xbrl.org/2005/xbrldt/errors"
     catalog = "urn:oasis:names:tc:entity:xmlns:xml:catalog"
     tp = "http://xbrl.org/2016/taxonomy-package"
-    oime = "http://www.xbrl.org/DCR/YYYY-MM-DD/oim/error"
+    oime = "http://www.xbrl.org/((~status_date_uri~))/oim/error"
     oimce = "http://www.xbrl.org/((~status_date_uri~))/oim-common/error"
     xbrlxe = "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-xml/error"
     xbrl21e = "http://www.blinkace.com/python-xbrl-oim/xbrl-2.1/error"

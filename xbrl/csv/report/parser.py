@@ -5,7 +5,7 @@ import io
 import csv
 import urllib
 
-from xbrl.json.schema import json_validate
+from xbrl.json.schema import json_validate, DuplicateKeyError
 from xbrl.xbrlerror import XBRLError
 from xbrl.xml import qname
 from xbrl.const import NS, DocumentType
@@ -14,9 +14,9 @@ from xbrl.xml.taxonomy.document import SchemaRef
 from .report import Report
 from .tabletemplate import TableTemplate
 from .table import Table
-from .column import Column, FactColumn
+from .column import Column, FactColumn, PropertyGroupColumn
 from .values import ParameterReference
-from .validators import isValidIdentifier
+from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
 
@@ -25,12 +25,12 @@ class XBRLCSVReportParser:
     def __init__(self, processor):
         self.processor = processor
 
-
     def parse(self, url):
 
         metadata = self.loadMetaData(url)
 
         nsmap = metadata.get("documentInfo").get("namespaces", {})
+        validateURIMap(nsmap)
         taxonomy = self.getTaxonomy(metadata, url)
 
         templates = dict()
@@ -47,6 +47,8 @@ class XBRLCSVReportParser:
                         raise XBRLError("xbrlce:conflictingColumnType", 'If "dimensions" or "propertiesFrom" is present on column definition, "propertyGroups" must be absent %s/%s' % (name, colname))
                     dims = self.parseDimensions(coldef.get("dimensions",{}), nsmap)
                     columns[colname] = FactColumn(colname, dims)
+                elif "propertyGroups" in coldef:
+                    columns[colname] = PropertyGroupColumn(colname)
                 else:
                     if "decimals" in coldef:
                         raise XBRLError("xbrlce:misplacedDecimalsOnNonFactColumn", "Decimals property may not appear on non-fact column '%s'" % colname)
@@ -65,7 +67,7 @@ class XBRLCSVReportParser:
             template = templates.get(templateName, None)
             if template is None:
                 raise XBRLError("xbrlce:unknownTableTemplate", "Template definition not found for %s (table: %s)" % (templateName, name));
-            tables.append(Table(name, template, urljoin(url, table.get("url")), dict(), optional = table.get("optional", False)))
+            tables.append(Table(name, template, urljoin(url, table.get("url")), parameters=table.get("parameters",{}), optional = table.get("optional", False)))
 
         parameters = self.parseReportParameters(url, metadata)
 
@@ -105,7 +107,10 @@ class XBRLCSVReportParser:
             raise XBRLError("oimce:unsupportedDocumentType", "Unsupported document type: %s" % docType)
 
         with self.processor.resolver.open(url) as src:
-            err = json_validate(os.path.join(os.path.dirname(__file__), "xbrl-csv-metadata.json"), src)
+            try:
+                err = json_validate(os.path.join(os.path.dirname(__file__), "xbrl-csv-metadata.json"), src)
+            except DuplicateKeyError as e:
+                raise XBRLError("xbrlce:invalidJSON", str(e))
         if err is not None:
             raise XBRLError("xbrlce:invalidJSONStructure", err)
 
@@ -181,7 +186,7 @@ class XBRLCSVReportParser:
                         raise XBRLError("xbrlce:invalidJSONStructure", "Invalid QName for concept dimension (%s)" % processedValue)
                     try:
                         # XXX we should do this after resolving parameter references
-                        processedValue = qname(processedValue, nsmap)
+                        processedValue = qname(processedValue, { "xbrl": NS.xbrl, **nsmap})
                     except KeyError:
                         raise XBRLError("oimce:unboundPrefix", "Missing namespace prefix (%s)" % processedValue)
 
