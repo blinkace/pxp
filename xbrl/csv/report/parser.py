@@ -15,7 +15,7 @@ from .report import Report
 from .tabletemplate import TableTemplate
 from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn
-from .values import ParameterReference, RowNumberReference
+from .values import ParameterReference, RowNumberReference, parseReference
 from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
@@ -38,15 +38,20 @@ class XBRLCSVReportParser:
         for name, template in metadata.get("tableTemplates",{}).items():
             if not(isValidIdentifier(name)):
                 raise XBRLError("xbrlce:invalidIdentifier", "Table template name '%s' is not a valid identifier" % name)
+            columnDefs = template.get("columns", {})
             columns = dict()
-            for colname, coldef in template.get("columns", {}).items():
+            for colname, coldef in columnDefs.items():
                 if not(isValidIdentifier(colname)):
                     raise XBRLError("xbrlce:invalidIdentifier", "Column name '%s' is not a valid identifier" % colname)
                 if {"dimensions", "propertiesFrom"} & coldef.keys():
                     if "propertyGroups" in coldef:
                         raise XBRLError("xbrlce:conflictingColumnType", 'If "dimensions" or "propertiesFrom" is present on column definition, "propertyGroups" must be absent %s/%s' % (name, colname))
                     dims = self.parseDimensions(coldef.get("dimensions",{}), nsmap)
-                    columns[colname] = FactColumn(colname, dims)
+                    pfs = coldef.get("propertiesFrom", [])
+                    for pf in pfs:
+                        if pf not in columnDefs:
+                            raise XBRLError("xbrlce:invalidPropertyGroupColumnReference", "Property Group column '%s' referenced from column '%s' does not exist" %  (pf, colname))
+                    columns[colname] = FactColumn(colname, dims, pfs)
                 elif "propertyGroups" in coldef:
                     columns[colname] = PropertyGroupColumn(colname)
                 else:
@@ -173,13 +178,10 @@ class XBRLCSVReportParser:
             processedValue = processSpecialValues(value)
             if type(processedValue) == str:
                 if processedValue.startswith("$"):
-                    processedValue = processedValue[1:]
-                    if processedValue == 'rowNumber':
-                        processedValue = RowNumberReference()
-                    elif not processedValue.startswith("$"):
-                        if not isValidIdentifier(processedValue):
-                            raise XBRLError("xbrlce:invalidReference", "'$%s' is not a valid row number reference or parameter reference" % processedValue)
-                        processedValue = ParameterReference(processedValue)
+                    if processedValue.startswith("$$"):
+                        processedValue = processedValue[1:]
+                    else:
+                        processedValue = parseReference(processedValue)
             if dimQName == qname("xbrl:concept"):
                 if processedValue is None:
                     raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")

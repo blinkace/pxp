@@ -13,10 +13,11 @@ class PropertyGroupColumn(Column):
 
 class FactColumn(Column):
 
-    def __init__(self, name, dimensions):
+    def __init__(self, name, dimensions, propertiesFrom):
         super().__init__(name)
         self.dimensions = dimensions
         self.template = None
+        self.propertiesFrom = propertiesFrom
 
     def getEffectiveDimensions(self):
         dims = dict()
