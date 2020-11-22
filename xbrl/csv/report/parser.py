@@ -15,7 +15,7 @@ from .report import Report
 from .tabletemplate import TableTemplate
 from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn
-from .values import ParameterReference
+from .values import ParameterReference, RowNumberReference
 from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
@@ -76,7 +76,8 @@ class XBRLCSVReportParser:
             dimensions = self.parseDimensions(metadata.get("dimensions",{}),nsmap),
             parameters = parameters,
             nsmap = nsmap,
-            tables = tables)
+            tables = tables,
+            taxonomy = taxonomy)
 
         report.loadTables(self.processor.resolver)
 
@@ -173,7 +174,9 @@ class XBRLCSVReportParser:
             if type(processedValue) == str:
                 if processedValue.startswith("$"):
                     processedValue = processedValue[1:]
-                    if not processedValue.startswith("$"):
+                    if processedValue == 'rowNumber':
+                        processedValue = RowNumberReference()
+                    elif not processedValue.startswith("$"):
                         if not isValidIdentifier(processedValue):
                             raise XBRLError("xbrlce:invalidReference", "'$%s' is not a valid row number reference or parameter reference" % processedValue)
                         processedValue = ParameterReference(processedValue)

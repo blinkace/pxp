@@ -3,7 +3,7 @@ from .csvdialect import XBRLCSVDialect
 from .validators import isValidIdentifier
 from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
-from .values import ParameterReference
+from .values import ParameterReference, RowNumberReference
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 import urllib.error
@@ -45,7 +45,9 @@ class Table:
                         if isinstance(column, PropertyGroupColumn):
                             propertyGroupColumns.append(column)
 
+                rowNum = 0
                 for row in reader:
+                    rowNum += 1
                     for pgc in propertyGroupColumns:
                         # Ensure that illegalUseOfNone gets raised for PG columns
                         processSpecialValues(row[colMap[pgc.name]], allowNone = False)
@@ -72,6 +74,8 @@ class Table:
                                     val = self.parameters.get(param, self.template.report.parameters.get(param))
                                 if val is not None:
                                     val = processSpecialValues(val)
+                            elif isinstance(v, RowNumberReference):
+                                val = str(rowNum)
                             else:
                                 val = v
 
