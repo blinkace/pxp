@@ -4,6 +4,9 @@ import os
 import json
 import io
 
+class DuplicateKeyError(Exception):
+    pass
+
 class fixResolver(jsonschema.RefResolver):
     def __init__(self, schemaAbs, schema):
         jsonschema.RefResolver.__init__(self, base_uri = schemaAbs, referrer = None)
@@ -14,7 +17,7 @@ def dict_raise_on_duplicates(ordered_pairs):
     d = {}
     for k, v in ordered_pairs:
         if k in d:
-           raise ValueError("duplicate key: %r" % (k,))
+           raise DuplicateKeyError("duplicate key: %r" % (k,))
         else:
            d[k] = v
     return d
@@ -35,8 +38,6 @@ def json_validate(schemaFile, fin, reject_bom = False):
             else:
                 return str(e)
         except UnicodeDecodeError as e:
-            return str(e)
-        except ValueError as e:
             return str(e)
         if schema is not None:
             jsonschema.validate(instance, schema, resolver = fixResolver(schemaAbs, schema))
