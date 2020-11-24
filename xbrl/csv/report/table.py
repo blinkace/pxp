@@ -3,9 +3,10 @@ from .csvdialect import XBRLCSVDialect
 from .validators import isValidIdentifier
 from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
-from .values import ParameterReference, RowNumberReference
+from .values import ParameterReference, RowNumberReference, ExplicitNoValue
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
+from xbrl.common import parseUnitStringRepresentation
 import urllib.error
 import io
 
@@ -79,21 +80,17 @@ class Table:
                             else:
                                 val = v
 
-                            if val is not None:
+                            if val is not None and not isinstance(val, ExplicitNoValue):
                                 factDims[k] = val
 
                         if qname("xbrl:concept") not in factDims:
                             raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact in column %s" % fc.name)
 
-
-
-
-
-
-
-
-
-                        
+                        unit = factDims.get(qname("xbrl:unit"))
+                        if unit is not None:
+                            (nums, denoms) = parseUnitStringRepresentation(unit, self.template.report.nsmap)
+                            if nums == [ qname("xbrli:pure") ] and denoms == []:
+                                raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
 
 
 
