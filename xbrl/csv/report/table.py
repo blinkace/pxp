@@ -6,7 +6,7 @@ from .specialvalues import processSpecialValues
 from .values import ParameterReference, RowNumberReference, ExplicitNoValue
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
-from xbrl.common import parseUnitStringRepresentation
+from xbrl.common import parseUnitString
 import urllib.error
 import io
 
@@ -88,7 +88,7 @@ class Table:
 
                         unit = factDims.get(qname("xbrl:unit"))
                         if unit is not None:
-                            (nums, denoms) = parseUnitStringRepresentation(unit, self.template.report.nsmap)
+                            (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
                             if nums == [ qname("xbrli:pure") ] and denoms == []:
                                 raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
 

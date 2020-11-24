@@ -32,12 +32,18 @@ def parseHalfUnit(usr, s, nsmap):
     return parseMeasureList(usr, s, nsmap)
 
 
-def parseUnitStringRepresentation(usr, nsmap):
+def parseUnitString(usr, nsmap):
+    if re.search(r'\s', usr) is not None:
+        # This is redundant but enables a more helpful error message.
+        raise XBRLError("oimce:invalidUnitStringRepresentation", "Invalid unit string '%s': unit strings must not contain whitespace" % (usr))
+
     if '/' in usr:
         (numStr, denomStr) = usr.split('/', 2)
         nums = parseHalfUnit(usr, numStr, nsmap)
         denoms = parseHalfUnit(usr, denomStr, nsmap)
     else:
+        if usr.strip().startswith('('):
+            raise XBRLError("oimce:invalidUnitStringRepresentation", "Invalid unit string '%s': Parentheses must only be used if a denominator is present." % (usr))
         nums = parseMeasureList(usr, usr, nsmap)
         denoms = []
         
