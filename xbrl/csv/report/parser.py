@@ -209,6 +209,9 @@ class XBRLCSVReportParser:
     def parseDimensions(self, dimensions, nsmap):
         processedDims = dict()
         for name, value in dimensions.items():
+            if name.startswith("xbrl:"):
+                raise XBRLError("xbrlce:invalidJSONStructure", "Invalid dimension QName '%s'.  Dimension QNames must not use the 'xbrl' namespace (%s)" % (name, NS.xbrl))
+
             dimQName = qname(name, nsmap = { None: NS.xbrl, **nsmap })
 
             processedValue = processSpecialValues(value)
