@@ -1,9 +1,11 @@
 from xbrl.xbrlerror import XBRLError
 from .validators import isValidIdentifier
+from collections import namedtuple
+
+Properties = namedtuple('Properties', ['decimals', 'dimensions'])
 
 class ExplicitNoValue:
     pass
-
 
 class ParameterReference:
 
@@ -15,6 +17,7 @@ class RowNumberReference:
     pass
 
 def parseReference(name):
+    assert name.startswith("$")
 
     if name == '$rowNumber':
         return RowNumberReference()
@@ -25,7 +28,6 @@ def parseReference(name):
     else:
         (ref, periodSpecifier) = (name, None)
 
-    assert ref.startswith("$")
     ref = ref[1:]
 
     if not isValidIdentifier(ref):

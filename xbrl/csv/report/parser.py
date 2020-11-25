@@ -15,7 +15,7 @@ from .report import Report
 from .tabletemplate import TableTemplate
 from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn
-from .values import ParameterReference, RowNumberReference, parseReference
+from .values import ParameterReference, RowNumberReference, parseReference, Properties, ExplicitNoValue
 from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
@@ -46,12 +46,12 @@ class XBRLCSVReportParser:
                 if {"dimensions", "propertiesFrom"} & coldef.keys():
                     if "propertyGroups" in coldef:
                         raise XBRLError("xbrlce:conflictingColumnType", 'If "dimensions" or "propertiesFrom" is present on column definition, "propertyGroups" must be absent %s/%s' % (name, colname))
-                    dims = self.parseDimensions(coldef.get("dimensions",{}), nsmap)
+                    properties = self.parseProperties(coldef, nsmap)
                     pfs = coldef.get("propertiesFrom", [])
                     for pf in pfs:
                         if pf not in columnDefs:
                             raise XBRLError("xbrlce:invalidPropertyGroupColumnReference", "Property Group column '%s' referenced from column '%s' does not exist" %  (pf, colname))
-                    columns[colname] = FactColumn(colname, dims, pfs)
+                    columns[colname] = FactColumn(colname, properties, pfs)
                 elif "propertyGroups" in coldef:
                     columns[colname] = PropertyGroupColumn(colname)
                 else:
@@ -59,7 +59,7 @@ class XBRLCSVReportParser:
                         raise XBRLError("xbrlce:misplacedDecimalsOnNonFactColumn", "Decimals property may not appear on non-fact column '%s'" % colname)
                     columns[colname] = Column(colname)
 
-            templates[name] = TableTemplate(name, columns, self.parseDimensions(template.get("dimensions", {}), nsmap))
+            templates[name] = TableTemplate(name, columns, self.parseProperties(template, nsmap))
 
         tables = []
         for name, table in metadata.get("tables",{}).items():
@@ -78,7 +78,7 @@ class XBRLCSVReportParser:
 
         report = Report(
             templates = templates, 
-            dimensions = self.parseDimensions(metadata.get("dimensions",{}),nsmap),
+            properties = self.parseProperties(metadata, nsmap),
             parameters = parameters,
             nsmap = nsmap,
             tables = tables,
@@ -170,6 +170,42 @@ class XBRLCSVReportParser:
                 raise XBRLError("xbrlce:illegalRedefinitionOfNonExtensibleProperty", "'%s' cannot appear in more than one metadata file" % k)
 
 
+    def parseProperties(self, propertyHolder, nsmap):
+        properties = Properties(
+                decimals = self.parseDecimals(propertyHolder),
+                dimensions = self.parseDimensions(propertyHolder.get("dimensions",{}), nsmap)
+                )
+        return properties
+
+    def parseDecimals(self, propertyHolder):
+        val = propertyHolder.get("decimals")
+        if val is None:
+            return None
+
+        if type(val) == int:
+            return val
+        if type(val) == float:
+            raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value: must be an integer" % str(val))
+
+        processedValue = processSpecialValues(val)
+
+        if processedValue in (None, ""):
+            raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % val)
+
+        if isinstance(processedValue, ExplicitNoValue):
+            return ExplicitNoValue
+
+        assert type(processedValue) == str
+
+        if processedValue.startswith("$"):
+            processedValue = parseReference(processedValue)
+        else:
+            raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % val)
+
+        return processedValue
+
+
+
     def parseDimensions(self, dimensions, nsmap):
         processedDims = dict()
         for name, value in dimensions.items():
@@ -182,6 +218,8 @@ class XBRLCSVReportParser:
                         processedValue = processedValue[1:]
                     else:
                         processedValue = parseReference(processedValue)
+
+            # XXX move to table code
             if dimQName == qname("xbrl:concept"):
                 if processedValue is None:
                     raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")

@@ -66,23 +66,25 @@ class Table:
                         factDims = {}
                         for k, v in dims.items():
                             if isinstance(v, ParameterReference):
-                                param = v.name
-                                if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
-                                    raise XBRLError("xbrlce:invalidParameterReference", "Could not resolve parameter '%s'" % param)
-                                paramCol = colMap.get(param)
-                                if paramCol is not None and row[paramCol] != "":
-                                    val = row[paramCol]
-                                else:
-                                    val = self.parameters.get(param, self.template.report.parameters.get(param))
-                                if val is not None:
-                                    val = processSpecialValues(val)
+                                val = self.getParameterValue(v, row, colMap)
+
                             elif isinstance(v, RowNumberReference):
                                 val = str(rowNum)
                             else:
                                 val = v
 
-                            if val is not None and not isinstance(val, ExplicitNoValue):
+                            if not isinstance(val, ExplicitNoValue):
                                 factDims[k] = val
+
+                        decimals = self.template.columns[fc.name].getEffectiveDecimals()
+                        if isinstance(decimals, ParameterReference):
+                            decimals = self.getParameterValue(decimals, row, colMap)
+                        if type(decimals) == str:
+                            try:
+                                decimals = int(decimals)
+                            except ValueError:
+                                raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % decimals)
+
 
                         if qname("xbrl:concept") not in factDims:
                             raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact in column %s" % fc.name)
@@ -92,9 +94,16 @@ class Table:
                             (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
                             if nums == [ qname("xbrli:pure") ] and denoms == []:
                                 raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
-                        period = factDims.get(qname("xbrl:period"))
-                        if period is not None:
-                            parseCSVPeriodString(period)
+
+                        if qname("xbrl:period") in factDims:
+                            period = factDims.get(qname("xbrl:period"))
+
+                            # #nil or JSON null
+                            if period is None:
+                                raise XBRLError("xbrlce:invalidPeriodRepresentation", "nil is not a valid period value")
+
+                            if period is not None:
+                                parseCSVPeriodString(period)
 
 
 
@@ -109,5 +118,19 @@ class Table:
         except UnicodeDecodeError as e:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
 
+
+
+    def getParameterValue(self, p, row, colMap):
+        param = p.name
+        if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
+            raise XBRLError("xbrlce:invalidParameterReference", "Could not resolve parameter '%s'" % param)
+        paramCol = colMap.get(param)
+        if paramCol is not None and row[paramCol] != "":
+            val = row[paramCol]
+        else:
+            val = self.parameters.get(param, self.template.report.parameters.get(param, ExplicitNoValue()))
+        if type(val) == str:
+            val = processSpecialValues(val)
+        return val
 
 
