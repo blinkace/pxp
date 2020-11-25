@@ -1,5 +1,6 @@
 from lxml import etree
 from xbrl.const import NSMAP 
+from xbrl.xbrlerror import XBRLError
 
 def qname(qstr, nsmap = NSMAP):
     """
@@ -14,7 +15,11 @@ def qname(qstr, nsmap = NSMAP):
         (prefix, local) = qstr.split(":")
     else:
         (prefix, local) = (None, qstr)
-    return etree.QName(nsmap[prefix], local)
+    try:
+        return etree.QName(nsmap[prefix], local)
+    except KeyError:
+        raise XBRLError("oimce:unboundPrefix", "Missing namespace prefix (%s)" % prefix)
+
 
 def qnameset(prefixset, localset, nsmap = NSMAP):
     if type(prefixset) != set:

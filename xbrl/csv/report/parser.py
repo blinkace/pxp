@@ -219,20 +219,6 @@ class XBRLCSVReportParser:
                     else:
                         processedValue = parseReference(processedValue)
 
-            # XXX move to table code
-            if dimQName == qname("xbrl:concept"):
-                if processedValue is None:
-                    raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")
-                if type(processedValue) == str:
-                    # XXX need proper QName validation
-                    if ":" not in processedValue:
-                        raise XBRLError("xbrlce:invalidJSONStructure", "Invalid QName for concept dimension (%s)" % processedValue)
-                    try:
-                        # XXX we should do this after resolving parameter references
-                        processedValue = qname(processedValue, { "xbrl": NS.xbrl, **nsmap})
-                    except KeyError:
-                        raise XBRLError("oimce:unboundPrefix", "Missing namespace prefix (%s)" % processedValue)
-
             processedDims[dimQName] = processedValue
 
 

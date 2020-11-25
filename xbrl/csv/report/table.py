@@ -1,6 +1,6 @@
 import csv
 from .csvdialect import XBRLCSVDialect
-from .validators import isValidIdentifier
+from .validators import isValidIdentifier, isValidQName
 from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
 from .values import ParameterReference, RowNumberReference, ExplicitNoValue
@@ -8,6 +8,7 @@ from .period import parseCSVPeriodString
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString
+from xbrl.const import NS
 import urllib.error
 import io
 
@@ -88,6 +89,15 @@ class Table:
 
                         if qname("xbrl:concept") not in factDims:
                             raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact in column %s" % fc.name)
+
+                        concept = factDims.get(qname("xbrl:concept"))
+                        if concept is None:
+                            raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")
+
+                        if not isValidQName(concept):
+                            raise XBRLError("xbrlce:invalidConceptQName", "'%s' is not a valid QName" % concept)
+
+                        concept = qname(concept, { "xbrl": NS.xbrl, **self.template.report.nsmap})
 
                         unit = factDims.get(qname("xbrl:unit"))
                         if unit is not None:
