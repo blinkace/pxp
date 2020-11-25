@@ -4,6 +4,7 @@ from .validators import isValidIdentifier
 from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
 from .values import ParameterReference, RowNumberReference, ExplicitNoValue
+from .period import parseCSVPeriodString
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString
@@ -91,6 +92,9 @@ class Table:
                             (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
                             if nums == [ qname("xbrli:pure") ] and denoms == []:
                                 raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
+                        period = factDims.get(qname("xbrl:period"))
+                        if period is not None:
+                            parseCSVPeriodString(period)
 
 
 
