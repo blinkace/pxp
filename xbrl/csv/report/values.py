@@ -22,9 +22,9 @@ def parseReference(name):
     if name == '$rowNumber':
         return RowNumberReference()
     elif '@' in name:
-        (ref, periodSpecifier) = name.split(name, 2)
+        (ref, periodSpecifier) = name.split('@', 2)
         if periodSpecifier not in {"start", "end"}:
-            raise XBRLError("xbrlce:invalidPeriodSpecifier", "'%s' is not a valid period specified.  Must be 'start' or 'end'" % periodSpecifier)
+            raise XBRLError("xbrlce:invalidPeriodSpecifier", "'%s' is not a valid period specifier (%s).  Must be 'start' or 'end'" % (periodSpecifier, name))
     else:
         (ref, periodSpecifier) = (name, None)
 
