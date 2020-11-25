@@ -12,10 +12,7 @@ def parseMeasureList(usr, s, nsmap):
     for measure in s.split('*'):
         if re.match(RE_QNAME, measure) is None:
             raise XBRLError("oimce:invalidUnitStringRepresentation", "Invalid unit string '%s': '%s' is not a valid QName" % (usr, measure))
-        try:
-            measures.append(qname(measure, nsmap))
-        except KeyError as e:
-            raise XBRLError("oimce:unboundPrefix", "Undeclared namespace prefix (%s)" % measure)
+        measures.append(qname(measure, nsmap))
 
     return measures
 
