@@ -27,7 +27,7 @@ def runSuite(src):
                     report = processor.loadXBRLCSVReport(urljoin(suite.url, v.inputs[0].url))
                 except xbrl.XBRLError as e:
                     errors = { e.code }
-                    if args.verbose:
+                    if args.verbose or args.variations is not None:
                         print("[%s] %s" % (e.code, e.message))
                 except Exception as e:
                     errors = { etree.QName("{}UncaughtException") }
@@ -61,7 +61,7 @@ parser.add_argument('-c', '--csv', dest="csv", action="store_true")
 parser.add_argument('-t', '--testsuite', dest="test", action="store_true")
 parser.add_argument('-v', '--verbose', dest="verbose", action="store_true")
 parser.add_argument('--debug', dest="debug", action="store_true")
-parser.add_argument('--variation', dest="variations", action="append")
+parser.add_argument('-V', '--variation', dest="variations", action="append")
 parser.add_argument('reports', metavar='REPORT', nargs="+")
 args = parser.parse_args()
 
