@@ -52,12 +52,17 @@ class XBRLCSVReportParser:
                         if pf not in columnDefs:
                             raise XBRLError("xbrlce:invalidPropertyGroupColumnReference", "Property Group column '%s' referenced from column '%s' does not exist" %  (pf, colname))
                     columns[colname] = FactColumn(colname, properties, pfs)
-                elif "propertyGroups" in coldef:
-                    columns[colname] = PropertyGroupColumn(colname)
                 else:
                     if "decimals" in coldef:
                         raise XBRLError("xbrlce:misplacedDecimalsOnNonFactColumn", "Decimals property may not appear on non-fact column '%s'" % colname)
-                    columns[colname] = Column(colname)
+                    if "propertyGroups" in coldef:
+                        pgs = dict()
+                        for pgName, pg in coldef["propertyGroups"].items():
+                            pgs[pgName] = self.parseProperties(pg, nsmap)
+
+                        columns[colname] = PropertyGroupColumn(colname, pgs)
+                    else:
+                        columns[colname] = Column(colname)
 
             rowIdColumnName = template.get("rowIdColumn")
             if rowIdColumnName is not None:
@@ -186,9 +191,13 @@ class XBRLCSVReportParser:
         return properties
 
     def parseDecimals(self, propertyHolder):
+        if "decimals" not in propertyHolder:
+            return None
+
         val = propertyHolder.get("decimals")
         if val is None:
-            return None
+            # JSON null
+            raise XBRLError("xbrlce:invalidDecimalsValue", "'null' is not a valid decimals value")
 
         if type(val) == int:
             return val

@@ -3,7 +3,7 @@ from .csvdialect import XBRLCSVDialect
 from .validators import isValidIdentifier, isValidQName
 from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
-from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue
+from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue, Properties
 from .period import parseCSVPeriodString
 from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
@@ -64,7 +64,31 @@ class Table:
                         if rawValue == "":
                             continue
                         factValue = processSpecialValues(rawValue, allowNone = False)
-                        dims = self.template.columns[fc.name].getEffectiveDimensions()
+
+                        column = self.template.columns[fc.name]
+
+                        pgDimensions = dict()
+                        pgDecimals = None
+
+                        for pg in column.propertiesFrom:
+                            if pg in colMap:
+                                # Not an error for the column to not be present in the table (#457)
+                                pgname = row[colMap[pg]]
+                                if pgname != "":
+                                    pgcoldef = self.template.columns[pg]
+                                    properties = pgcoldef.propertyGroups.get(pgname)
+                                    if properties is None:
+                                        raise XBRLError("xbrlce:unknownPropertyGroup", "Could not find property group '%s' in property group column '%s'" % (pgname, pg))
+
+                                    # Merge into propertyGroupProperties
+                                    if properties.decimals is not None:
+                                        pgDecimals = properties.decimals
+                                    for k, v in properties.dimensions.items():
+                                        pgDimensions[k] = v
+
+                        propertyGroupProperties = Properties(dimensions = pgDimensions, decimals = pgDecimals)
+
+                        dims = column.getEffectiveDimensions(propertyGroupProperties)
                         factDims = {}
                         for k, v in dims.items():
                             if isinstance(v, ParameterReference):
@@ -78,7 +102,7 @@ class Table:
                             if not isinstance(val, ExplicitNoValue):
                                 factDims[k] = val
 
-                        decimals = self.template.columns[fc.name].getEffectiveDecimals()
+                        decimals = self.template.columns[fc.name].getEffectiveDecimals(propertyGroupProperties)
                         if isinstance(decimals, ParameterReference):
                             decimals = self.getParameterValue(decimals, row, colMap)
                         if type(decimals) == str:
