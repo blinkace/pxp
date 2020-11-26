@@ -123,6 +123,7 @@ class Table:
                         if concept.isNumeric:
                             (factValue, decimals) = parseNumericValue(factValue, decimals)
 
+                        # XXX This is should move to model-level validation
                         if concept == NoteConcept:
                             if set(factDims.keys()) & qnameset("xbrl", {"period", "entity"}):
                                 raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have the Period or Entity core dimensions")

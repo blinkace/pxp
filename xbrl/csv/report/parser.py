@@ -59,7 +59,15 @@ class XBRLCSVReportParser:
                         raise XBRLError("xbrlce:misplacedDecimalsOnNonFactColumn", "Decimals property may not appear on non-fact column '%s'" % colname)
                     columns[colname] = Column(colname)
 
-            templates[name] = TableTemplate(name, columns, self.parseProperties(template, nsmap))
+            rowIdColumnName = template.get("rowIdColumn")
+            if rowIdColumnName is not None:
+                rowIdColumn = columns.get(rowIdColumnName)
+                if rowIdColumn is None:
+                    raise XBRLError("xbrlce:undefinedRowIdColumn", "Column '%s' (specified as row ID column) does not exist." % rowIdColumnName)
+            else:
+                rowIdColumn = None
+
+            templates[name] = TableTemplate(name, columns, self.parseProperties(template, nsmap), rowIdColumn)
 
         tables = []
         for name, table in metadata.get("tables",{}).items():
