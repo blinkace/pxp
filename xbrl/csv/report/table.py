@@ -5,10 +5,11 @@ from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
 from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue
 from .period import parseCSVPeriodString
-from xbrl.xml import qname
+from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString
 from xbrl.const import NS
+from xbrl.model.taxonomy import NoteConcept
 import urllib.error
 import io
 
@@ -121,6 +122,17 @@ class Table:
 
                         if concept.isNumeric:
                             (factValue, decimals) = parseNumericValue(factValue, decimals)
+
+                        if concept == NoteConcept:
+                            if set(factDims.keys()) & qnameset("xbrl", {"period", "entity"}):
+                                raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have the Period or Entity core dimensions")
+                            if qname("xbrl:language") not in factDims.keys():
+                                raise XBRLError("oime:missingLanguageForNoteFact", "xbrl:note facts must have the Language core dimensions")
+                            for k in factDims.keys():
+                                if k.namespace != NS.xbrl:
+                                    raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have any taxonomy defined dimensions (%s)" % str(k))
+
+
 
 
         except urllib.error.URLError as e:
