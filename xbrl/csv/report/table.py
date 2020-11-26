@@ -123,8 +123,6 @@ class Table:
                             (factValue, decimals) = parseNumericValue(factValue, decimals)
 
 
-
-
         except urllib.error.URLError as e:
             if isinstance(e.reason, FileNotFoundError):
                 if not self.optional:
@@ -141,7 +139,7 @@ class Table:
     def getParameterValue(self, p, row, colMap):
         param = p.name
         if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
-            raise XBRLError("xbrlce:invalidParameterReference", "Could not resolve parameter '%s'" % param)
+            raise XBRLError("xbrlce:invalidReferenceTarget", "Could not resolve parameter '%s'" % param)
         paramCol = colMap.get(param)
         if paramCol is not None and row[paramCol] != "":
             val = row[paramCol]
