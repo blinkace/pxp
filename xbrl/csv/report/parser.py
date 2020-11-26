@@ -259,6 +259,10 @@ class XBRLCSVReportParser:
 
                             if name in reportParameters:
                                 raise XBRLError("xbrlce:illegalReportParameterRedefinition", "Parameter '%s' redefined in parameter CSV file '%s'" % (name, url))
+
+                            if not isValidIdentifier(name):
+                                raise XBRLError("xbrlce:invalidIdentifier", "'%s' is not a valid parameter name (%s row %d)" % (name, url, rownum))
+
                             reportParameters[name] = value
 
 
