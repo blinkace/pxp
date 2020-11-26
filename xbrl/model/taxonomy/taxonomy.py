@@ -1,4 +1,4 @@
-from .concept import Concept
+from .concept import Concept, NoteConcept
 from xbrl.const import PREFIX
 
 class Taxonomy:
@@ -7,6 +7,7 @@ class Taxonomy:
         self.concepts = dict()
         self.ns_to_prefix = PREFIX.copy()
         self.prefix_to_ns = dict()
+        self.addConcept(NoteConcept)
 
     def addConcept(self, c):
         self.concepts[c.name] = c
@@ -30,8 +31,6 @@ class Taxonomy:
 
     def getPrefix(self, ns, default = None):
         return self.ns_to_prefix.get(ns, default)
-
-
 
 
 
