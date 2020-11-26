@@ -149,21 +149,21 @@ class XBRLCSVReportParser:
         return j
 
     def mergeDict(self, a, b, extensible):
-        for k, v in b.items():
+        for k, bv in b.items():
             if k in extensible:
                 ext = extensible[k]
                 if type(ext) == dict:
-                    self.mergeDict(a.setdefault(k, {}), b[k], extensible[k])
+                    self.mergeDict(a.setdefault(k, {}), b[k], ext)
                 elif ext == dict:
                     if k in a:
-                        if a[k] != b:
-                            raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (k, a[k], v))
+                        if a[k] != bv:
+                            raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (k, a[k], bv))
                     else:
-                        a[k] = b
+                        a[k] = bv
                 elif ext == list:
-                    a[k] = b[k] + a.get(k, [])
+                    a[k] = bv + a.get(k, [])
                 elif ext is not None:
-                    raise ValueError("Unexpected value in extensible dict: %s" % v)
+                    raise ValueError("Unexpected value in extensible dict: %s" % bv)
 
 
             elif k in a:
