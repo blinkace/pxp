@@ -13,6 +13,7 @@ from xbrl.const import NS
 from xbrl.model.taxonomy import NoteConcept
 import urllib.error
 import io
+import datetime
 
 class Table:
 
@@ -174,7 +175,11 @@ class Table:
         if period is None:
             raise XBRLError("xbrlce:invalidPeriodRepresentation", "nil is not a valid period value")
 
-        return parseCSVPeriodString(period)
+        if isinstance(period, datetime.datetime):
+            # Was obtained as the target of a parameter reference with period specifier, and has already been converted to datetime
+            return period
+        else:
+            return parseCSVPeriodString(period)
 
 
     def getEntity(self, factDims):
@@ -204,6 +209,17 @@ class Table:
             val = self.parameters.get(param, self.template.report.parameters.get(param, ExplicitNoValue()))
         if type(val) == str:
             val = processSpecialValues(val)
+
+        if p.periodSpecifier:
+            period = parseCSVPeriodString(val)
+            if None in period:
+                raise XBRLError("xbrlce:referenceTargetNotDuration", "'%s' is referenced by parameter '%s' with a period specified of '%s' but does not denote a duration." % (val, param, p.periodSpecifier))
+
+            if p.periodSpecifier == 'start':
+                return period[0]
+            else:
+                return period[1]
+
         return val
 
 
