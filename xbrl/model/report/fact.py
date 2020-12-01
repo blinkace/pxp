@@ -4,7 +4,7 @@ from xbrl.xml import qname
 
 class Fact:
 
-    def __init__(self, factId, dimensions = set(), value = None, decimals = None, links = {}):
+    def __init__(self, factId, dimensions = set(), value = None, decimals = None, links = None):
         self.id = factId
 
         self.dimensions = dict()
@@ -15,7 +15,7 @@ class Fact:
         self.value = value
         self.decimals = decimals
         self.report = None
-        self.links = links
+        self.links = links if links is not None else {}
 
     def __repr__(self):
         dims = "; ".join("%s = %s" % (self.report.asQName(d.name), self.report.asQName(d.value.name)) for d in self.dimensions if isinstance(d, TaxonomyDefinedDimension))

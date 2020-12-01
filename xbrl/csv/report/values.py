@@ -5,8 +5,6 @@ from xbrl.xbrlerror import XBRLError
 
 from .validators import isValidIdentifier
 
-Properties = namedtuple('Properties', ['decimals', 'dimensions'])
-
 class ExplicitNoValue:
     pass
 
@@ -63,5 +61,9 @@ def parseNumericValue(v, defaultDecimals):
     return (num, d)
 
 
+class NotPresentClass:
+    pass
+
+NotPresent = NotPresentClass()
 
 

@@ -72,6 +72,8 @@ class XBRLCSVReportParser:
             else:
                 rowIdColumn = None
 
+            self.validatePropertyGroups(columns)
+
             templates[name] = TableTemplate(name, columns, self.parseProperties(template, nsmap), rowIdColumn)
 
         tables = []
@@ -301,5 +303,55 @@ class XBRLCSVReportParser:
             
         return reportParameters
             
+
+    def validatePropertyGroups(self, columns):
+        # Build a map of the properties used by each PropertyGroupColumn
+        usedProperties = dict()
+        for pgcol in (c for c in columns.values() if isinstance(c, PropertyGroupColumn)):
+            pp = Properties()
+            for p in pgcol.propertyGroups.values():
+                pp.add(p)
+            usedProperties[pgcol.name] = pp
+        
+        for col in (c for c in columns.values() if isinstance(c, FactColumn)):
+            pp = Properties()
+            for pf in col.propertiesFrom:
+                try:
+                    pp.add(usedProperties[pf], raiseOnConflict = True)
+                except PropertyGroupMergeDecimalsConflict:
+                    raise XBRLError("xbrlce:repeatedPropertyGroupDecimalsProperty", "The decimals property is specified by multiple property groups columns referenced from %s (%s)" % (col.name, ", ".join(col.propertiesFrom)))
+                except PropertyGroupMergeDimensionsConflict as e:
+                    raise XBRLError("xbrlce:repeatedPropertyGroupDimension", "The '%s' dimension is specified by multiple property groups columns referenced from %s (%s)" % (str(e.dimension), col.name, ", ".join(col.propertiesFrom)))
+
+
+def deep_eq(a, b):
+    if type(a) != type(b):
+        return False
+
+    if type(a) in {str, float, int}:
+        return a == b
+
+    if type(a) == list:
+        if len(a) != len(b):
+            return False
+        for i, v in enumerate(a):
+            if not deep_eq(v,b[i]):
+                return False
+        return True
+
+    if type(a) == dict:
+        if a.keys() != b.keys():
+            return False
+        for k in a.keys():
+            if not deep_eq(a[k] ,b[k]):
+                return False
+        return True
+
+    if a == None:
+        # Should always be true if they're both NoneType
+        return b == None
+
+    raise ValueError("Unexpected type %s" % type(a))
+
 
 

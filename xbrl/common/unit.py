@@ -30,6 +30,9 @@ def parseHalfUnit(usr, s, nsmap):
 
 
 def parseUnitString(usr, nsmap):
+    if usr is None:
+        raise XBRLError("oimce:invalidUnitStringRepresentation", "Unit dimension must not be 'nil'")
+
     if re.search(r'\s', usr) is not None:
         # This is redundant but enables a more helpful error message.
         raise XBRLError("oimce:invalidUnitStringRepresentation", "Invalid unit string '%s': unit strings must not contain whitespace" % (usr))

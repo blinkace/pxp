@@ -3,11 +3,12 @@ from .csvdialect import XBRLCSVDialect
 from .validators import isValidIdentifier, isValidQName
 from .column import FactColumn, PropertyGroupColumn
 from .specialvalues import processSpecialValues
-from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue, Properties
+from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue, NotPresent
+from .properties import Properties
 from .period import parseCSVPeriodString
 from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
-from xbrl.common import parseUnitString
+from xbrl.common import parseUnitString, parseSQName, InvalidSQName
 from xbrl.const import NS
 from xbrl.model.taxonomy import NoteConcept
 import urllib.error
@@ -67,8 +68,7 @@ class Table:
 
                         column = self.template.columns[fc.name]
 
-                        pgDimensions = dict()
-                        pgDecimals = None
+                        propertyGroupProperties = Properties()
 
                         for pg in column.propertiesFrom:
                             if pg in colMap:
@@ -81,12 +81,9 @@ class Table:
                                         raise XBRLError("xbrlce:unknownPropertyGroup", "Could not find property group '%s' in property group column '%s'" % (pgname, pg))
 
                                     # Merge into propertyGroupProperties
-                                    if properties.decimals is not None:
-                                        pgDecimals = properties.decimals
-                                    for k, v in properties.dimensions.items():
-                                        pgDimensions[k] = v
+                                    propertyGroupProperties.add(properties)
 
-                        propertyGroupProperties = Properties(dimensions = pgDimensions, decimals = pgDecimals)
+
 
                         dims = column.getEffectiveDimensions(propertyGroupProperties)
                         factDims = {}
@@ -111,38 +108,10 @@ class Table:
                             except ValueError:
                                 raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % decimals)
 
-
-                        if qname("xbrl:concept") not in factDims:
-                            raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact in column %s" % fc.name)
-
-                        conceptNameStr = factDims.get(qname("xbrl:concept"))
-                        if conceptNameStr is None:
-                            raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")
-
-                        if not isValidQName(conceptNameStr):
-                            raise XBRLError("xbrlce:invalidConceptQName", "'%s' is not a valid QName" % conceptNameStr)
-
-                        conceptName = qname(conceptNameStr, { "xbrl": NS.xbrl, **self.template.report.nsmap})
-
-                        unit = factDims.get(qname("xbrl:unit"))
-                        if unit is not None:
-                            (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
-                            if nums == [ qname("xbrli:pure") ] and denoms == []:
-                                raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
-
-                        if qname("xbrl:period") in factDims:
-                            period = factDims.get(qname("xbrl:period"))
-
-                            # #nil or JSON null
-                            if period is None:
-                                raise XBRLError("xbrlce:invalidPeriodRepresentation", "nil is not a valid period value")
-
-                            if period is not None:
-                                parseCSVPeriodString(period)
-
-                        concept = self.template.report.taxonomy.concepts.get(conceptName)
-                        if concept is None:
-                            raise XBRLError("oime:unknownConcept", "Concept %s not found in taxonomy" % str(conceptName))
+                        concept = self.getConcept(factDims)
+                        unit = self.getUnit(factDims)
+                        period = self.getPeriod(factDims)
+                        entity = self.getEntity(factDims)
 
                         if concept.isNumeric:
                             (factValue, decimals) = parseNumericValue(factValue, decimals)
@@ -158,8 +127,6 @@ class Table:
                                     raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have any taxonomy defined dimensions (%s)" % str(k))
 
 
-
-
         except urllib.error.URLError as e:
             if isinstance(e.reason, FileNotFoundError):
                 if not self.optional:
@@ -170,6 +137,59 @@ class Table:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
         except UnicodeDecodeError as e:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
+
+    def getUnit(self, factDims):
+        unit = factDims.get(qname("xbrl:unit"), NotPresent)
+        if unit is NotPresent:
+            unit = None
+        else:
+            (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
+            if nums == [ qname("xbrli:pure") ] and denoms == []:
+                raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
+        return unit
+
+    def getConcept(self, factDims):
+        conceptNameStr = factDims.get(qname("xbrl:concept"), NotPresent)
+        if conceptNameStr is NotPresent:
+            raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact")
+        if conceptNameStr is None:
+            raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")
+        if not isValidQName(conceptNameStr):
+            raise XBRLError("xbrlce:invalidConceptQName", "'%s' is not a valid QName" % conceptNameStr)
+
+        conceptName = qname(conceptNameStr, { "xbrl": NS.xbrl, **self.template.report.nsmap})
+
+        concept = self.template.report.taxonomy.concepts.get(conceptName)
+        if concept is None:
+            raise XBRLError("oime:unknownConcept", "Concept %s not found in taxonomy" % str(conceptName))
+
+        return concept
+
+    def getPeriod(self, factDims):
+        period = factDims.get(qname("xbrl:period"), NotPresent)
+        if period is NotPresent:
+            return None
+
+        # #nil or JSON null
+        if period is None:
+            raise XBRLError("xbrlce:invalidPeriodRepresentation", "nil is not a valid period value")
+
+        return parseCSVPeriodString(period)
+
+
+    def getEntity(self, factDims):
+        entityStr = factDims.get(qname("xbrl:entity"), NotPresent)
+        if entityStr is NotPresent:
+            return None
+
+        if entityStr is None:
+            raise XBRLError("xbrlce:invalidSQName", "Entity dimension must not be nil")
+
+        try:
+            (scheme, identifier) = parseSQName(entityStr, self.template.report.nsmap)
+        except InvalidSQName as e:
+            raise XBRLError("xbrlce:invalidSQName", str(e))
+
 
 
 
