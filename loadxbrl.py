@@ -32,7 +32,8 @@ def runSuite(src):
                 except Exception as e:
                     errors = { etree.QName("{}UncaughtException") }
                     print(traceback.format_exc())
-                if (errors == v.errors):
+                # == to cover empty sets, otherwise intersect.
+                if (errors == v.errors or errors & v.errors):
                     print("%-7s ok" % v.id)
                     passed += 1
                 else:
