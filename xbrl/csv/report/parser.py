@@ -15,10 +15,23 @@ from .report import Report
 from .tabletemplate import TableTemplate
 from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn
-from .values import ParameterReference, RowNumberReference, parseReference, Properties, ExplicitNoValue
+from .values import ParameterReference, RowNumberReference, parseReference, ExplicitNoValue
+from .properties import Properties, PropertyGroupMergeDimensionsConflict, PropertyGroupMergeDecimalsConflict
 from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
+
+finalValues = {
+    "/documentInfo/namespaces": "namespaces",
+    "/documentInfo/taxonomy": "taxonomy",
+    "/documentInfo/linkTypes": "linkTypes",
+    "/documentInfo/linkGroups": "linkGroups",
+    "/documentInfo/features": "features",
+    "/tableTemplates": "tableTemplates",
+    "/tables": "tables",
+    "/dimensions": "dimensions",
+    "/parameters": "parameters"
+}
 
 class XBRLCSVReportParser:
 
@@ -28,6 +41,7 @@ class XBRLCSVReportParser:
     def parse(self, url):
 
         metadata = self.loadMetaData(url)
+
 
         nsmap = metadata.get("documentInfo").get("namespaces", {})
         validateURIMap(nsmap)
@@ -143,12 +157,13 @@ class XBRLCSVReportParser:
                 "linkGroups": dict,
                 "features": dict,
                 "taxonomy": list,
-                "documentType": None
+                "documentType": None,
+                "extends": None,
+                "final": dict,
             },
             "tableTemplates": dict,
             "tables": dict,
             "dimensions": dict,
-            "final": dict,
             "parameters": dict,
         }
 
@@ -159,30 +174,57 @@ class XBRLCSVReportParser:
             if importedDocType != docType:
                 raise XBRLError("xbrlce:multipleDocumentTypesInExtensionChain", "Document type for %s conflicts with document type for %s (%s vs %s)" % (e, url, importedDocType, docType))
 
-            self.mergeDict(j, m, extensible)
+            self.mergeDict(j, m, extensible, m["documentInfo"].get("final",{}).keys())
+
+        final = docInfo.get("final", {})
+        if "parameters" in final and j.get("parameterURL", None) is not None:
+            raise XBRLError("xbrlce:unusableParameterURL", "Effective metadata of %s has parameterURL but final contains 'parameters'.  Importing metadata files will not be able to use parameterURL." % (url))
 
         return j
 
-    def mergeDict(self, a, b, extensible):
+    def mergeDict(self, a, b, extensible, final, path = ""):
         for k, bv in b.items():
+            keyPath = path + "/" + k
+            isFinal = finalValues.get(keyPath, None) in final
             if k in extensible:
                 ext = extensible[k]
                 if type(ext) == dict:
-                    self.mergeDict(a.setdefault(k, {}), b[k], ext)
+                    # This object has children that are extensible, so recurse
+                    self.mergeDict(a.setdefault(k, {}), b[k], ext, final, keyPath)
+
                 elif ext == dict:
+                    # This is an extensible dict, if a child appears in both, it must have the same value
                     if k in a:
-                        if a[k] != bv:
-                            raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (k, a[k], bv))
+                        # If it's final then it must be deep equal if present in both.
+                        if isFinal and not deep_eq(a[k], bv):
+                            raise XBRLError("xbrlce:illegalExtensionOfFinalProperty", "'%s' is final, but '%s' redefined with a different value." % (finalValues[keyPath], keyPath))
+                        
+                        for subKey in bv:
+                            if subKey in a[k]:
+                                if not deep_eq(a[k][subKey], bv[subKey]):
+                                    raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (k, a[k], bv))
+                            else:
+                                a[k][subKey] = bv[subKey]
+
                     else:
                         a[k] = bv
+
                 elif ext == list:
+                    # This is an extensible array, if it appears in both we concatenate, unless final, in which case require same value
+                    if k in a:
+                        # If it's final then it must be deep equal if present in both.
+                        if isFinal and not deep_eq(a[k], bv):
+                            raise XBRLError("xbrlce:illegalExtensionOfFinalProperty", "'%s' is final, but '%s' redefined with a different value." % (finalValues[keyPath], keyPath))
+
                     a[k] = bv + a.get(k, [])
                 elif ext is not None:
                     raise ValueError("Unexpected value in extensible dict: %s" % bv)
 
-
-            elif k in a:
-                raise XBRLError("xbrlce:illegalRedefinitionOfNonExtensibleProperty", "'%s' cannot appear in more than one metadata file" % k)
+            # Non-extensible property, require equality if present in both.
+            elif k in a and not deep_eq(a[k], bv):
+                raise XBRLError("xbrlce:illegalRedefinitionOfNonExtensibleProperty", "'%s' appears in multiple metadata files with different values" % k)
+            else:
+                a[k] = bv
 
 
     def parseProperties(self, propertyHolder, nsmap):
