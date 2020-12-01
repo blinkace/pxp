@@ -51,12 +51,28 @@ class Table:
                         if isinstance(column, PropertyGroupColumn):
                             propertyGroupColumns.append(column)
 
+                rowIds = set()
                 rowNum = 0
                 for row in reader:
                     rowNum += 1
                     for pgc in propertyGroupColumns:
                         # Ensure that illegalUseOfNone gets raised for PG columns
                         processSpecialValues(row[colMap[pgc.name]], allowNone = False)
+
+                    rowId = None
+                    if self.template.rowIdColumn is not None:
+                        rowIdCol = colMap.get(self.template.rowIdColumn.name)
+                        if rowIdCol is not None:
+                            rowId = row[rowIdCol]
+                            # We deal with empty cells later, if the row has a value.
+                            if rowId != "" and not isValidIdentifier(rowId):
+                                raise XBRLError("xbrlce:invalidRowIdentifier", "'%s' is not a valid identifier" % rowId)
+                    if rowId is None:
+                        rowId = 'r%d' % rowNum
+                    
+                    if rowId in rowIds:
+                        raise XBRLError("xbrlce:repeatedRowIdentifier", "Row identifier '%s' is repeated" % rowId)
+                    rowIds.add(rowId)
 
                     for fc in factColumns:
                         try:
@@ -65,6 +81,11 @@ class Table:
                             continue
                         if rawValue == "":
                             continue
+
+
+                        if rowId == "":
+                            raise XBRLError("xbrlce:missingRowIdentifier", "Row does not have a row identifier")
+
                         factValue = processSpecialValues(rawValue, allowNone = False)
 
                         column = self.template.columns[fc.name]
