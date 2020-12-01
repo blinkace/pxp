@@ -74,6 +74,7 @@ class Table:
                         raise XBRLError("xbrlce:repeatedRowIdentifier", "Row identifier '%s' is repeated" % rowId)
                     rowIds.add(rowId)
 
+                    usedColumns = set()
                     for fc in factColumns:
                         try:
                             rawValue = row[colMap[fc.name]]
@@ -82,6 +83,7 @@ class Table:
                         if rawValue == "":
                             continue
 
+                        usedColumns.add(fc.name)
 
                         if rowId == "":
                             raise XBRLError("xbrlce:missingRowIdentifier", "Row does not have a row identifier")
@@ -96,6 +98,7 @@ class Table:
                             if pg in colMap:
                                 # Not an error for the column to not be present in the table (#457)
                                 pgname = row[colMap[pg]]
+                                usedColumns.add(pg)
                                 if pgname != "":
                                     pgcoldef = self.template.columns[pg]
                                     properties = pgcoldef.propertyGroups.get(pgname)
@@ -111,7 +114,7 @@ class Table:
                         factDims = {}
                         for k, v in dims.items():
                             if isinstance(v, ParameterReference):
-                                val = self.getParameterValue(v, row, colMap)
+                                val = self.getParameterValue(v, row, colMap, usedColumns)
 
                             elif isinstance(v, RowNumberReference):
                                 val = str(rowNum)
@@ -123,7 +126,7 @@ class Table:
 
                         decimals = self.template.columns[fc.name].getEffectiveDecimals(propertyGroupProperties)
                         if isinstance(decimals, ParameterReference):
-                            decimals = self.getParameterValue(decimals, row, colMap)
+                            decimals = self.getParameterValue(decimals, row, colMap, usedColumns)
                         if type(decimals) == str:
                             try:
                                 decimals = int(decimals)
@@ -148,6 +151,15 @@ class Table:
                                 if k.namespace != NS.xbrl:
                                     raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have any taxonomy defined dimensions (%s)" % str(k))
 
+
+            for pvc in self.template.parameterValueColumns:
+                if pvc.name in colMap and row[colMap[pvc.name]] != '' and pvc.name not in usedColumns:
+                    raise XBRLError("xbrlce:unmappedCellValue", "Parameter value column '%s' has a value but is not used by an fact columns" % pvc.name)
+
+            for pgc in propertyGroupColumns:
+                if row[colMap[pgc.name]] != '' and pgc.name not in usedColumns:
+                    raise XBRLError("xbrlce:unmappedCellValue", "Property group column '%s' has a value but is not used by an fact columns" % pgc.name)
+                
 
         except urllib.error.URLError as e:
             if isinstance(e.reason, FileNotFoundError):
@@ -219,13 +231,14 @@ class Table:
 
 
 
-    def getParameterValue(self, p, row, colMap):
+    def getParameterValue(self, p, row, colMap, usedColumns):
         param = p.name
         if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
             raise XBRLError("xbrlce:invalidReferenceTarget", "Could not resolve parameter '%s'" % param)
         paramCol = colMap.get(param)
         if paramCol is not None and row[paramCol] != "":
             val = row[paramCol]
+            usedColumns.add(param)
         else:
             val = self.parameters.get(param, self.template.report.parameters.get(param, ExplicitNoValue()))
         if type(val) == str:
