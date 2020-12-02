@@ -256,7 +256,7 @@ class Table:
             val = row[paramCol]
             usedColumns.add(param)
         else:
-            val = self.parameters.get(param, self.template.report.parameters.get(param, ExplicitNoValue()))
+            val = self.parameters.getAndUse(param, self.template.report.parameters.getAndUse(param, ExplicitNoValue()))
         if type(val) == str:
             val = processSpecialValues(val)
 

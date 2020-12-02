@@ -21,6 +21,7 @@ from .properties import Properties, PropertyGroupMergeDimensionsConflict, Proper
 from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
+from .parameters import Parameters
 
 finalValues = {
     "/documentInfo/namespaces": "namespaces",
@@ -120,12 +121,26 @@ class XBRLCSVReportParser:
         facts = csvReport.loadTables(self.processor.resolver)
         for f in facts:
             modelReport.addFact(f)
-        if csvReport.allowedDuplicates == 'none':
+
+        if len(parameters.unused()) > 0:
+            raise XBRLError("xbrlce:unmappedReportParameter", "The following report parameters were defined, but not used by any facts: %s" % ", ".join(list(parameters.unused())))
+
+        for t in tables:
+            if len(t.parameters.unused()) > 0:
+                raise XBRLError("xbrlce:unmappedTableParameter", "The following parameters were defined in table '%s', but not used by any facts: %s" % (t.name, ", ".join(list(parameters.unused()))))
+        
+        self.validateDuplicates(modelReport, csvReport.allowedDuplicates)
+
+    def validateDuplicates(self, modelReport, mode):
+        if mode == 'none':
             modelReport.validateDuplicatesAllowNone()
-        elif csvReport.allowedDuplicates == 'complete':
+        elif mode == 'complete':
             modelReport.validateDuplicatesAllowComplete()
-        elif csvReport.allowedDuplicates == 'consistent':
+        elif mode == 'consistent':
             modelReport.validateDuplicatesAllowConsistent()
+
+
+
 
 
     def getTaxonomy(self, metadata, url):
@@ -303,11 +318,7 @@ class XBRLCSVReportParser:
          
 
     def parseParameters(self, src):
-        params = src.get("parameters", {})
-        for k in params:
-            if not isValidIdentifier(k):
-                raise XBRLError("xbrlce:invalidIdentifier", "%s is not a valid parameter name" % k)
-        return params
+        return Parameters(src.get("parameters", {}))
 
 
     def parseReportParameters(self, primaryURL, metadata):
@@ -341,18 +352,13 @@ class XBRLCSVReportParser:
                             if name in reportParameters:
                                 raise XBRLError("xbrlce:illegalReportParameterRedefinition", "Parameter '%s' redefined in parameter CSV file '%s'" % (name, url))
 
-                            if not isValidIdentifier(name):
-                                raise XBRLError("xbrlce:invalidIdentifier", "'%s' is not a valid parameter name (%s row %d)" % (name, url, rownum))
-
                             reportParameters[name] = value
-
 
                         for c in r:
                             if r != "":
                                 raise XBRLError("xbrlce:invalidParameterCSVFile", "Invalid parameter CSV file '%s': trailing content on row %d" % (url, rownum))
 
                         rownum += 1
-
 
             except urllib.error.URLError as e:
                 if isinstance(e.reason, FileNotFoundError):
