@@ -102,7 +102,7 @@ class XBRLCSVReportParser:
             template = templates.get(templateName, None)
             if template is None:
                 raise XBRLError("xbrlce:unknownTableTemplate", "Template definition not found for %s (table: %s)" % (templateName, name));
-            tables.append(Table(name, template, urljoin(url, table.get("url")), parameters=table.get("parameters",{}), optional = table.get("optional", False)))
+            tables.append(Table(name, template, urljoin(url, table.get("url")), parameters=self.parseParameters(table), optional = table.get("optional", False)))
 
         parameters = self.parseReportParameters(url, metadata)
 
@@ -302,9 +302,16 @@ class XBRLCSVReportParser:
         return processedDims
          
 
+    def parseParameters(self, src):
+        params = src.get("parameters", {})
+        for k in params:
+            if not isValidIdentifier(k):
+                raise XBRLError("xbrlce:invalidIdentifier", "%s is not a valid parameter name" % k)
+        return params
+
 
     def parseReportParameters(self, primaryURL, metadata):
-        reportParameters = metadata.get("parameters", {})
+        reportParameters = self.parseParameters(metadata)
         parameterURL = metadata.get("parameterURL")
         if parameterURL is not None:
             url = urljoin(primaryURL, parameterURL)
