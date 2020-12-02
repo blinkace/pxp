@@ -224,9 +224,6 @@
                 "period": {
                     "$ref": "#/definitions/Period"
                 },
-                "noteId": {
-                    "$ref": "#/definitions/NoteId"
-                },
                 "unit": {
                     "type": "string"
                 },
