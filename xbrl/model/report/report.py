@@ -1,4 +1,7 @@
 from xbrl.const import NS
+from xbrl.xbrlerror import XBRLError
+from .compare import completeDuplicates, consistentDuplicates
+import itertools
 
 class Report:
 
@@ -34,3 +37,34 @@ class Report:
 
     def usedPrefixMap(self):
         return { p: n for n, p in self.ns_to_prefix.items() if p in self.usedPrefixes }
+
+    def getDuplicateFacts(self):
+        factsByDimensions = dict()
+        for f in self.facts.values():
+            factsByDimensions.setdefault(f.frozenDimensionSet, set()).add(f)
+        duplicates = set()
+        for factSet in factsByDimensions.values():
+            if len(factSet) > 1:
+                duplicates.add(frozenset(factSet))
+        return duplicates
+
+    def validateDuplicates(self, permitted):
+        duplicates = self.getDuplicateFacts()
+        for factSet in duplicates:
+            for a, b in itertools.combinations(list(factSet), 2):
+                if not permitted(a, b):
+                    raise XBRLError("oime:disallowedDuplicateFacts", "Disallowed duplicate facts")
+
+    def validateDuplicatesAllowNone(self):
+        self.validateDuplicates(permitted = lambda a, b: False)
+
+    def validateDuplicatesAllowComplete(self):
+        self.validateDuplicates(permitted = completeDuplicates)
+
+    def validateDuplicatesAllowConsistent(self):
+        self.validateDuplicates(permitted = consistentDuplicates)
+
+
+
+
+

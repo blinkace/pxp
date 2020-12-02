@@ -1,6 +1,7 @@
 from .dimensions import ConceptCoreDimension
 from .tddimension import TaxonomyDefinedDimension
 from xbrl.xml import qname
+import decimal
 
 class Fact:
 
@@ -13,6 +14,7 @@ class Fact:
             self.dimensions[d.name] = d
 
         self.value = value
+        assert(decimals is None or type(decimals) == int)
         self.decimals = decimals
         self.report = None
         self.links = links if links is not None else {}
@@ -49,3 +51,39 @@ class Fact:
     @property
     def unit(self):
         return self.dimensions.get(qname("xbrl:unit"), None)
+
+    @property
+    def frozenDimensionSet(self):
+        return frozenset(d.asTuple for d in self.dimensions.values())
+
+    @property
+    def numericValue(self):
+        if not self.isNumeric:
+            raise ValueError("Fact is not numeric")
+        if self.concept.datatype.isDecimal:
+            return decimal.Decimal(self.value)
+        return float(self.value)
+
+    
+    @property
+    def typedValue(self):
+        """Return a value that supports a type-aware equality"""
+        if self.value is None:
+            return None
+        if self.isNumeric:
+            return self.numericValue
+        return self.value
+
+    @property
+    def valueRange(self):
+        val = decimal.Decimal(self.value)
+        if self.decimals is None:
+            return (val, val)
+        r = decimal.Decimal(10)**(decimal.Decimal(self.decimals)*-1)
+        return (val - r/2, val + r/2)
+
+    @property
+    def isNil(self):
+        return self.value is None
+
+

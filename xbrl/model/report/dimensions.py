@@ -24,6 +24,9 @@ class ConceptCoreDimension(CoreDimension):
         super().__init__("concept")
         self.concept = concept
 
+    @property
+    def asTuple(self):
+        return (self.name, self.concept.name)
 
     @property
     def stringValue(self):
@@ -37,6 +40,9 @@ class UnitCoreDimension(CoreDimension):
         self.numerators = numerators
         self.denominators = denominators
 
+    @property
+    def asTuple(self):
+        return (self.name, self.numerators, self.denominators)
 
     @property
     def stringValue(self):
@@ -60,3 +66,7 @@ class EntityCoreDimension(CoreDimension):
     def stringValue(self):
         prefix = self.fact.report.getPrefix(self.scheme)
         return "%s:%s" % (prefix, self.identifier)
+
+    @property
+    def asTuple(self):
+        return (self.name, self.scheme, self.identifier)

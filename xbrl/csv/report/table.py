@@ -11,6 +11,7 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString, parseSQName, InvalidSQName
 from xbrl.const import NS
 from xbrl.model.taxonomy import NoteConcept
+from xbrl.model.report import Fact, ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, TaxonomyDefinedDimension, EntityCoreDimension
 import urllib.error
 import io
 import datetime
@@ -25,6 +26,7 @@ class Table:
         self.optional = optional
 
     def loadData(self, resolver):
+        facts = set()
         try:
             with resolver.open(self.url) as fin:
                 reader = csv.reader(io.TextIOWrapper(fin, "utf-8-sig"), XBRLCSVDialect)
@@ -122,7 +124,7 @@ class Table:
                                 val = v
 
                             if not isinstance(val, ExplicitNoValue):
-                                factDims[k] = val
+                                factDims[k] = self.getModelDimension(k, val)
 
                         decimals = self.template.columns[fc.name].getEffectiveDecimals(propertyGroupProperties)
                         if isinstance(decimals, ParameterReference):
@@ -132,11 +134,13 @@ class Table:
                                 decimals = int(decimals)
                             except ValueError:
                                 raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % decimals)
+                        elif isinstance(decimals, ExplicitNoValue):
+                            decimals = None
 
-                        concept = self.getConcept(factDims)
-                        unit = self.getUnit(factDims)
-                        period = self.getPeriod(factDims)
-                        entity = self.getEntity(factDims)
+                        try:
+                            concept = factDims[qname("xbrl:concept")].concept
+                        except KeyError:
+                            raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact")
 
                         if concept.isNumeric:
                             (factValue, decimals) = parseNumericValue(factValue, decimals)
@@ -150,6 +154,13 @@ class Table:
                             for k in factDims.keys():
                                 if k.namespace != NS.xbrl:
                                     raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have any taxonomy defined dimensions (%s)" % str(k))
+                        fact = Fact( 
+                            factId = "%s.%s.%s" % (self.template.name, fc.name, rowId),
+                            dimensions = factDims.values(),
+                            value = factValue,
+                            decimals = decimals
+                        )
+                        facts.add(fact)
 
 
             for pvc in self.template.parameterValueColumns:
@@ -159,6 +170,7 @@ class Table:
             for pgc in propertyGroupColumns:
                 if row[colMap[pgc.name]] != '' and pgc.name not in usedColumns:
                     raise XBRLError("xbrlce:unmappedCellValue", "Property group column '%s' has a value but is not used by an fact columns" % pgc.name)
+
                 
 
         except urllib.error.URLError as e:
@@ -171,21 +183,27 @@ class Table:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
         except UnicodeDecodeError as e:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
+        return facts
 
-    def getUnit(self, factDims):
-        unit = factDims.get(qname("xbrl:unit"), NotPresent)
-        if unit is NotPresent:
-            unit = None
-        else:
-            (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
-            if nums == [ qname("xbrli:pure") ] and denoms == []:
-                raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
-        return unit
 
-    def getConcept(self, factDims):
-        conceptNameStr = factDims.get(qname("xbrl:concept"), NotPresent)
-        if conceptNameStr is NotPresent:
-            raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact")
+    def getModelDimension(self, name, value):
+        if name == qname("xbrl:unit"):
+            return self.getUnit(value)
+        if name == qname("xbrl:concept"):
+            return self.getConcept(value)
+        if name == qname("xbrl:period"):
+            return self.getPeriod(value)
+        if name == qname("xbrl:entity"):
+            return self.getEntity(value)
+        return TaxonomyDefinedDimension(name, value)
+
+    def getUnit(self, unit):
+        (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
+        if nums == [ qname("xbrli:pure") ] and denoms == []:
+            raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
+        return UnitCoreDimension(nums, denoms)
+
+    def getConcept(self, conceptNameStr):
         if conceptNameStr is None:
             raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")
         if not isValidQName(conceptNameStr):
@@ -197,29 +215,26 @@ class Table:
         if concept is None:
             raise XBRLError("oime:unknownConcept", "Concept %s not found in taxonomy" % str(conceptName))
 
-        return concept
+        return ConceptCoreDimension(concept)
 
-    def getPeriod(self, factDims):
-        period = factDims.get(qname("xbrl:period"), NotPresent)
-        if period is NotPresent:
-            return None
-
+    def getPeriod(self, period):
         # #nil or JSON null
         if period is None:
             raise XBRLError("xbrlce:invalidPeriodRepresentation", "nil is not a valid period value")
 
         if isinstance(period, datetime.datetime):
             # Was obtained as the target of a parameter reference with period specifier, and has already been converted to datetime
-            return period
+            return InstantPeriod(period)
         else:
-            return parseCSVPeriodString(period)
+            p = parseCSVPeriodString(period)
+            if p[1] is None:
+                return InstantPeriod(p[0])
+            else:
+                return DurationPeriod(p[0], p[1])
 
 
-    def getEntity(self, factDims):
-        entityStr = factDims.get(qname("xbrl:entity"), NotPresent)
-        if entityStr is NotPresent:
-            return None
 
+    def getEntity(self, entityStr):
         if entityStr is None:
             raise XBRLError("xbrlce:invalidSQName", "Entity dimension must not be nil")
 
@@ -228,6 +243,7 @@ class Table:
         except InvalidSQName as e:
             raise XBRLError("xbrlce:invalidSQName", str(e))
 
+        return EntityCoreDimension(scheme, identifier)
 
 
 

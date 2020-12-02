@@ -5,7 +5,6 @@ class PeriodCoreDimension(CoreDimension):
         super().__init__("period")
         self.isDuration = False
 
-
 class DurationPeriod(PeriodCoreDimension):
 
     def __init__(self, start = None, end = None):
@@ -13,6 +12,10 @@ class DurationPeriod(PeriodCoreDimension):
         self.start = start
         self.end = end
         self.isDuration = True
+
+    @property
+    def asTuple(self):
+        return (self.name, self.start, self.end)
 
     @property
     def stringValue(self):
@@ -27,3 +30,7 @@ class InstantPeriod(PeriodCoreDimension):
     @property
     def stringValue(self):
         return self.instant.isoformat()
+
+    @property
+    def asTuple(self):
+        return (self.name, self.instant)

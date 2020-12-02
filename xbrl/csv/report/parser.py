@@ -10,8 +10,9 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.xml import qname
 from xbrl.const import NS, DocumentType
 from xbrl.xml.taxonomy.document import SchemaRef
+from xbrl.model.report import Report
 
-from .report import Report
+from .report import CSVReport
 from .tabletemplate import TableTemplate
 from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn
@@ -105,15 +106,27 @@ class XBRLCSVReportParser:
 
         parameters = self.parseReportParameters(url, metadata)
 
-        report = Report(
+        csvReport = CSVReport(
             templates = templates, 
             properties = self.parseProperties(metadata, nsmap),
             parameters = parameters,
             nsmap = nsmap,
             tables = tables,
-            taxonomy = taxonomy)
+            taxonomy = taxonomy,
+            allowedDuplicates = metadata["documentInfo"].get("features", {}).get("xbrl:allowedDuplicates", "all")
+        )
 
-        report.loadTables(self.processor.resolver)
+        modelReport = Report(taxonomy)
+        facts = csvReport.loadTables(self.processor.resolver)
+        for f in facts:
+            modelReport.addFact(f)
+        if csvReport.allowedDuplicates == 'none':
+            modelReport.validateDuplicatesAllowNone()
+        elif csvReport.allowedDuplicates == 'complete':
+            modelReport.validateDuplicatesAllowComplete()
+        elif csvReport.allowedDuplicates == 'consistent':
+            modelReport.validateDuplicatesAllowConsistent()
+
 
     def getTaxonomy(self, metadata, url):
         taxonomy = metadata.get("documentInfo").get("taxonomy", [])

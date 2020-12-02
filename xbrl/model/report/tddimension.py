@@ -2,10 +2,13 @@ from .dimensions import Dimension
 
 class TaxonomyDefinedDimension(Dimension):
 
-    def __init__(self, dimension, value):
-        super().__init__(dimension.name)
-        self.dimension = dimension
+    def __init__(self, name, value):
+        super().__init__(name)
         self.value = value
+
+    @property
+    def asTuple(self):
+        return (self.name, self.value)
 
 class ExplicitTaxonomyDefinedDimension(TaxonomyDefinedDimension):
 
