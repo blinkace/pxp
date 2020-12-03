@@ -1,6 +1,9 @@
 from .dimensions import ConceptCoreDimension
 from .tddimension import TaxonomyDefinedDimension
 from xbrl.xml import qname
+from xbrl.xbrlerror import XBRLError
+from xbrl.const import LinkType
+from xbrl.model.taxonomy import NoteConcept
 import decimal
 
 class Fact:
@@ -85,5 +88,12 @@ class Fact:
     @property
     def isNil(self):
         return self.value is None
+
+    def validate(self):
+        for linkType, linkGroups in self.links.items():
+            for linkGroup, facts in linkGroups.items():
+                for f in facts:
+                    if linkType == LinkType.factFootnote and f.concept != NoteConcept:
+                        raise XBRLError("oime:illegalStandardFootnoteTarget", "Fact '%s' is not a footnote fact.  fact-footnote relationships must have an xbrl:note fact as the target." % f.id)
 
 

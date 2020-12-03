@@ -38,6 +38,10 @@ class Report:
     def usedPrefixMap(self):
         return { p: n for n, p in self.ns_to_prefix.items() if p in self.usedPrefixes }
 
+    def validate(self):
+        for f in self.facts.values():
+            f.validate()
+
     def getDuplicateFacts(self):
         factsByDimensions = dict()
         for f in self.facts.values():

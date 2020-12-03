@@ -44,9 +44,12 @@ class XBRLCSVReportParser:
 
         metadata = self.loadMetaData(url)
 
+        docInfo = metadata.get("documentInfo")
 
-        nsmap = metadata.get("documentInfo").get("namespaces", {})
+        nsmap = docInfo.get("namespaces", {})
         validateURIMap(nsmap)
+
+
         taxonomy = self.getTaxonomy(metadata, url)
 
         templates = dict()
@@ -122,6 +125,10 @@ class XBRLCSVReportParser:
         for f in facts:
             modelReport.addFact(f)
 
+        self.parseLinks(metadata, modelReport)
+
+        modelReport.validate()
+
         if len(parameters.unused()) > 0:
             raise XBRLError("xbrlce:unmappedReportParameter", "The following report parameters were defined, but not used by any facts: %s" % ", ".join(list(parameters.unused())))
 
@@ -138,9 +145,6 @@ class XBRLCSVReportParser:
             modelReport.validateDuplicatesAllowComplete()
         elif mode == 'consistent':
             modelReport.validateDuplicatesAllowConsistent()
-
-
-
 
 
     def getTaxonomy(self, metadata, url):
@@ -391,6 +395,40 @@ class XBRLCSVReportParser:
                 except PropertyGroupMergeDimensionsConflict as e:
                     raise XBRLError("xbrlce:repeatedPropertyGroupDimension", "The '%s' dimension is specified by multiple property groups columns referenced from %s (%s)" % (str(e.dimension), col.name, ", ".join(col.propertiesFrom)))
 
+    def parseLinks(self, metadata, modelReport):
+
+        docInfo = metadata.get("documentInfo")
+        
+        linkGroups = docInfo.get("linkGroups",{})
+        validateURIMap(linkGroups)
+
+        linkTypes = docInfo.get("linkTypes",{})
+        validateURIMap(linkTypes)
+
+        links = metadata.get("links", {})
+        #print(list(modelReport.facts.keys()))
+        for linkType, groups in links.items():
+            linkTypeURI = linkTypes.get(linkType)
+            if linkTypeURI is None:
+                raise XBRLError("xbrlce:unknownLinkType", "The link type '%s' is not defined" % linkType)
+            for group, srcFactIds in groups.items():
+                linkGroupURI = linkGroups.get(group)
+                if linkGroupURI is None:
+                    raise XBRLError("xbrlce:unknownLinkGroup", "The link group '%s' is not defined" % group)
+
+                for srcId, targetIds in srcFactIds.items():
+                    src = modelReport.facts.get(srcId)
+                    if src is None:
+                        raise XBRLError("xbrlce:unknownLinkSource", "No fact with id '%s' exists in the report." % srcId)
+
+                    for targetId in targetIds:
+                        target = modelReport.facts.get(targetId)
+                        if target is None:
+                            raise XBRLError("xbrlce:unknownLinkTarget", "No fact with id '%s' exists in the report." % targetId)
+                        src.links.setdefault(linkTypeURI, {}).setdefault(linkGroupURI, []).append(target)
+
+                    
+
 
 def deep_eq(a, b):
     if type(a) != type(b):
@@ -420,6 +458,5 @@ def deep_eq(a, b):
         return b == None
 
     raise ValueError("Unexpected type %s" % type(a))
-
 
 

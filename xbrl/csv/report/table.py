@@ -155,7 +155,7 @@ class Table:
                                 if k.namespace != NS.xbrl:
                                     raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have any taxonomy defined dimensions (%s)" % str(k))
                         fact = Fact( 
-                            factId = "%s.%s.%s" % (self.template.name, fc.name, rowId),
+                            factId = "%s.%s.%s" % (self.name, rowId, fc.name),
                             dimensions = factDims.values(),
                             value = factValue,
                             decimals = decimals
