@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 import io
 import csv
 import urllib
+import logging
 
 from xbrl.json.schema import json_validate, DuplicateKeyError
 from xbrl.xbrlerror import XBRLError
@@ -22,6 +23,8 @@ from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
 from .parameters import Parameters
+
+logger = logging.getLogger(__name__)
 
 finalValues = {
     "/documentInfo/namespaces": "namespaces",
@@ -157,6 +160,8 @@ class XBRLCSVReportParser:
 
 
     def loadMetaData(self, url):
+
+        logger.debug("Loading xBRL-CSV metadata file from %s" % url)
         
         # Make sure we raise unsupportedDocumentType rather than
         # invalidJSONStructure if documentType is not present.

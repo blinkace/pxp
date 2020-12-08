@@ -15,6 +15,15 @@ from xbrl.model.report import Fact, ConceptCoreDimension, UnitCoreDimension, Dur
 import urllib.error
 import io
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def getCell(row, index):
+    if index >= len(row):
+        return ""
+    return row[index]
 
 class Table:
 
@@ -26,6 +35,7 @@ class Table:
         self.optional = optional
 
     def loadData(self, resolver):
+        logger.debug("Loading xBRL-CSV table from %s" % self.url)
         facts = set()
         try:
             with resolver.open(self.url) as fin:
@@ -59,13 +69,13 @@ class Table:
                     rowNum += 1
                     for pgc in propertyGroupColumns:
                         # Ensure that illegalUseOfNone gets raised for PG columns
-                        processSpecialValues(row[colMap[pgc.name]], allowNone = False)
+                        processSpecialValues(getCell(row, colMap[pgc.name]), allowNone = False)
 
                     rowId = None
                     if self.template.rowIdColumn is not None:
                         rowIdCol = colMap.get(self.template.rowIdColumn.name)
                         if rowIdCol is not None:
-                            rowId = row[rowIdCol]
+                            rowId = getCell(row, rowIdCol)
                             # We deal with empty cells later, if the row has a value.
                             if rowId != "" and not isValidIdentifier(rowId):
                                 raise XBRLError("xbrlce:invalidRowIdentifier", "'%s' is not a valid identifier" % rowId)
@@ -79,7 +89,7 @@ class Table:
                     usedColumns = set()
                     for fc in factColumns:
                         try:
-                            rawValue = row[colMap[fc.name]]
+                            rawValue = getCell(row, colMap[fc.name])
                         except IndexError:
                             continue
                         if rawValue == "":
@@ -99,7 +109,7 @@ class Table:
                         for pg in column.propertiesFrom:
                             if pg in colMap:
                                 # Not an error for the column to not be present in the table (#457)
-                                pgname = row[colMap[pg]]
+                                pgname = getCell(row, colMap[pg])
                                 usedColumns.add(pg)
                                 if pgname != "":
                                     pgcoldef = self.template.columns[pg]
@@ -164,11 +174,11 @@ class Table:
 
 
             for pvc in self.template.parameterValueColumns:
-                if pvc.name in colMap and row[colMap[pvc.name]] != '' and pvc.name not in usedColumns:
+                if pvc.name in colMap and getCell(row, colMap[pvc.name]) != '' and pvc.name not in usedColumns:
                     raise XBRLError("xbrlce:unmappedCellValue", "Parameter value column '%s' has a value but is not used by an fact columns" % pvc.name)
 
             for pgc in propertyGroupColumns:
-                if row[colMap[pgc.name]] != '' and pgc.name not in usedColumns:
+                if getCell(row, colMap[pgc.name]) != '' and pgc.name not in usedColumns:
                     raise XBRLError("xbrlce:unmappedCellValue", "Property group column '%s' has a value but is not used by an fact columns" % pgc.name)
 
                 
@@ -183,6 +193,8 @@ class Table:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
         except UnicodeDecodeError as e:
             raise XBRLError("xbrlce:invalidCSVFileFormat", "Invalid CSV file '%s': %s" % (self.url, str(e)))
+
+        logger.debug("Loaded %d facts" % len(facts))
         return facts
 
 
@@ -252,8 +264,8 @@ class Table:
         if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
             raise XBRLError("xbrlce:invalidReferenceTarget", "Could not resolve parameter '%s'" % param)
         paramCol = colMap.get(param)
-        if paramCol is not None and row[paramCol] != "":
-            val = row[paramCol]
+        if paramCol is not None and getCell(row, paramCol) != "":
+            val = getCell(row, paramCol)
             usedColumns.add(param)
         else:
             val = self.parameters.getAndUse(param, self.template.report.parameters.getAndUse(param, ExplicitNoValue()))

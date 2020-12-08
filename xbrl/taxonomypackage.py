@@ -54,9 +54,11 @@ class TaxonomyPackage:
     def resolve(self, url):
         for prefix in self.prefixes:
             if url.startswith(prefix):
+                logging.debug("Remapping - prefix match for %s in %s" % (url, self.name))
                 tail = url[len(prefix):]
                 relpath = self.mappings[prefix] + tail
                 abspath = os.path.relpath(os.path.join(self.tld, "META-INF", relpath))
+                logging.debug(abspath)
                 return abspath
 
         return None
