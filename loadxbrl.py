@@ -61,15 +61,20 @@ parser.add_argument('--packages', '-p', dest="packageDir", action="append")
 parser.add_argument('-c', '--csv', dest="csv", action="store_true")
 parser.add_argument('-t', '--testsuite', dest="test", action="store_true")
 parser.add_argument('-v', '--verbose', dest="verbose", action="store_true")
-parser.add_argument('--debug', dest="debug", action="store_true")
+parser.add_argument('-d', '--debug', dest="debug", action="append")
 parser.add_argument('-V', '--variation', dest="variations", action="append")
 parser.add_argument('reports', metavar='REPORT', nargs="+")
 args = parser.parse_args()
 
 level = logging.WARNING
-if args.debug:
-    level = logging.DEBUG
 logging.basicConfig(level=level)
+
+if args.debug is not None:
+    for d in args.debug:
+        if d == 'all':
+            logging.getLogger("").setLevel(logging.DEBUG)
+        else:
+            logging.getLogger(d).setLevel(logging.DEBUG)
 
 processor = xbrl.XBRLProcessor(packageDirs=args.packageDir)
 
