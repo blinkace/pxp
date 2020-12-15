@@ -17,7 +17,7 @@ from .report import CSVReport
 from .tabletemplate import TableTemplate
 from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn
-from .values import ParameterReference, RowNumberReference, parseReference, ExplicitNoValue
+from .values import ParameterReference, parseReference, ExplicitNoValue
 from .properties import Properties, PropertyGroupMergeDimensionsConflict, PropertyGroupMergeDecimalsConflict
 from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
@@ -52,6 +52,7 @@ class XBRLCSVReportParser:
         nsmap = docInfo.get("namespaces", {})
         validateURIMap(nsmap)
 
+        self.parameterReferences = set()
 
         taxonomy = self.getTaxonomy(metadata, url)
 
@@ -111,11 +112,16 @@ class XBRLCSVReportParser:
                 raise XBRLError("xbrlce:unknownTableTemplate", "Template definition not found for %s (table: %s)" % (templateName, name));
             tables.append(Table(name, template, urljoin(url, table.get("url")), parameters=self.parseParameters(table), optional = table.get("optional", False)))
 
+        reportProperties = self.parseProperties(metadata, nsmap)
+
         parameters = self.parseReportParameters(url, metadata)
+        for p in parameters:
+            if p not in self.parameterReferences:
+                raise XBRLError("xbrlce:unreferencedParameter", "The report parameter '%s' is not referenced" % (p))
 
         csvReport = CSVReport(
             templates = templates, 
-            properties = self.parseProperties(metadata, nsmap),
+            properties = reportProperties,
             parameters = parameters,
             nsmap = nsmap,
             tables = tables,
@@ -132,14 +138,13 @@ class XBRLCSVReportParser:
 
         modelReport.validate()
 
-        if len(parameters.unused()) > 0:
-            raise XBRLError("xbrlce:unmappedReportParameter", "The following report parameters were defined, but not used by any facts: %s" % ", ".join(list(parameters.unused())))
-
         for t in tables:
-            if len(t.parameters.unused()) > 0:
-                raise XBRLError("xbrlce:unmappedTableParameter", "The following parameters were defined in table '%s', but not used by any facts: %s" % (t.name, ", ".join(list(parameters.unused()))))
+            for p in t.parameters:
+                if p not in self.parameterReferences:
+                    raise XBRLError("xbrlce:unreferencedParameter", "The table parameter '%s' is not referenced" % (p))
         
         self.validateDuplicates(modelReport, csvReport.allowedDuplicates)
+
 
     def validateDuplicates(self, modelReport, mode):
         if mode == 'none':
@@ -239,7 +244,7 @@ class XBRLCSVReportParser:
                         for subKey in bv:
                             if subKey in a[k]:
                                 if not deep_eq(a[k][subKey], bv[subKey]):
-                                    raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (k, a[k], bv))
+                                    raise XBRLError("xbrlce:conflictingMetadataValue", 'Conflicting value for %s ("%s" vs "%s")' % (k, json.dumps(a[k]), json.dumps(bv)))
                             else:
                                 a[k][subKey] = bv[subKey]
 
@@ -296,7 +301,7 @@ class XBRLCSVReportParser:
         assert type(processedValue) == str
 
         if processedValue.startswith("$"):
-            processedValue = parseReference(processedValue)
+            processedValue = self.parseReference(processedValue)
         else:
             raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % val)
 
@@ -318,7 +323,7 @@ class XBRLCSVReportParser:
                     if processedValue.startswith("$$"):
                         processedValue = processedValue[1:]
                     else:
-                        processedValue = parseReference(processedValue)
+                        processedValue = self.parseReference(processedValue)
 
             processedDims[dimQName] = processedValue
 
@@ -432,8 +437,11 @@ class XBRLCSVReportParser:
                             raise XBRLError("xbrlce:unknownLinkTarget", "No fact with id '%s' exists in the report." % targetId)
                         src.links.setdefault(linkTypeURI, {}).setdefault(linkGroupURI, []).append(target)
 
-                    
-
+    def parseReference(self, value):
+        processedValue = parseReference(value)
+        if isinstance(processedValue, ParameterReference):
+            self.parameterReferences.add(processedValue.name)
+        return processedValue
 
 def deep_eq(a, b):
     if type(a) != type(b):

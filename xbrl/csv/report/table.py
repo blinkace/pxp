@@ -268,7 +268,7 @@ class Table:
             val = getCell(row, paramCol)
             usedColumns.add(param)
         else:
-            val = self.parameters.getAndUse(param, self.template.report.parameters.getAndUse(param, ExplicitNoValue()))
+            val = self.parameters.get(param, self.template.report.parameters.get(param, ExplicitNoValue()))
         if type(val) == str:
             val = processSpecialValues(val)
 
