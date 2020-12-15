@@ -43,6 +43,9 @@ def parseNumericValue(v, defaultDecimals):
         return (v, d)
     if 'd' in v:
         (num, dec) = v.split('d', 2)
+
+        if num != num.rstrip():
+            raise XBRLError("xbrlce:invalidDecimalsSuffix", "Space is not permitted before a decimals suffix (value: %s)" % (v))
         
         if re.match(r'^(0|-?[1-9][0-9]*|INF)$', dec) is None:
             raise XBRLError("xbrlce:invalidDecimalsSuffix", "%s is not a valid decimals suffix (value: %s)" % (dec, v))
