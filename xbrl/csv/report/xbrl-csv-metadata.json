@@ -293,6 +293,9 @@
                 },
                 "parameters": {
                     "type": "boolean"
+                },
+                "parameterURL": {
+                    "type": "boolean"
                 }
             },
             "additionalProperties": false
