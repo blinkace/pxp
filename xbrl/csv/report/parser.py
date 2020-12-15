@@ -35,7 +35,8 @@ finalValues = {
     "/tableTemplates": "tableTemplates",
     "/tables": "tables",
     "/dimensions": "dimensions",
-    "/parameters": "parameters"
+    "/parameters": "parameters",
+    "/parameterURL": "parameterURL"
 }
 
 class XBRLCSVReportParser:
@@ -225,6 +226,12 @@ class XBRLCSVReportParser:
         return j
 
     def mergeDict(self, a, b, extensible, final, path = ""):
+        for finalPath, name in finalValues.items():
+            if name in final and finalPath.startswith("/" + path):
+                key = finalPath.replace("/" + path, "", 1)
+                if key in a and key not in b:
+                    raise XBRLError("xbrlce:illegalExtensionOfFinalProperty", "'%s' is final, but '%s' is present in an extending file when absent in the base file." % (name, path))
+
         for k, bv in b.items():
             keyPath = path + "/" + k
             isFinal = finalValues.get(keyPath, None) in final
@@ -363,8 +370,6 @@ class XBRLCSVReportParser:
                             if value == "":
                                 raise XBRLError("xbrlce:invalidParameterCSVFile", "Invalid parameter CSV file '%s': value must be supplied for parameter (use '#empty' or '#none' for empty string or no-value)" % url)
 
-                            if name in reportParameters:
-                                raise XBRLError("xbrlce:illegalReportParameterRedefinition", "Parameter '%s' redefined in parameter CSV file '%s'" % (name, url))
 
                             reportParameters[name] = value
 
