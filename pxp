@@ -48,21 +48,14 @@ def urlise(urlOrPath):
         return "file:%s" % pathname2url(os.path.abspath(urlOrPath))
     return urlOrPath
 
-
-#for f in os.listdir("packages"):
-#    print(f)
-#    if os.path.isfile("packages/" + f):
-#        resolver.addPackage(TaxonomyPackage("packages/" + f))
-
-
 parser = argparse.ArgumentParser(description="XBRL Processor")
-parser.add_argument('--addTaxonomy', dest="packages", action="append")
-parser.add_argument('--packages', '-p', dest="packageDir", action="append")
-parser.add_argument('-c', '--csv', dest="csv", action="store_true")
-parser.add_argument('-t', '--testsuite', dest="test", action="store_true")
-parser.add_argument('-v', '--verbose', dest="verbose", action="store_true")
-parser.add_argument('-d', '--debug', dest="debug", action="append")
-parser.add_argument('-V', '--variation', dest="variations", action="append")
+parser.add_argument('--addTaxonomy', dest="packages", action="append", help="Load a taxonomy package.")
+parser.add_argument('--packages', '-p', dest="packageDir", action="append", help="Load all taxonomy packages from a directory.")
+parser.add_argument('-c', '--csv', dest="csv", action="store_true", help="Load an xBRL-CSV report.")
+parser.add_argument('-t', '--testsuite', dest="test", action="store_true", help="Load and run a conformance suite.")
+parser.add_argument('-v', '--verbose', dest="verbose", action="store_true", help="Be more verbose.")
+parser.add_argument('-d', '--debug', dest="debug", action="append", help="Enable debug for the specified module (e.g. xbrl.csv).  Specify \"all\" for all modules.", metavar="MODULE")
+parser.add_argument('-V', '--variation', dest="variations", action="append", help="Run specific variations from a test suite.  Requires -t and implies -v.")
 parser.add_argument('reports', metavar='REPORT', nargs="+")
 args = parser.parse_args()
 
