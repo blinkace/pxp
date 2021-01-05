@@ -1,7 +1,7 @@
 import csv
 from .csvdialect import XBRLCSVDialect
 from .validators import isValidIdentifier, isValidQName
-from .column import FactColumn, PropertyGroupColumn
+from .column import FactColumn, PropertyGroupColumn, CommentColumn
 from .specialvalues import processSpecialValues
 from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue, NotPresent
 from .properties import Properties
@@ -261,7 +261,8 @@ class Table:
 
     def getParameterValue(self, p, row, colMap, usedColumns):
         param = p.name
-        if param not in self.template.columns and param not in self.parameters and param not in self.template.report.parameters:
+        paramColDef = self.template.columns.get(param, None)
+        if (paramColDef is None or isinstance(paramColDef, CommentColumn)) and param not in self.parameters and param not in self.template.report.parameters:
             raise XBRLError("xbrlce:invalidReferenceTarget", "Could not resolve parameter '%s'" % param)
         paramCol = colMap.get(param)
         if paramCol is not None and getCell(row, paramCol) != "":

@@ -4,7 +4,10 @@ class Column:
 
     def __init__(self, name):
         self.name = name
-        pass
+
+class CommentColumn(Column):
+
+    pass
 
 class PropertyGroupColumn(Column):
 

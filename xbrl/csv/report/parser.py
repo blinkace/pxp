@@ -16,7 +16,7 @@ from xbrl.model.report import Report
 from .report import CSVReport
 from .tabletemplate import TableTemplate
 from .table import Table
-from .column import Column, FactColumn, PropertyGroupColumn
+from .column import Column, FactColumn, PropertyGroupColumn, CommentColumn
 from .values import ParameterReference, parseReference, ExplicitNoValue
 from .properties import Properties, PropertyGroupMergeDimensionsConflict, PropertyGroupMergeDecimalsConflict
 from .validators import isValidIdentifier, validateURIMap
@@ -67,7 +67,12 @@ class XBRLCSVReportParser:
             for colname, coldef in columnDefs.items():
                 if not(isValidIdentifier(colname)):
                     raise XBRLError("xbrlce:invalidIdentifier", "Column name '%s' is not a valid identifier" % colname)
-                if {"dimensions", "propertiesFrom"} & coldef.keys():
+                if coldef.get("comment", False):
+                    if {"dimensions", "propertiesFrom", "propertyGroups", "decimals"} & coldef.keys():
+                        raise XBRLError("xbrlce:conflictingColumnType", '"dimensions", "propertiesFrom", "propertyGroups" and "decimals" must not appear on comment columns (%s/%s)' % (name, colname))
+
+                    columns[colname] = CommentColumn(colname)
+                elif {"dimensions", "propertiesFrom"} & coldef.keys():
                     if "propertyGroups" in coldef:
                         raise XBRLError("xbrlce:conflictingColumnType", 'If "dimensions" or "propertiesFrom" is present on column definition, "propertyGroups" must be absent %s/%s' % (name, colname))
                     properties = self.parseProperties(coldef, nsmap)
