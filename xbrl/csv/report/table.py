@@ -76,11 +76,13 @@ class Table:
                         rowIdCol = colMap.get(self.template.rowIdColumn.name)
                         if rowIdCol is not None:
                             rowId = getCell(row, rowIdCol)
+                            if rowId != "":
+                                rowId = "r_" + rowId
                             # We deal with empty cells later, if the row has a value.
                             if rowId != "" and not isValidIdentifier(rowId):
                                 raise XBRLError("xbrlce:invalidRowIdentifier", "'%s' is not a valid identifier" % rowId)
                     if rowId is None:
-                        rowId = 'r%d' % rowNum
+                        rowId = 'r_%d' % rowNum
                     
                     if rowId in rowIds:
                         raise XBRLError("xbrlce:repeatedRowIdentifier", "Row identifier '%s' is repeated" % rowId)
