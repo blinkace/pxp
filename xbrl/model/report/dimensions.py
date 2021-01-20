@@ -53,8 +53,6 @@ class UnitCoreDimension(CoreDimension):
         else:
             return numStr
 
-
-
 class EntityCoreDimension(CoreDimension):
 
     def __init__(self, scheme, identifier):
@@ -70,3 +68,17 @@ class EntityCoreDimension(CoreDimension):
     @property
     def asTuple(self):
         return (self.name, self.scheme, self.identifier)
+
+class LanguageCoreDimension(CoreDimension):
+
+    def __init__(self, language):
+        super().__init__("language")
+        self.language = language
+
+    @property
+    def stringValue(self):
+        return self.language
+
+    @property
+    def asTuple(self):
+        return (self.name, self.language)

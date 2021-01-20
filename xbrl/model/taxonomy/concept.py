@@ -18,6 +18,10 @@ class Concept:
         return self.datatype.isNumeric
 
     @property
+    def isText(self):
+        return self.datatype.isText
+
+    @property
     def isDimension(self):
         return qname("xbrldt:dimensionItem") in self.substitutionGroupChain
 

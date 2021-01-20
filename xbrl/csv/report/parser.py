@@ -17,12 +17,13 @@ from .report import CSVReport
 from .tabletemplate import TableTemplate
 from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn, CommentColumn
-from .values import ParameterReference, parseReference, ExplicitNoValue
+from .values import ParameterReference, parseReference, ExplicitNoValue, RowNumberReference
 from .properties import Properties, PropertyGroupMergeDimensionsConflict, PropertyGroupMergeDecimalsConflict
 from .validators import isValidIdentifier, validateURIMap
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
 from .parameters import Parameters
+from .dimensions import getModelDimension
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,8 @@ class XBRLCSVReportParser:
             taxonomy = taxonomy,
             allowedDuplicates = metadata["documentInfo"].get("features", {}).get("xbrl:allowedDuplicates", "all")
         )
+
+        self.validateAllTemplates(csvReport)
 
         modelReport = Report(taxonomy)
         facts = csvReport.loadTables(self.processor.resolver)
@@ -452,6 +455,23 @@ class XBRLCSVReportParser:
         if isinstance(processedValue, ParameterReference):
             self.parameterReferences.add(processedValue.name)
         return processedValue
+
+    def validateAllTemplates(self, report):
+
+        for tt in report.templates.values():
+            for c in tt.columns.values():
+                if isinstance(c, FactColumn):
+                    self.validateLiteralDimensions(report, c.properties.dimensions)
+                elif isinstance(c, PropertyGroupColumn):
+                    for pg in c.propertyGroups.values():
+                        self.validateLiteralDimensions(report, pg.dimensions)
+
+
+    def validateLiteralDimensions(self, report, dimensions):
+        for name, value in dimensions.items():
+            if not isinstance(value, ExplicitNoValue) and not isinstance(value, RowNumberReference) and not isinstance(value, ParameterReference):
+                getModelDimension(report, name, value)
+                #pass
 
 def deep_eq(a, b):
     if type(a) != type(b):

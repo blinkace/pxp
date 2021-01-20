@@ -154,9 +154,6 @@
                         "type": "string"
                     }
                 },
-                "default": {
-                    "type": "string"
-                },
                 "comment": {
                     "type": "boolean"
                 }

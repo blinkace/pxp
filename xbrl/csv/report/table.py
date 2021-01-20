@@ -1,20 +1,20 @@
 import csv
 from .csvdialect import XBRLCSVDialect
-from .validators import isValidIdentifier, isValidQName
+from .validators import isValidIdentifier
 from .column import FactColumn, PropertyGroupColumn, CommentColumn
 from .specialvalues import processSpecialValues
 from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue, NotPresent
 from .properties import Properties
 from .period import parseCSVPeriodString
+from .dimensions import getModelDimension, getConcept
 from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString, parseSQName, InvalidSQName
 from xbrl.const import NS
 from xbrl.model.taxonomy import NoteConcept
-from xbrl.model.report import Fact, ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, TaxonomyDefinedDimension, EntityCoreDimension
+from xbrl.model.report import Fact
 import urllib.error
 import io
-import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -67,6 +67,7 @@ class Table:
                 rowNum = 0
                 for row in reader:
                     rowNum += 1
+                    usedColumns = set()
                     for pgc in propertyGroupColumns:
                         # Ensure that illegalUseOfNone gets raised for PG columns
                         processSpecialValues(getCell(row, colMap[pgc.name]), allowNone = False)
@@ -78,6 +79,7 @@ class Table:
                             rowId = getCell(row, rowIdCol)
                             if rowId != "":
                                 rowId = "r_" + rowId
+                                usedColumns.add(self.template.rowIdColumn.name)
                             # We deal with empty cells later, if the row has a value.
                             if rowId != "" and not isValidIdentifier(rowId):
                                 raise XBRLError("xbrlce:invalidRowIdentifier", "'%s' is not a valid identifier" % rowId)
@@ -88,7 +90,6 @@ class Table:
                         raise XBRLError("xbrlce:repeatedRowIdentifier", "Row identifier '%s' is repeated" % rowId)
                     rowIds.add(rowId)
 
-                    usedColumns = set()
                     for fc in factColumns:
                         try:
                             rawValue = getCell(row, colMap[fc.name])
@@ -97,6 +98,7 @@ class Table:
                         if rawValue == "":
                             continue
 
+                        decimals = None
                         usedColumns.add(fc.name)
 
                         if rowId == "":
@@ -124,38 +126,65 @@ class Table:
 
 
 
+                        # Process all dimensions.  Keep track of used columns,
+                        # but don't count them as used yet as unit and language
+                        # may be excluded once we know what the concept is.
+                        # Similarly, don't attempt to process the dimension
+                        # values to avoid raising errors for excluded values.
                         dims = column.getEffectiveDimensions(propertyGroupProperties)
-                        factDims = {}
+                        factDimValues = {}
+                        usedColumnsByDimension = {}
                         for k, v in dims.items():
                             if isinstance(v, ParameterReference):
-                                val = self.getParameterValue(v, row, colMap, usedColumns)
+                                usedColumnsByDimension[k] = set()
+                                val = self.getParameterValue(v, row, colMap, usedColumnsByDimension[k])
 
                             elif isinstance(v, RowNumberReference):
                                 val = str(rowNum)
                             else:
                                 val = v
 
-                            if not isinstance(val, ExplicitNoValue):
-                                factDims[k] = self.getModelDimension(k, val)
+                            factDimValues[k] = val
 
-                        decimals = self.template.columns[fc.name].getEffectiveDecimals(propertyGroupProperties)
-                        if isinstance(decimals, ParameterReference):
-                            decimals = self.getParameterValue(decimals, row, colMap, usedColumns)
-                        if type(decimals) == str:
-                            try:
-                                decimals = int(decimals)
-                            except ValueError:
-                                raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % decimals)
-                        elif isinstance(decimals, ExplicitNoValue):
-                            decimals = None
+                        conceptName = factDimValues.get(qname("xbrl:concept"), ExplicitNoValue())
 
-                        try:
-                            concept = factDims[qname("xbrl:concept")].concept
-                        except KeyError:
+                        if isinstance(conceptName, ExplicitNoValue):
                             raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact")
 
+                        concept = getConcept(self.template.report, conceptName).concept
+
                         if concept.isNumeric:
-                            (factValue, decimals) = parseNumericValue(factValue, decimals)
+                            (factValue, decimals) = parseNumericValue(factValue)
+                            if decimals is None:
+                                decimals = self.template.columns[fc.name].getEffectiveDecimals(propertyGroupProperties)
+                                if isinstance(decimals, ParameterReference):
+                                    decimals = self.getParameterValue(decimals, row, colMap, usedColumns)
+                                if type(decimals) == str:
+                                    try:
+                                        decimals = int(decimals)
+                                    except ValueError:
+                                        raise XBRLError("xbrlce:invalidDecimalsValue", "'%s' is not a valid decimals value" % decimals)
+                                elif isinstance(decimals, ExplicitNoValue):
+                                    decimals = None
+                        else:
+                            # Remove excluded dimensions
+                            factDimValues.pop(qname("xbrl:unit"), None)
+                            usedColumnsByDimension.pop(qname("xbrl:unit"), None)
+                            if not concept.isText and concept != NoteConcept:
+                                factDimValues.pop(qname("xbrl:language"), None)
+                                usedColumnsByDimension.pop(qname("xbrl:language"), None)
+
+                        factDims = dict();
+                        # Now process the un-excluded dimensions, raising
+                        # errors if appropriate.
+                        for k, v in factDimValues.items():
+                            if not isinstance(v, ExplicitNoValue):
+                                factDims[k] = getModelDimension(self.template.report, k, v)
+
+
+                        # Treat all remaining columns used by dimensions as "used"
+                        for ucd in usedColumnsByDimension.values():
+                            usedColumns = usedColumns | ucd
 
                         # XXX This is should move to model-level validation
                         if concept == NoteConcept:
@@ -174,14 +203,13 @@ class Table:
                         )
                         facts.add(fact)
 
+                    for ncc in self.template.nonCommentColumns:
+                        if ncc.name in colMap and getCell(row, colMap[ncc.name]) != '' and ncc.name not in usedColumns:
+                            raise XBRLError("xbrlce:unmappedCellValue", "Column '%s' has a value but is not used by any fact columns" % ncc.name)
 
-            for pvc in self.template.parameterValueColumns:
-                if pvc.name in colMap and getCell(row, colMap[pvc.name]) != '' and pvc.name not in usedColumns:
-                    raise XBRLError("xbrlce:unmappedCellValue", "Parameter value column '%s' has a value but is not used by an fact columns" % pvc.name)
-
-            for pgc in propertyGroupColumns:
-                if getCell(row, colMap[pgc.name]) != '' and pgc.name not in usedColumns:
-                    raise XBRLError("xbrlce:unmappedCellValue", "Property group column '%s' has a value but is not used by an fact columns" % pgc.name)
+                    for pgc in propertyGroupColumns:
+                        if getCell(row, colMap[pgc.name]) != '' and pgc.name not in usedColumns:
+                            raise XBRLError("xbrlce:unmappedCellValue", "Property group column '%s' has a value but is not used by any fact columns" % pgc.name)
 
                 
 
@@ -200,64 +228,6 @@ class Table:
         return facts
 
 
-    def getModelDimension(self, name, value):
-        if name == qname("xbrl:unit"):
-            return self.getUnit(value)
-        if name == qname("xbrl:concept"):
-            return self.getConcept(value)
-        if name == qname("xbrl:period"):
-            return self.getPeriod(value)
-        if name == qname("xbrl:entity"):
-            return self.getEntity(value)
-        return TaxonomyDefinedDimension(name, value)
-
-    def getUnit(self, unit):
-        (nums, denoms) = parseUnitString(unit, self.template.report.nsmap)
-        if nums == [ qname("xbrli:pure") ] and denoms == []:
-            raise XBRLError("oime:illegalPureUnit", "Pure units must not be specified explicitly")
-        return UnitCoreDimension(nums, denoms)
-
-    def getConcept(self, conceptNameStr):
-        if conceptNameStr is None:
-            raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")
-        if not isValidQName(conceptNameStr):
-            raise XBRLError("xbrlce:invalidConceptQName", "'%s' is not a valid QName" % conceptNameStr)
-
-        conceptName = qname(conceptNameStr, { "xbrl": NS.xbrl, **self.template.report.nsmap})
-
-        concept = self.template.report.taxonomy.concepts.get(conceptName)
-        if concept is None:
-            raise XBRLError("oime:unknownConcept", "Concept %s not found in taxonomy" % str(conceptName))
-
-        return ConceptCoreDimension(concept)
-
-    def getPeriod(self, period):
-        # #nil or JSON null
-        if period is None:
-            raise XBRLError("xbrlce:invalidPeriodRepresentation", "nil is not a valid period value")
-
-        if isinstance(period, datetime.datetime):
-            # Was obtained as the target of a parameter reference with period specifier, and has already been converted to datetime
-            return InstantPeriod(period)
-        else:
-            p = parseCSVPeriodString(period)
-            if p[1] is None:
-                return InstantPeriod(p[0])
-            else:
-                return DurationPeriod(p[0], p[1])
-
-
-
-    def getEntity(self, entityStr):
-        if entityStr is None:
-            raise XBRLError("xbrlce:invalidSQName", "Entity dimension must not be nil")
-
-        try:
-            (scheme, identifier) = parseSQName(entityStr, self.template.report.nsmap)
-        except InvalidSQName as e:
-            raise XBRLError("xbrlce:invalidSQName", str(e))
-
-        return EntityCoreDimension(scheme, identifier)
 
 
 

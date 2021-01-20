@@ -41,12 +41,24 @@ class Datatype:
         return not set(self.datatypeChain).isdisjoint(numericTypes)
 
     @property
+    def isText(self):
+        for dt in self.datatypeChain:
+            if dt in qnameset("xs", { "language", "Name" }):
+                return False
+            if self.isDtrNamespace(dt) and dt.localname in {"domainItemType", "noLangTokenItemType", "noLangStringItemType"}:
+                return False
+        return True
+
+    @property
     def isDecimal(self):
         return not set(self.datatypeChain).isdisjoint(decimalTypes)
 
-    
+    def isDtrNamespace(self, qname):
+        return qname.namespace.startswith("http://www.xbrl.org/dtr/type/")
 
     def stringValue(self, v):
         if self.isNumeric:
             return v.strip()
         return v
+
+
