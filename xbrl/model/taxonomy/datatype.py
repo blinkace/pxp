@@ -56,6 +56,10 @@ class Datatype:
     def isDtrNamespace(self, qname):
         return qname.namespace.startswith("http://www.xbrl.org/dtr/type/")
 
+    @property
+    def isLanguage(self):
+        return qname("xs:language") in self.datatypeChain
+
     def stringValue(self, v):
         if self.isNumeric:
             return v.strip()

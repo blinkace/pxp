@@ -22,6 +22,10 @@ class Concept:
         return self.datatype.isText
 
     @property
+    def isLanguageType(self):
+        return self.datatype.isLanguage
+
+    @property
     def isDimension(self):
         return qname("xbrldt:dimensionItem") in self.substitutionGroupChain
 

@@ -81,4 +81,4 @@ class LanguageCoreDimension(CoreDimension):
 
     @property
     def asTuple(self):
-        return (self.name, self.language)
+        return (self.name, self.language.lower())

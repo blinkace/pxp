@@ -1,7 +1,7 @@
 
-#def consistentFacts(a, b):
-
 def completeDuplicates(a, b):
+    if a.concept.isLanguageType:
+        return a.typedValue.lower() == b.typedValue.lower()
     return a.typedValue == b.typedValue and a.decimals == b.decimals
 
 def consistentDuplicates(a, b):
