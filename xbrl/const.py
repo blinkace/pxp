@@ -23,7 +23,8 @@ class NS:
     pyxbrle = "https://blinkace.com/pyxbrl/error"
     tpe = 'http://xbrl.org/2016/taxonomy-package/errors'
     xhtml = 'http://www.w3.org/1999/xhtml'
-    xbrlce = 'https://xbrl.org/((~status_date_uri~))/oim/csv/error'
+    xbrlce = 'https://xbrl.org/((~status_date_uri~))/xbrl-csv/error'
+    xbrlje = 'https://xbrl.org/((~status_date_uri~))/xbrl-json/error'
 
 PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}
 NSMAP = {k: v for k, v in NS.__dict__.items() if not k.startswith("_")}
@@ -36,3 +37,7 @@ class LinkGroup:
 
 class DocumentType:
     xbrlcsv = 'https://xbrl.org/((~status_date_uri~))/xbrl-csv'
+    xbrlcsv_cr7 = 'https://xbrl.org/CR/2021-02-02/xbrl-csv'
+    xbrljson_git = 'https://xbrl.org/((~status_date_uri~))/xbrl-json'
+    xbrljson_wgwd = 'https://xbrl.org/WGWD/YYYY-MM-DD/xbrl-json'
+    xbrljson_cr7 = 'https://xbrl.org/CR/2021-02-02/xbrl-csv'

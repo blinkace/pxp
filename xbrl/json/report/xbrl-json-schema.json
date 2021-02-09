@@ -1,0 +1,220 @@
+{
+    "type": "object",
+    "properties": {
+        "facts": {
+            "$ref": "#/definitions/Facts"
+        },
+        "documentInfo": {
+            "$ref": "#/definitions/DocumentInfo"
+        }
+    },
+    "patternProperties": {
+        "^.*:.*": {
+            "$ref": "#/definitions/AnyValue"
+        }
+    },
+    "required": [
+        "documentInfo"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "Facts": {
+            "type": "object",
+            "patternProperties": {
+                "^([A-Z]|_|[a-z]|[\\u00C0-\\u00D6]|[\\u00D8-\\u00F6]|[\\u00F8-\\u02FF]|[\\u0370-\\u037D]|[\\u037F-\\u1FFF]|[\\u200C-\\u200D]|[\\u2070-\\u218F]|[\\u2C00-\\u2FEF]|[\\u3001-\\uD7FF]|[\\uF900-\\uFDCF]|[\\uFDF0-\\uFFFD]|[\\U00010000-\\U000EFFFF])([A-Z]|_|[a-z]|[\\u00C0-\\u00D6]|[\\u00D8-\\u00F6]|[\\u00F8-\\u02FF]|[\\u0370-\\u037D]|[\\u037F-\\u1FFF]|[\\u200C-\\u200D]|[\\u2070-\\u218F]|[\\u2C00-\\u2FEF]|[\\u3001-\\uD7FF]|[\\uF900-\\uFDCF]|[\\uFDF0-\\uFFFD]|[\\U00010000-\\U000EFFFF]|-|\\.|[0-9]|\\u00B7|[\\u0300-\\u036F]|[\\u203F-\\u2040])*$": {
+                    "$ref": "#/definitions/Fact"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Fact": {
+            "type": "object",
+            "properties": {
+                "decimals": {
+                    "type": "number"
+                },
+                "dimensions": {
+                    "$ref": "#/definitions/Dimensions"
+                },
+                "value": {
+                    "$ref": "#/definitions/ValueOrNull"
+                },
+                "links": {
+                    "$ref": "#/definitions/Links"
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "required": [
+                "dimensions"
+            ],
+            "additionalProperties": false
+        },
+        "DocumentInfo": {
+            "type": "object",
+            "properties": {
+                "baseURL": {
+                    "$ref": "#/definitions/URI"
+                },
+                "documentType": {
+                    "type": "string"
+                },
+                "features": {
+                    "$ref": "#/definitions/Features"
+                },
+                "namespaces": {
+                    "$ref": "#/definitions/URIMap"
+                },
+                "linkTypes": {
+                    "$ref": "#/definitions/URIMap"
+                },
+                "linkGroups": {
+                    "$ref": "#/definitions/URIMap"
+                },
+                "taxonomy": {
+                    "$ref": "#/definitions/Taxonomy"
+                }
+            },
+            "patternProperties": {
+                "^.*:.*": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "required": [
+                "documentType",
+                "taxonomy"
+            ],
+            "additionalProperties": false
+        },
+        "Dimensions": {
+            "type": "object",
+            "properties": {
+                "concept": {
+                    "$ref": "#/definitions/Concept"
+                },
+                "entity": {
+                    "$ref": "#/definitions/Entity"
+                },
+                "period": {
+                    "$ref": "#/definitions/Period"
+                },
+                "noteId": {
+                    "$ref": "#/definitions/NoteId"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "language": {
+                    "$ref": "#/definitions/Lang"
+                }
+            },
+            "patternProperties": {
+                "^(?!xbrl:).*:.*": {
+                    "$ref": "#/definitions/ValueOrNull"
+                }
+            },
+            "required": [
+                "concept"
+            ],
+            "additionalProperties": false
+        },
+        "URIMap": {
+            "type": "object",
+            "patternProperties": {
+                "^([A-Z]|_|[a-z]|[\\u00C0-\\u00D6]|[\\u00D8-\\u00F6]|[\\u00F8-\\u02FF]|[\\u0370-\\u037D]|[\\u037F-\\u1FFF]|[\\u200C-\\u200D]|[\\u2070-\\u218F]|[\\u2C00-\\u2FEF]|[\\u3001-\\uD7FF]|[\\uF900-\\uFDCF]|[\\uFDF0-\\uFFFD]|[\\U00010000-\\U000EFFFF])([A-Z]|_|[a-z]|[\\u00C0-\\u00D6]|[\\u00D8-\\u00F6]|[\\u00F8-\\u02FF]|[\\u0370-\\u037D]|[\\u037F-\\u1FFF]|[\\u200C-\\u200D]|[\\u2070-\\u218F]|[\\u2C00-\\u2FEF]|[\\u3001-\\uD7FF]|[\\uF900-\\uFDCF]|[\\uFDF0-\\uFFFD]|[\\U00010000-\\U000EFFFF]|-|\\.|[0-9]|\\u00B7|[\\u0300-\\u036F]|[\\u203F-\\u2040])*$": {
+                    "$ref": "#/definitions/URI"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Concept": {
+            "type": "string"
+        },
+        "QName": {
+            "type": "string"
+        },
+        "NCName": {
+            "type": "string"
+        },
+        "Period": {
+            "type": "string"
+        },
+        "Entity": {
+            "type": "string"
+        },
+        "NoteId": {
+            "type": "string"
+        },
+        "Lang": {
+            "type": "string",
+            "pattern": "^[-A-Za-z]+$"
+        },
+        "Links": {
+            "type": "object",
+            "patternProperties": {
+                "[^:\\s]+": {
+                    "type": "object",
+                    "patternProperties": {
+                        "[^:\\s]+": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "ValueOrNull": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "Features": {
+            "type": "object",
+            "properties": {
+                "xbrl:canonicalValues": {
+                    "type": "boolean"
+                },
+                "xbrl:allowedDuplicates": {
+                    "type": "string",
+                    "pattern": "^(all|complete|consistent|none)$"
+                }
+            },
+            "patternProperties": {
+                "^(?!xbrl:)[_A-Za-z][-._:A-Za-z0-9]*$": {
+                    "$ref": "#/definitions/AnyValue"
+                }
+            },
+            "additionalProperties": false
+        },
+        "URI": {
+            "type": "string",
+            "pattern": "^[a-z]+:.*\\S+$"
+        },
+        "Taxonomy": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "AnyValue": {
+            "type": [
+                "string",
+                "number",
+                "object",
+                "boolean",
+                "null",
+                "array"
+            ],
+            "items": {},
+            "additionalProperties": true
+        }
+    }
+}

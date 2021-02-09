@@ -1,6 +1,7 @@
 import json
+from xbrl.const import DocumentType
 
-DOCTYPE = "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-json"
+DOCTYPE = DocumentType.xbrljson_wgwd
 
 class JSONSerialiser:
 
@@ -29,6 +30,8 @@ class JSONSerialiser:
             if f.decimals is not None:
                 fjson["decimals"] = f.decimals
             out["facts"][f.id] = fjson
+
+        out["documentInfo"]["taxonomy"] = list(r.href for r in report.taxonomy.identifier)
             
         out["documentInfo"]["namespaces"] = report.usedPrefixMap()
         return out
