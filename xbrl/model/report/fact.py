@@ -25,8 +25,16 @@ class Fact:
         self.links = links if links is not None else {}
 
     def __repr__(self):
-        dims = "; ".join("%s = %s" % (self.report.asQName(d.name), self.report.asQName(d.value.name)) for d in self.dimensions if isinstance(d, TaxonomyDefinedDimension))
-        s = "%s[%s] = %s" % (self.report.asQName(self.concept.name), dims, self.value)
+        dimStrs = []
+        for d in self.dimensions.values():
+            if isinstance(d, TaxonomyDefinedDimensionValue):
+                dimStrs.append("%s = %s" % (self.report.asQName(d.name), d.stringValue))
+            else:
+                dimStrs.append("%s = %s" % (d.name.localname, d.stringValue))
+
+
+        dims = "; ".join(dimStrs)
+        s = "%s[%s] = %s (#%s)" % (self.report.asQName(self.concept.name), dims, self.value, self.id)
 
         return s
 
@@ -77,6 +85,9 @@ class Fact:
             return None
         if self.isNumeric:
             return self.numericValue
+        if self.concept.isDateTime:
+            return fromISO(self.value)
+
         return self.value
 
     @property
