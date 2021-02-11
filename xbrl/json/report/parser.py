@@ -65,7 +65,21 @@ class XBRLJSONReportParser:
                 ))
 
         modelReport.validate()
+        features = docInfo.get("features", {})
+        for name in features.keys():
+            qname(name, nsmap = { **nsmap })
+        allowedDuplicates = features.get("xbrl:allowedDuplicates", "all")
+        self.validateDuplicates(modelReport, allowedDuplicates)
         return modelReport
+
+    def validateDuplicates(self, report, mode):
+        if mode == 'none':
+            report.validateDuplicatesAllowNone()
+        elif mode == 'complete':
+            report.validateDuplicatesAllowComplete()
+        elif mode == 'consistent':
+            report.validateDuplicatesAllowConsistent()
+
 
 
     def getTaxonomy(self, docInfo, url):

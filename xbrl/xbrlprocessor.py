@@ -2,7 +2,9 @@ from .urlresolver import URLResolver
 from .taxonomypackage import TaxonomyPackage
 from .xml.report import XBRLReportParser
 from .xml.report import IXBRLReportParser
+from .common import DocumentClass
 from .csv.report import XBRLCSVReportParser
+from .json.report import XBRLJSONReportParser
 from .conformance.loader import SuiteLoader
 from .dts import DTS
 import logging
@@ -37,6 +39,10 @@ class XBRLProcessor:
         rp = XBRLCSVReportParser(processor = self)
         return rp.parse(report)
 
+    def loadXBRLJSONReport(self, report):
+        rp = XBRLJSONReportParser(processor = self)
+        return rp.parse(report)
+
     def loadTestSuite(self, suite):
         cl = SuiteLoader(processor = self)
         return cl.load(suite)
@@ -62,4 +68,7 @@ class XBRLProcessor:
                     self.resolver.addPackage(TaxonomyPackage(path))
                 except XBRLError as e:
                     logging.warn("Error loading %s: %s" % (path, e.message))
+
+    def identifyDocumentClass(self, url):
+        return DocumentClass.identify(self.resolver, url)
 

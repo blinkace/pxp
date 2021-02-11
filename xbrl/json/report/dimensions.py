@@ -7,12 +7,19 @@ from xbrl.common.dimensions import getUnit, getConcept, getPeriod, getEntity, ge
 def getModelDimension(name, value, nsmap, taxonomy):
     if name == qname("xbrl:unit"):
         return getUnit(nsmap, value)
-    if name == qname("xbrl:concept"):
-        return getConcept(nsmap, taxonomy, value)
     if name == qname("xbrl:period"):
         return getPeriod(value)
-    if name == qname("xbrl:entity"):
-        return getEntity(nsmap, value)
+    try:
+        if name == qname("xbrl:concept"):
+            return getConcept(nsmap, taxonomy, value)
+        if name == qname("xbrl:entity"):
+            return getEntity(nsmap, value)
+
+    except XBRLError as e:
+        if e.code in qnameset({"oimce"},{"invalidSQName","invalidQName"}):
+            raise XBRLError("xbrlje:invalidJSONStructure", e.message)
+        raise e
+
     if name == qname("xbrl:language"):
         return getLanguage(value)
     dim = taxonomy.getDimension(name)
