@@ -28,7 +28,7 @@ class UnitStringTests(unittest.TestCase):
         fails = (
                 ("abc foo", "must not contain whitespace"),
                 (" abc:foo", "must not contain whitespace"),
-                ("xyz:foo", "Undeclared namespace prefix"),
+                ("xyz:foo", "Missing namespace prefix"),
                 ("def:zzz*abc:def", "measures must be sorted"),
                 ("(abc:zzz*def:def)", "must only be used if a denominator is present"),
                 ("(abc:zzz)/def:def", "only be used if more than one measure present"),

@@ -37,19 +37,24 @@ class UnitCoreDimension(CoreDimension):
 
     def __init__(self, numerators, denominators):
         super().__init__("unit")
+
         self.numerators = numerators
         self.denominators = denominators
 
     @property
     def asTuple(self):
-        return (self.name, self.numerators, self.denominators)
+        return (self.name, frozenset(self.numerators), frozenset(self.denominators) if self.denominators is not None else frozenset())
 
     @property
     def stringValue(self):
         numStr = "*".join(sorted(self.fact.report.asQName(n) for n in self.numerators))
         if self.denominators is not None and len(self.denominators) > 0:
+            if len(self.numerators) > 1:
+                numStr = "(%s)" % numStr
             denomStr = "*".join(sorted(self.fact.report.asQName(n) for n in self.denominators))
-            return "(%s)/(%s)" % (numStr, denomStr)
+            if len(self.denominators) > 1:
+                denomStr = "(%s)" % denomStr
+            return "%s/%s" % (numStr, denomStr)
         else:
             return numStr
 
