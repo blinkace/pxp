@@ -10,10 +10,12 @@ class Report:
         self.taxonomy = taxonomy
         self.ns_to_prefix = taxonomy.ns_to_prefix.copy()
         self.usedPrefixes = set()
+        self.factsByDimensions = dict()
 
     def addFact(self, fact):
         self.facts[fact.id] = fact
         fact.report = self
+        self.factsByDimensions.setdefault(fact.frozenDimensionSet, set()).add(fact)
 
     def getPrefix(self, ns):
         """
@@ -25,7 +27,7 @@ class Report:
             i = 0
             while True:
                 prefix = "ns%d" % i
-                if prefix not in self.ns_to_prefix:
+                if prefix not in self.ns_to_prefix.values():
                     break
                 i += 1
             self.ns_to_prefix[ns] = prefix
@@ -43,11 +45,8 @@ class Report:
             f.validate()
 
     def getDuplicateFacts(self):
-        factsByDimensions = dict()
-        for f in self.facts.values():
-            factsByDimensions.setdefault(f.frozenDimensionSet, set()).add(f)
         duplicates = set()
-        for factSet in factsByDimensions.values():
+        for factSet in self.factsByDimensions.values():
             if len(factSet) > 1:
                 duplicates.add(frozenset(factSet))
         return duplicates
@@ -57,7 +56,7 @@ class Report:
         for factSet in duplicates:
             for a, b in itertools.combinations(list(factSet), 2):
                 if not permitted(a, b):
-                    raise XBRLError("oime:disallowedDuplicateFacts", "Disallowed duplicate facts")
+                    raise XBRLError("oime:disallowedDuplicateFacts", "Disallowed duplicate facts: %s vs %s" % (repr(a), repr(b)))
 
     def validateDuplicatesAllowNone(self):
         self.validateDuplicates(permitted = lambda a, b: False)
@@ -67,6 +66,32 @@ class Report:
 
     def validateDuplicatesAllowConsistent(self):
         self.validateDuplicates(permitted = consistentDuplicates)
+
+    def compare(self, other):
+        diffs = []
+        if self.taxonomy.identifier != other.taxonomy.identifier:
+            diffs.append("Taxonomies differ (%s vs %s)" % (", ".join(i.href for i in self.taxonomy.identifier), ", ".join(i.href for i in self.taxonomy.identifier)))
+
+        for fa in self.facts.values():
+            found = False
+            for fb in other.facts.values():
+                if fa.isEqual(fb):
+                    found = True
+                    break 
+            if not found:
+                diffs.append("Fact not present in other report: %s" % fa)
+
+        for fa in other.facts.values():
+            found = False
+            for fb in self.facts.values():
+                if fa.isEqual(fb):
+                    found = True
+                    break 
+            if not found:
+                diffs.append("Fact not present in this report: %s" % fa)
+
+
+        return diffs
 
 
 
