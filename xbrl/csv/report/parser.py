@@ -195,8 +195,8 @@ class XBRLCSVReportParser:
         except json.JSONDecodeError as e:
             raise XBRLError("xbrlce:invalidJSON", "JSON decode error %s: %s" % (src, str(e)))
         docInfo = j.get("documentInfo",{})
-        docType = docInfo.get("documentType", None)
-        if docType != DocumentType.xbrlcsv:
+        docType = docInfo.get("documentType", None) if type(docInfo) == dict else None
+        if type(docType) != str or docType != DocumentType.xbrlcsv:
             raise XBRLError("oimce:unsupportedDocumentType", "Unsupported document type: %s" % docType)
 
         with self.processor.resolver.open(url) as src:
