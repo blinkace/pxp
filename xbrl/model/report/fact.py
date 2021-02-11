@@ -1,9 +1,11 @@
 from .dimensions import ConceptCoreDimension
-from .tddimension import TaxonomyDefinedDimension
+from .tddimension import TaxonomyDefinedDimensionValue
+from .period import InstantPeriod, DurationPeriod
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.const import LinkType
-from xbrl.model.taxonomy import NoteConcept
+from xbrl.model.taxonomy import NoteConcept, PeriodType
+from xbrl.common.period import fromISO
 import decimal
 
 class Fact:
@@ -96,4 +98,22 @@ class Fact:
                     if linkType == LinkType.factFootnote and f.concept != NoteConcept:
                         raise XBRLError("oime:illegalStandardFootnoteTarget", "Fact '%s' is not a footnote fact.  fact-footnote relationships must have an xbrl:note fact as the target." % f.id)
 
+        if self.concept.isAbstract:
+            raise XBRLError("oime:valueForAbstractConcept", "Fact '%s' is reported for an abstract concept ('%s')" % (self.id, str(self.concept.name)))
+
+        if self.concept.periodType == PeriodType.DURATION:
+            if self.period is not None and not isinstance(self.period, DurationPeriod):
+                raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has a duration concept but an instant period '%s'" % (self.id, self.period))
+        else:
+            if self.period is None:
+                raise XBRLError("oime:missingPeriodDimension", "Fact '%s' has an instant concept but no period dimension" % self.id)
+            elif not isinstance(self.period, InstantPeriod):
+                raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has an instant concept but a duration period" % self.id)
+        if not self.isNumeric and self.decimals is not None:
+            raise XBRLError("oime:misplacedDecimalsProperty", "Fact '%s' has decimals specified but is not numeric" % self.id)
+
+
+
+    def isEqual(self, other):
+        return self.frozenDimensionSet == other.frozenDimensionSet and self.typedValue == other.typedValue and self.id == other.id
 

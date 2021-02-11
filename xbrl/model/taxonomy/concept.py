@@ -1,13 +1,20 @@
 from xbrl.const import NS
 from xbrl.xml import qname
 from .datatype import Datatype
+from enum import Enum, auto
+
+class PeriodType(Enum):
+    INSTANT = auto()
+    DURATION = auto()
 
 class Concept:
 
-    def __init__(self, name, datatype, substitutionGroupChain):
+    def __init__(self, name, datatype, substitutionGroupChain, periodType, isAbstract = False):
         self.name = name
         self.datatype = datatype
         self.substitutionGroupChain = substitutionGroupChain
+        self.periodType = periodType
+        self.isAbstract = isAbstract
 
     @property
     def itemType(self):
@@ -29,4 +36,4 @@ class Concept:
     def isDimension(self):
         return qname("xbrldt:dimensionItem") in self.substitutionGroupChain
 
-NoteConcept = Concept(qname("xbrl:note"), Datatype([qname("xs:string")]), [ qname("xbrli:item") ])
+NoteConcept = Concept(qname("xbrl:note"), Datatype([qname("xs:string")]), [ qname("xbrli:item") ], PeriodType.DURATION)

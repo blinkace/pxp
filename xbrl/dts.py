@@ -1,7 +1,7 @@
 from .const import NS
 from .xml.taxonomy.schemadocument import SchemaDocument
 from lxml import etree
-from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype
+from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype, PeriodType
 from .xbrlerror import XBRLError
 from xbrl.xml import qname
 from urllib.parse import urldefrag, urlparse
@@ -73,6 +73,9 @@ class DTS:
                             raise XBRLError("xbrl21e:invalidItemType", "Concept '%s' is not derived from an XBRL Item Type" % e.name, spec_ref = '5.1.1.3')
 
                         conceptName = etree.QName(d.targetNamespace, e.name)
+                        if e.periodType is None:
+                            raise XBRLError("xbrl21e:missingPeriodType", "Concept '%s' does not have a period type" % e.name)
+                        periodType = PeriodType.INSTANT if e.periodType == 'instant' else PeriodType.DURATION
                         if e.typedDomainRef:
                             tde = self.getElementByURL(d.resolveURL(e.typedDomainRef))
                             if not tde.isComplex:
@@ -83,13 +86,16 @@ class DTS:
                                 conceptName,
                                 datatype,
                                 e.substitutionGroups(),
-                                tddt
+                                tddt,
+                                periodType
                                 )
                         else:
                             c = Concept(
                                     conceptName,
                                     datatype,
-                                    e.substitutionGroups()
+                                    e.substitutionGroups(),
+                                    periodType,
+                                    e.isAbstract
                                     )
 
                         taxonomy.addConcept(c)
