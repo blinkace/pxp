@@ -58,13 +58,17 @@ class SchemaParser:
         else:
             datatype = None
 
+        periodType = e.get(qname("xbrli:periodType"), None)
+
         schema.addElement(ElementDefinition(
             e.get("name"), 
             sg, 
             datatype, 
             typedDomainRef = e.get(qname("xbrldt:typedDomainRef"),None),
             elementId = e.get("id", None),
-            isComplex = isComplex
+            isComplex = isComplex,
+            periodType = periodType,
+            isAbstract = e.get("abstract", "false") in {"true", "1"}
             ))
 
     def parseComplexTypeDefinition(self, schema, e):
