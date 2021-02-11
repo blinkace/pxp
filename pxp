@@ -8,9 +8,55 @@ import argparse
 import json
 import traceback
 from xbrl.json.report import JSONSerialiser
+from xbrl.common import DocumentClass
 from urllib.parse import urlparse, urljoin
 from urllib.request import pathname2url
 from lxml import etree
+import contextlib
+
+@contextlib.contextmanager
+def smart_open(filename=None):
+    if filename and filename != '-':
+        fh = open(filename, 'w')
+    else:
+        fh = sys.stdout
+
+    try:
+        yield fh
+    finally:
+        if fh is not sys.stdout:
+            fh.close()
+
+def open_report(url):
+    if args.csv:
+        documentClass = DocumentClass.XBRL_CSV
+    elif args.json:
+        documentClass = DocumentClass.XBRL_JSON
+    elif args.xbrl:
+        documentClass = DocumentClass.XBRL_2_1
+    elif args.ixbrl:
+        documentClass = DocumentClass.INLINE_XBRL
+    else:
+        documentClass = processor.identifyDocumentClass(url)
+    if documentClass is None:
+        print("Unable to identify document type")
+        sys.exit(1)
+    elif documentClass == DocumentClass.INLINE_XBRL:
+        if args.verbose:
+            print("Loading Inline XBRL file")
+        report = processor.loadIXBRLReport(url)
+    elif documentClass == DocumentClass.XBRL_CSV:
+        if args.verbose:
+            print("Loading xBRL-CSV file")
+        report = processor.loadXBRLCSVReport(url)
+    elif documentClass == DocumentClass.XBRL_JSON:
+        if args.verbose:
+            print("Loading xBRL-JSON file")
+        report = processor.loadXBRLJSONReport(url)
+    else:
+        print("Unsupported document class: %s" % documentClass.name)
+        sys.exit(1)
+
 
 def runSuite(src):
     suite = processor.loadTestSuite(src)
@@ -24,7 +70,17 @@ def runSuite(src):
             else:
                 errors = set()
                 try:
-                    report = processor.loadXBRLCSVReport(urljoin(suite.url, v.inputs[0].url))
+                    report = open_report(urljoin(suite.url, v.inputs[0].url))
+                    if args.test_output_suffix is not None:
+                        (filename, suffix) = os.path.basename(v.inputs[0].url).split('.', 1)
+                        outfile = "%s%s" % (filename, args.test_output_suffix)
+                        print("writing to %s" % outfile)
+                        with open(outfile, "w") as fout:
+                            if args.dont_preserve_prefixes:
+                                report.ns_to_prefix = dict()
+                            js = JSONSerialiser()
+                            json.dump(js.serialise(report), fout, indent=2)
+
                 except xbrl.XBRLError as e:
                     errors = { e.code }
                     if args.verbose or args.variations is not None:
@@ -39,6 +95,9 @@ def runSuite(src):
                 else:
                     print("%-7s fail" % v.id)
                     print("  Got: %s Expected: %s" % ("".join(e.text for e in errors), "".join(e.text for e in v.errors)))
+                    if args.variations is not None:
+                        print("%s: %s" % (v.id, v.name))
+                        print(v.description)
 
     print("%d of %d passed (%.1f%%)" % (passed, run, (100*passed/(run or 1))))
 
@@ -51,11 +110,17 @@ def urlise(urlOrPath):
 parser = argparse.ArgumentParser(description="XBRL Processor")
 parser.add_argument('--addTaxonomy', dest="packages", action="append", help="Load a taxonomy package.")
 parser.add_argument('--packages', '-p', dest="packageDir", action="append", help="Load all taxonomy packages from a directory.")
-parser.add_argument('-c', '--csv', dest="csv", action="store_true", help="Load an xBRL-CSV report.")
-parser.add_argument('-t', '--testsuite', dest="test", action="store_true", help="Load and run a conformance suite.")
+parser.add_argument('--csv', dest="csv", action="store_true", help="Treat input as an xBRL-CSV report")
+parser.add_argument('--json', dest="json", action="store_true", help="Treat input as an xBRL-JSON report")
+parser.add_argument('--xbrl', dest="xbrl", action="store_true", help="Treat input as an XBRL v2.1 report")
+parser.add_argument('--no-preserve-prefixes', dest="dont_preserve_prefixes", action="store_true", help="Don't preserve prefixes when generating")
+parser.add_argument('--ixbrl', dest="ixbrl", action="store_true", help="Treat input as an Inline XBRL report")
+parser.add_argument('-t', '--testsuite', dest="test", action="store_true", help="Treat the input as a conformance suite index file and run the test suite")
+parser.add_argument('-o', '--output', dest="output", action="store", help="Write report to specified file (xBRL-JSON by default)")
 parser.add_argument('-v', '--verbose', dest="verbose", action="store_true", help="Be more verbose.")
 parser.add_argument('-d', '--debug', dest="debug", action="append", help="Enable debug for the specified module (e.g. xbrl.csv).  Specify \"all\" for all modules.", metavar="MODULE")
 parser.add_argument('-V', '--variation', dest="variations", action="append", help="Run specific variations from a test suite.  Requires -t and implies -v.")
+parser.add_argument('--test-output-suffix', dest="test_output_suffix", action="store")
 parser.add_argument('reports', metavar='REPORT', nargs="+")
 args = parser.parse_args()
 
@@ -81,15 +146,21 @@ try:
     #print("Loading: %s" % src)
     
     #report = processor.loadXBRLReport(src)
-    if args.csv:
-        report = processor.loadXBRLCSVReport(src)
-    elif args.test:
+
+    if args.test:
         runSuite(src)
     else:
-        report = processor.loadIXBRLReport(src)
+        report = open_report(src)
+        if args.output:
+            if args.dont_preserve_prefixes:
+                report.ns_to_prefix = dict()
+            js = JSONSerialiser()
+            with smart_open(args.output) as fout:
+                json.dump(js.serialise(report), fout, indent=2)
 
-    js = JSONSerialiser()
-#    print(json.dumps(js.serialise(report), indent=2))
+    #if args.csv:
+    #    report = processor.loadXBRLCSVReport(src)
+
 
 except xbrl.XBRLError as e:
     print("[%s] %s" % (e.code_as_qname, e.message))
