@@ -1,6 +1,6 @@
 from .dimensions import Dimension
 
-class TaxonomyDefinedDimension(Dimension):
+class TaxonomyDefinedDimensionValue(Dimension):
 
     def __init__(self, name, value):
         super().__init__(name)
@@ -10,15 +10,19 @@ class TaxonomyDefinedDimension(Dimension):
     def asTuple(self):
         return (self.name, self.value)
 
-class ExplicitTaxonomyDefinedDimension(TaxonomyDefinedDimension):
+    @property
+    def dimension(self):
+        return self.fact.report.taxonomy.getDimension(self.name)
+
+class ExplicitTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 
     @property
     def stringValue(self):
-        return self.fact.report.asQName(self.value.name)
+        return self.fact.report.asQName(self.value) 
 
-class TypedTaxonomyDefinedDimension(TaxonomyDefinedDimension):
+class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 
     @property
     def stringValue(self):
-        return self.dimension.typedDomainDatatype.stringValue(self.value)
+        return self.dimension.typedDomainDatatype.stringValue(self.value) if self.value is not None else None
 
