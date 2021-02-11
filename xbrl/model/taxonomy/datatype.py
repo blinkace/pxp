@@ -72,7 +72,7 @@ class Datatype:
         return qname("xs:language") in self.datatypeChain
 
     def stringValue(self, v):
-        if self.isNumeric:
+        if self.isNumeric and v is not None:
             return v.strip()
         return v
 
