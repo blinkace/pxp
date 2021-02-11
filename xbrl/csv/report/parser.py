@@ -12,6 +12,7 @@ from xbrl.xml import qname
 from xbrl.const import NS, DocumentType
 from xbrl.xml.taxonomy.document import SchemaRef
 from xbrl.model.report import Report
+from xbrl.common.validators import validateURIMap, isValidQName
 
 from .report import CSVReport
 from .tabletemplate import TableTemplate
@@ -19,7 +20,7 @@ from .table import Table
 from .column import Column, FactColumn, PropertyGroupColumn, CommentColumn
 from .values import ParameterReference, parseReference, ExplicitNoValue, RowNumberReference
 from .properties import Properties, PropertyGroupMergeDimensionsConflict, PropertyGroupMergeDecimalsConflict
-from .validators import isValidIdentifier, validateURIMap
+from .validators import isValidIdentifier
 from .specialvalues import processSpecialValues
 from .csvdialect import XBRLCSVDialect
 from .parameters import Parameters
@@ -68,12 +69,15 @@ class XBRLCSVReportParser:
             for colname, coldef in columnDefs.items():
                 if not(isValidIdentifier(colname)):
                     raise XBRLError("xbrlce:invalidIdentifier", "Column name '%s' is not a valid identifier" % colname)
-                if coldef.get("comment", False):
-                    if {"dimensions", "propertiesFrom", "propertyGroups", "decimals"} & coldef.keys():
-                        raise XBRLError("xbrlce:conflictingColumnType", '"dimensions", "propertiesFrom", "propertyGroups" and "decimals" must not appear on comment columns (%s/%s)' % (name, colname))
 
+                isCommentColumn = coldef.get("comment", False)
+                if isCommentColumn:
+                    if {"dimensions", "propertiesFrom", "propertyGroups"} & coldef.keys():
+                        raise XBRLError("xbrlce:conflictingColumnType", '"dimensions", "propertiesFrom", and "propertyGroups" must not appear on comment columns (%s/%s)' % (name, colname))
                     columns[colname] = CommentColumn(colname)
-                elif {"dimensions", "propertiesFrom"} & coldef.keys():
+
+                if {"dimensions", "propertiesFrom"} & coldef.keys():
+                    # Fact column
                     if "propertyGroups" in coldef:
                         raise XBRLError("xbrlce:conflictingColumnType", 'If "dimensions" or "propertiesFrom" is present on column definition, "propertyGroups" must be absent %s/%s' % (name, colname))
                     properties = self.parseProperties(coldef, nsmap)
@@ -83,15 +87,17 @@ class XBRLCSVReportParser:
                             raise XBRLError("xbrlce:invalidPropertyGroupColumnReference", "Property Group column '%s' referenced from column '%s' does not exist" %  (pf, colname))
                     columns[colname] = FactColumn(colname, properties, pfs)
                 else:
+                    # Non-fact column, so no decimals permitted
                     if "decimals" in coldef:
                         raise XBRLError("xbrlce:misplacedDecimalsOnNonFactColumn", "Decimals property may not appear on non-fact column '%s'" % colname)
+
                     if "propertyGroups" in coldef:
                         pgs = dict()
                         for pgName, pg in coldef["propertyGroups"].items():
                             pgs[pgName] = self.parseProperties(pg, nsmap)
 
                         columns[colname] = PropertyGroupColumn(colname, pgs)
-                    else:
+                    elif not isCommentColumn:
                         columns[colname] = Column(colname)
 
             rowIdColumnName = template.get("rowIdColumn")
@@ -153,6 +159,7 @@ class XBRLCSVReportParser:
                     raise XBRLError("xbrlce:unreferencedParameter", "The table parameter '%s' is not referenced" % (p))
         
         self.validateDuplicates(modelReport, csvReport.allowedDuplicates)
+        return modelReport
 
 
     def validateDuplicates(self, modelReport, mode):

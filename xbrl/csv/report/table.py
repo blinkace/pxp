@@ -6,7 +6,8 @@ from .specialvalues import processSpecialValues
 from .values import ParameterReference, RowNumberReference, ExplicitNoValue, parseNumericValue, NotPresent
 from .properties import Properties
 from .period import parseCSVPeriodString
-from .dimensions import getModelDimension, getConcept
+from .dimensions import getModelDimension
+from xbrl.common.dimensions import getConcept
 from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString, parseSQName, InvalidSQName
@@ -151,7 +152,7 @@ class Table:
                         if isinstance(conceptName, ExplicitNoValue):
                             raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact")
 
-                        concept = getConcept(self.template.report, conceptName).concept
+                        concept = getConcept(self.template.report.nsmap, self.template.report.taxonomy, conceptName).concept
 
                         if concept.isNumeric:
                             (factValue, decimals) = parseNumericValue(factValue)
