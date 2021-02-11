@@ -9,7 +9,7 @@ def parseSQName(sqname, nsmap):
     if ":" not in sqname:
         raise InvalidSQName("%s is not a valid SQName" % sqname)
 
-    (prefix, localname) = sqname.split(":", 2)
+    (prefix, localname) = sqname.split(":", 1)
     if RE_NCNAME.match(prefix) is None:
         raise InvalidSQName("%s is not a valid SQName (invalid prefix)" % sqname)
 
