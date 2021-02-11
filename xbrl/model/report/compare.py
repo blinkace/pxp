@@ -17,7 +17,8 @@ def consistentDuplicates(a, b):
     aa = a.valueRange
     bb = b.valueRange
 
-    return aa[0] < bb[1] and bb[0] < aa[1]
+    # Ranges must overlap, but if precision is the same then the values must be the same
+    return aa[0] <= bb[1] and bb[0] <= aa[1] and (a.decimals != b.decimals or a.numericValue == b.numericValue)
 
 
     
