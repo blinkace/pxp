@@ -25,6 +25,10 @@ class Concept:
         return self.datatype.isNumeric
 
     @property
+    def isDateTime(self):
+        return self.datatype.isDateTime
+
+    @property
     def isText(self):
         return self.datatype.isText
 

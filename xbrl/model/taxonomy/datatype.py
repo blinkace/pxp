@@ -1,5 +1,6 @@
 from xbrl.const import NS
 from xbrl.xml import qname, qnameset
+import re
 
 decimalTypes = qnameset("xs", {
             # derived from decimal:
@@ -26,6 +27,12 @@ numericTypes = decimalTypes | qnameset("xs", {
             'double', 
             })
 
+dateTimeTypes = qnameset("xbrli",{ "dateUnion" }) | qnameset("xs", {
+            'date', 
+            'dateTime', 
+            })
+
+
 class Datatype:
 
     def __init__(self, datatypeChain):
@@ -39,6 +46,10 @@ class Datatype:
     @property
     def isNumeric(self):
         return not set(self.datatypeChain).isdisjoint(numericTypes)
+
+    @property
+    def isDateTime(self):
+        return not set(self.datatypeChain).isdisjoint(dateTimeTypes)
 
     @property
     def isText(self):
