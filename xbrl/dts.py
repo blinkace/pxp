@@ -59,7 +59,7 @@ class DTS:
         return doc.getElementById(u.fragment)
 
     def buildTaxonomy(self):
-        taxonomy = Taxonomy()
+        taxonomy = Taxonomy(self.entryPoint)
         for url in self.documents:
             d = self.documentCache.getDocument(url)
             if isinstance(d, SchemaDocument):
