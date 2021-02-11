@@ -26,7 +26,7 @@ def test_unit_string_representation():
     ]
 
     for t in tests:
-        r = Report(Taxonomy())
+        r = Report(Taxonomy([]))
         unit = UnitCoreDimension(t["in"][0], t["in"][1])
         f = Fact("f1", dimensions = {unit})
         r.addFact(f)
