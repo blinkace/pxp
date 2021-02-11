@@ -234,10 +234,6 @@ class XBRLCSVReportParser:
 
             self.mergeDict(j, m, extensible, m["documentInfo"].get("final",{}).keys())
 
-        final = docInfo.get("final", {})
-        if "parameters" in final and j.get("parameterURL", None) is not None:
-            raise XBRLError("xbrlce:unusableParameterURL", "Effective metadata of %s has parameterURL but final contains 'parameters'.  Importing metadata files will not be able to use parameterURL." % (url))
-
         return j
 
     def mergeDict(self, a, b, extensible, final, path = ""):
@@ -508,5 +504,4 @@ def deep_eq(a, b):
         return b == None
 
     raise ValueError("Unexpected type %s" % type(a))
-
 
