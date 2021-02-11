@@ -1,13 +1,16 @@
 from .concept import Concept, NoteConcept
 from xbrl.const import PREFIX
+from xbrl.xbrlerror import XBRLError
 
 class Taxonomy:
 
-    def __init__(self):
+    def __init__(self, identifier):
         self.concepts = dict()
         self.ns_to_prefix = PREFIX.copy()
         self.prefix_to_ns = dict()
         self.addConcept(NoteConcept)
+        #self.dataTypes = builtInTypes.copy()
+        self.identifier = identifier
 
     def addConcept(self, c):
         self.concepts[c.name] = c
@@ -31,6 +34,16 @@ class Taxonomy:
 
     def getPrefix(self, ns, default = None):
         return self.ns_to_prefix.get(ns, default)
+
+
+    def getDimension(self, name):
+        dim = self.concepts.get(name, None)
+        if dim is None:
+            raise XBRLError("oime:unknownDimension", "Dimension %s is not defined in taxonomy" % (str(name)))
+        if not dim.isDimension:
+            raise XBRLError("oime:unknownDimension", "%s is not a dimension" % (str(name)))
+
+        return dim
 
 
 
