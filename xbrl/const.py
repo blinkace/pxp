@@ -37,7 +37,7 @@ class LinkGroup:
 
 class DocumentType:
     xbrlcsv = 'https://xbrl.org/((~status_date_uri~))/xbrl-csv'
-    xbrlcsv_cr7 = 'https://xbrl.org/CR/2021-02-02/xbrl-csv'
+    xbrlcsv_cr7 = 'https://xbrl.org/CR/2021-02-03/xbrl-csv'
     xbrljson_git = 'https://xbrl.org/((~status_date_uri~))/xbrl-json'
     xbrljson_wgwd = 'https://xbrl.org/WGWD/YYYY-MM-DD/xbrl-json'
     xbrljson_cr7 = 'https://xbrl.org/CR/2021-02-02/xbrl-csv'
