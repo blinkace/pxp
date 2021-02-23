@@ -12,6 +12,8 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.documentloader import DocumentLoader
 import os.path
 
+logger = logging.getLogger(__name__)
+
 class XBRLProcessor:
 
     def __init__(self, packageDirs = None):
@@ -54,6 +56,29 @@ class XBRLProcessor:
         dts = DTS(entryPoint, self.documentLoader)
         dts.discover()
         return dts.buildTaxonomy()
+
+    def loadReport(self, url, documentClass = None):
+        if documentClass is None:
+            documentClass = self.identifyDocumentClass(url)
+        if documentClass is None:
+            return (None, "Unable to identify document type")
+        elif documentClass == DocumentClass.INLINE_XBRL:
+            logger.info("Loading Inline XBRL file: %s" % url)
+            report = self.loadIXBRLReport(url)
+        elif documentClass == DocumentClass.XBRL_CSV:
+            logger.info("Loading xBRL-CSV file: %s" % url)
+            report = self.loadXBRLCSVReport(url)
+        elif documentClass == DocumentClass.XBRL_JSON:
+            logger.info("Loading xBRL-JSON file: %s" % url)
+            report = self.loadXBRLJSONReport(url)
+        elif documentClass == DocumentClass.XBRL_2_1:
+            logger.info("Loading xBRL-XML file: %s" % url)
+            report = self.loadXBRLReport(url)
+        else:
+            return (None, "Unsupported document class: %s" % documentClass.name)
+        return (report, None)
+
+
 
     def loadPackages(self, packageDir):
         if not os.path.isdir(packageDir):

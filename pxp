@@ -28,6 +28,7 @@ def smart_open(filename=None):
             fh.close()
 
 def open_report(url):
+    documentClass = None
     if args.csv:
         documentClass = DocumentClass.XBRL_CSV
     elif args.json:
@@ -36,26 +37,12 @@ def open_report(url):
         documentClass = DocumentClass.XBRL_2_1
     elif args.ixbrl:
         documentClass = DocumentClass.INLINE_XBRL
-    else:
-        documentClass = processor.identifyDocumentClass(url)
-    if documentClass is None:
-        print("Unable to identify document type")
+
+    (report, err) = processor.loadReport(url, documentClass)
+    if err is not None:
+        print(err)
         sys.exit(1)
-    elif documentClass == DocumentClass.INLINE_XBRL:
-        if args.verbose:
-            print("Loading Inline XBRL file")
-        report = processor.loadIXBRLReport(url)
-    elif documentClass == DocumentClass.XBRL_CSV:
-        if args.verbose:
-            print("Loading xBRL-CSV file")
-        report = processor.loadXBRLCSVReport(url)
-    elif documentClass == DocumentClass.XBRL_JSON:
-        if args.verbose:
-            print("Loading xBRL-JSON file")
-        report = processor.loadXBRLJSONReport(url)
-    else:
-        print("Unsupported document class: %s" % documentClass.name)
-        sys.exit(1)
+    return report
 
 
 def runSuite(src):
