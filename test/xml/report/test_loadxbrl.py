@@ -29,7 +29,7 @@ def test_loadxbrl():
     assert f.value == "4321.37"
     assert f.stringValue == "4321.37"
     assert f.isNumeric
-    assert f.unit.stringValue == "(iso4217:EUR)/(xbrli:shares)"
+    assert f.unit.stringValue == "iso4217:EUR/xbrli:shares"
     assert not f.period.isDuration
     assert f.period.stringValue == '2005-06-02T00:00:00'
     assert f.period.instant == datetime.datetime(2005, 6, 2, 0, 0, 0)
