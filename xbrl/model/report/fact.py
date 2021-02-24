@@ -1,11 +1,11 @@
 from .dimensions import ConceptCoreDimension
-from .tddimension import TaxonomyDefinedDimensionValue
+from .tddimension import TaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue
 from .period import InstantPeriod, DurationPeriod
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.const import LinkType
-from xbrl.model.taxonomy import NoteConcept, PeriodType
-from xbrl.common.period import fromISO
+from xbrl.model.taxonomy import NoteConcept, PeriodType, ListBasedDatatype, ComplexDatatype
+from xbrl.common.period import DateTimeUnion
 import decimal
 
 class Fact:
@@ -86,7 +86,7 @@ class Fact:
         if self.isNumeric:
             return self.numericValue
         if self.concept.isDateTime:
-            return fromISO(self.value)
+            return DateTimeUnion(self.value)
 
         return self.value
 

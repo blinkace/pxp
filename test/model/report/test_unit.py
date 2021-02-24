@@ -12,15 +12,15 @@ def test_unit_string_representation():
         },
         {
             "in": [ [ qname("iso4217:USD") ], [ qname("xbrli:shares") ] ],
-            "out": "(iso4217:USD)/(xbrli:shares)"
+            "out": "iso4217:USD/xbrli:shares"
         },
         {
             "in": [ [ qname("iso4217:USD"), qname("xbrli:shares") ], [ qname("utr:madeup")] ],
-            "out": "(iso4217:USD*xbrli:shares)/(utr:madeup)"
+            "out": "(iso4217:USD*xbrli:shares)/utr:madeup"
         },
         {
             "in": [ [ qname("iso4217:USD"), qname("iso4217:GBP"), qname("iso4217:EUR") ], [ qname("utr:madeup") ] ],
-            "out": "(iso4217:EUR*iso4217:GBP*iso4217:USD)/(utr:madeup)"
+            "out": "(iso4217:EUR*iso4217:GBP*iso4217:USD)/utr:madeup"
         }
 
     ]

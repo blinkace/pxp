@@ -5,7 +5,6 @@ from xbrl.xbrlerror import XBRLError
 dateTimeRe = re.compile(r'^(\d{4,}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?)((?:(?:\+|-)\d{2}(?:\:\d{2})?|Z)?)$')
 dateRe = re.compile(r'^(\d{4,}-\d{2}-\d{2})((?:(?:\+|-)\d{2}(?:\:\d{2})?|Z)?)$')
 
-
 def fromISODateTime(s):
     m = dateTimeRe.match(s) 
     if m is None:
@@ -26,11 +25,26 @@ def fromISODate(s):
 
     return dateutil.parser.isoparse(s)
 
-def fromISO(s):
-    try:
-        return fromISODateTime(s)
-    except ValueError:
-        return fromISODate(s)
+
+class DateTimeUnion:
+
+    def __init__(self, datetimeUnionStr):
+        try:
+            self.datetime = fromISODateTime(datetimeUnionStr)
+            self.isDate = False
+        except ValueError:
+            self.datetime = fromISODate(datetimeUnionStr)
+            self.isDate = True
+
+    def __eq__(self, other):
+        return isinstance(other, DateTimeUnion) and other.isDate == self.isDate and other.datetime == self.datetime
+
+    def __str__(self):
+        if self.isDate:
+            return re.sub(r'T[\d.:]+', self.datetime.isoformat(), '')
+        else:
+            return self.datetime.isoformat()
+
 
 def parsePeriodString(s):
     try:
