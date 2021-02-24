@@ -19,7 +19,7 @@ class JSONSerialiser:
             fjson = {
                 "dimensions": {},
                 "value":  f.concept.datatype.stringValue(f.value),
-                "numeric": f.isNumeric
+                #"numeric": f.isNumeric
             }
             for n, d in f.dimensions.items():
                 if d.isCore:

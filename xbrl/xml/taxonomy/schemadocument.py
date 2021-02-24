@@ -75,6 +75,30 @@ class ElementDefinition:
         else:
             datatypes = []
         return [self.datatype] + datatypes
+
+    # Return the datatype chain as a list of types.  This is messy: it won't
+    # include an XML Schema types because we don't have typed definitions for
+    # them, so it's useless for determining which schema type something is
+    # derived from. 
+    #
+    # We should really instantiate type objects for the XML Schema types, and
+    # then datatypeChain() is a simple transformation to obtain type names from
+    # this method.
+    def datatypeChainTypes(self):
+        # The XML Schema for schemas won't be referenced explicitly, so stop
+        # searching for definitions once we get to the XSD namespace - we don't
+        # need any further details
+        if self.datatype is None:
+            return []
+        if self.datatype.namespace != NS.xs:
+            baseType = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname)
+            return [baseType] + baseType.datatypeChainTypes()
+        else:
+            return []
+
+    @property
+    def derivedByList(self):
+        return any(isinstance(t, ListSimpleTypeDefinition) for t in self.datatypeChainTypes())
         
 
 class TypeDefinition:
@@ -89,7 +113,15 @@ class TypeDefinition:
                 datatypes = self.schemaDocument.getSchemaForNamespace(self.base.namespace).getType(self.base.localname).datatypeChain()
                 return [self.base] + datatypes
             return [self.base]
+        else:
+            return []
 
+    def datatypeChainTypes(self):
+        if self.base is not None:
+            if self.base.namespace != NS.xs:
+                baseType = self.schemaDocument.getSchemaForNamespace(self.base.namespace).getType(self.base.localname)
+                return [baseType] + baseType.datatypeChainTypes()
+            return []
         else:
             return []
 
@@ -98,5 +130,10 @@ class ComplexTypeDefinition(TypeDefinition):
 
 class SimpleTypeDefinition(TypeDefinition):
     pass
+
+class ListSimpleTypeDefinition(SimpleTypeDefinition):
+
+    def __init__(self, name):
+        super().__init__(name, None)
 
 

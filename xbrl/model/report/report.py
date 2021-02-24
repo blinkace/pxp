@@ -67,7 +67,7 @@ class Report:
     def validateDuplicatesAllowConsistent(self):
         self.validateDuplicates(permitted = consistentDuplicates)
 
-    def compare(self, other):
+    def compare(self, other, onlyEquivalent = False):
         diffs = []
         if self.taxonomy.identifier != other.taxonomy.identifier:
             diffs.append("Taxonomies differ (%s vs %s)" % (", ".join(i.href for i in self.taxonomy.identifier), ", ".join(i.href for i in self.taxonomy.identifier)))
@@ -75,7 +75,7 @@ class Report:
         for fa in self.facts.values():
             found = False
             for fb in other.facts.values():
-                if fa.isEqual(fb):
+                if fa.isEqual(fb, checkId = not onlyEquivalent):
                     found = True
                     break 
             if not found:
@@ -84,7 +84,7 @@ class Report:
         for fa in other.facts.values():
             found = False
             for fb in self.facts.values():
-                if fa.isEqual(fb):
+                if fa.isEqual(fb, checkId = not onlyEquivalent):
                     found = True
                     break 
             if not found:

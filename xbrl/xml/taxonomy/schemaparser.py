@@ -1,5 +1,5 @@
 from lxml import etree
-from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition
+from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition, ListSimpleTypeDefinition
 from xbrl.qname import parseQName
 from xbrl.const import NS, NSMAP
 from xbrl.xml.util import qname
@@ -96,7 +96,10 @@ class SchemaParser:
         if basetype:
             basetype = parseQName(e.nsmap, basetype)
 
-        schema.addType(SimpleTypeDefinition(e.get("name"), basetype))
+        if e.childElement(qname("xs:list")) is not None:
+            schema.addType(ListSimpleTypeDefinition(e.get("name")))
+        else:
+            schema.addType(SimpleTypeDefinition(e.get("name"), basetype))
 
             
 

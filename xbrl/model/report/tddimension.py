@@ -26,3 +26,7 @@ class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
     def stringValue(self):
         return self.dimension.typedDomainDatatype.stringValue(self.value) if self.value is not None else None
 
+    @property
+    def datatype(self):
+        return self.dimension.typedDomainDatatype
+

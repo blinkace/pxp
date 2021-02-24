@@ -1,7 +1,7 @@
 from .const import NS
 from .xml.taxonomy.schemadocument import SchemaDocument
 from lxml import etree
-from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype, PeriodType
+from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype, PeriodType, ListBasedDatatype, ComplexDatatype
 from .xbrlerror import XBRLError
 from xbrl.xml import qname
 from urllib.parse import urldefrag, urlparse
@@ -79,9 +79,12 @@ class DTS:
                         if e.typedDomainRef:
                             tde = self.getElementByURL(d.resolveURL(e.typedDomainRef))
                             if not tde.isComplex:
-                                tddt = Datatype(tde.datatypeChain()) 
+                                if tde.derivedByList:
+                                    tddt = ListBasedDatatype(tde.datatypeChain()) 
+                                else:
+                                    tddt = Datatype(tde.datatypeChain()) 
                             else:
-                                tddt = None
+                                tddt = ComplexDatatype(tde.datatypeChain())
                             c = TypedDimension(
                                 conceptName,
                                 datatype,

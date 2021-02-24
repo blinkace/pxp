@@ -32,11 +32,21 @@ dateTimeTypes = qnameset("xbrli",{ "dateUnion" }) | qnameset("xs", {
             'dateTime', 
             })
 
+legacyDataTypes = qnameset("xs", {
+                    "ENTITY",
+                    "ENTITIES",
+                    "ID",
+                    "IDREF",
+                    "IDREFS",
+                    "NMTOKEN",
+                    "NMTOKENS",
+                    "NOTATION"
+                })
+
 
 class Datatype:
 
     def __init__(self, datatypeChain):
-
         self.datatypeChain = datatypeChain
 
     @property
@@ -64,6 +74,10 @@ class Datatype:
     def isDecimal(self):
         return not set(self.datatypeChain).isdisjoint(decimalTypes)
 
+    @property
+    def isLegacy(self):
+        return not set(self.datatypeChain).isdisjoint(legacyDataTypes)
+
     def isDtrNamespace(self, qname):
         return qname.namespace.startswith("http://www.xbrl.org/dtr/type/")
 
@@ -76,4 +90,13 @@ class Datatype:
             return v.strip()
         return v
 
+    @property
+    def datatypeChainTypes(self):
+        return self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname).datatypeChain()
+
+class ListBasedDatatype(Datatype):
+    pass
+
+class ComplexDatatype(Datatype):
+    pass
 

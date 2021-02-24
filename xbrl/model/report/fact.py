@@ -122,9 +122,21 @@ class Fact:
                 raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has an instant concept but a duration period" % self.id)
         if not self.isNumeric and self.decimals is not None:
             raise XBRLError("oime:misplacedDecimalsProperty", "Fact '%s' has decimals specified but is not numeric" % self.id)
+        self.validateTypedDimensionDatatypes()
 
+    def validateTypedDimensionDatatypes(self):
+        for dimname, dimvalue in self.dimensions.items():
+            if isinstance(dimvalue, TypedTaxonomyDefinedDimensionValue):
+                if dimvalue.datatype.isLegacy:
+                    raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' has a datatype which is, or is derived from an unsupported legacy datatype" % (str(dimname), self.id))
 
+            
+                if isinstance(dimvalue.datatype, ListBasedDatatype):
+                    raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' is derived by list" % (str(dimname), self.id))
 
-    def isEqual(self, other):
-        return self.frozenDimensionSet == other.frozenDimensionSet and self.typedValue == other.typedValue and self.id == other.id
+                if isinstance(dimvalue.datatype, ComplexDatatype):
+                    raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' is complex" % (str(dimname), self.id))
+
+    def isEqual(self, other, checkId = True):
+        return self.frozenDimensionSet == other.frozenDimensionSet and self.typedValue == other.typedValue and (self.id == other.id or not checkId)
 
