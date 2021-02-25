@@ -122,6 +122,10 @@ class Fact:
                 raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has an instant concept but a duration period" % self.id)
         if not self.isNumeric and self.decimals is not None:
             raise XBRLError("oime:misplacedDecimalsProperty", "Fact '%s' has decimals specified but is not numeric" % self.id)
+
+        if not self.isNumeric and qname("xbrl:unit") in self.dimensions:
+            raise XBRLError("oime:misplacedUnitDimension", "Fact '%s' has units specified but is not numeric" % self.id)
+
         self.validateTypedDimensionDatatypes()
 
     def validateTypedDimensionDatatypes(self):
