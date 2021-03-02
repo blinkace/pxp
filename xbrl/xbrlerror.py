@@ -17,6 +17,11 @@ class XBRLError(Exception):
     def code_as_qname(self):
         return "%s:%s" % (PREFIX[self.code.namespace], self.code.localname)
 
+    def reraise(self, code_map = {}):
+        self.code = code_map.get(self.code, self.code)
+        raise self
+
+
         
 
 

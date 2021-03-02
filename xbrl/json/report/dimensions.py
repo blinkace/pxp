@@ -1,6 +1,6 @@
 from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
-from xbrl.model.report import ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension
+from xbrl.model.report import ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension, NoteIdCoreDimension
 from xbrl.model.taxonomy import TypedDimension
 from xbrl.common.dimensions import getUnit, getConcept, getPeriod, getEntity, getLanguage
 
@@ -22,6 +22,10 @@ def getModelDimension(name, value, nsmap, taxonomy):
 
     if name == qname("xbrl:language"):
         return getLanguage(value)
+
+    if name == qname("xbrl:noteId"):
+        return NoteIdCoreDimension(value)
+
     dim = taxonomy.getDimension(name)
     if dim is None:
         raise XBRLError("oime:unknownDimension", "Dimension %s is not defined in taxonomy" % name)

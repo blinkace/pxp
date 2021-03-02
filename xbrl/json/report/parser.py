@@ -8,7 +8,7 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.common.validators import validateURIMap, isValidQName
 from xbrl.model.report import Report, Fact
 from xbrl.xml.taxonomy.document import SchemaRef
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from .dimensions import getModelDimension
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,18 @@ class XBRLJSONReportParser:
             raise XBRLError("xbrlje:invalidJSONStructure", err)
 
         nsmap = docInfo.get("namespaces", {})
-        validateURIMap(nsmap)
+        try:
+            validateURIMap(nsmap)
+        except XBRLError as e:
+            e.reraise({qname("oimce:invalidStructure"): qname("xbrlje:invalidJSONStructure")})
+
+        baseURL = docInfo.get("baseURL", None)
+        if baseURL is not None:
+            try:
+                urlparse(baseURL)
+            except:
+                raise XBRLError("xbrlje:invalidJSONStructure", "'%s' is not a valid URL" % baseURL)
+
 
         taxonomy = self.getTaxonomy(docInfo, url)
 
@@ -56,13 +67,19 @@ class XBRLJSONReportParser:
             for dimname, dimval in fact.get("dimensions", {}).items():
                 dimqname = qname(dimname, { **nsmap, None: NS.xbrl })
                 factDims[dimqname] = getModelDimension(dimqname, dimval, nsmap, taxonomy)
-
-            modelReport.addFact(Fact(
+            v = fact.get("value", None)
+            f = Fact(
                 factId = fid,
                 dimensions = factDims.values(),
-                value = fact.get("value", None),
+                value = v,
                 decimals = fact.get("decimals", None)
-                ))
+            )
+            if f.concept.datatype.canonicalValue(v) != v:
+                raise XBRLError("xbrlje:nonCanonicalValue", "'%s' is not in canonical form (should be '%s')" % (v, f.concept.datatype.canonicalValue(v)))
+
+
+
+            modelReport.addFact(f)
 
         modelReport.validate()
         features = docInfo.get("features", {})

@@ -87,3 +87,17 @@ class LanguageCoreDimension(CoreDimension):
     @property
     def asTuple(self):
         return (self.name, self.language.lower())
+
+class NoteIdCoreDimension(CoreDimension):
+
+    def __init__(self, noteId):
+        super().__init__("noteId")
+        self.noteId = noteId
+
+    @property
+    def stringValue(self):
+        return self.noteId
+
+    @property
+    def asTuple(self):
+        return (self.name, self.noteId)

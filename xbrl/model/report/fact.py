@@ -51,7 +51,7 @@ class Fact:
         return self.dimensions.get(qname("xbrl:entity"), None)
 
     def taxonomyDefinedDimensions(self):
-        return (d for d in self.dimensions.values if isinstance(d, TaxonomyDefinedDimension))
+        return (d for d in self.dimensions.values() if isinstance(d, TaxonomyDefinedDimensionValue))
         
     @property
     def isNumeric(self):
@@ -77,7 +77,6 @@ class Fact:
             return decimal.Decimal(self.value)
         return float(self.value)
 
-    
     @property
     def typedValue(self):
         """Return a value that supports a type-aware equality"""
@@ -89,6 +88,8 @@ class Fact:
             return DateTimeUnion(self.value)
 
         return self.value
+
+
 
     @property
     def valueRange(self):
@@ -126,7 +127,22 @@ class Fact:
         if not self.isNumeric and qname("xbrl:unit") in self.dimensions:
             raise XBRLError("oime:misplacedUnitDimension", "Fact '%s' has units specified but is not numeric" % self.id)
 
+        self.validateNoteFact()
+
         self.validateTypedDimensionDatatypes()
+
+    def validateNoteFact(self):
+        if self.concept.name == qname('xbrl:note'):
+            if qname("xbrl:noteId") not in self.dimensions:
+                raise XBRLError("oime:missingNoteIDDimension", "Note fact '%s' does not have the noteId dimension" % (self.id))
+            if qname("xbrl:language") not in self.dimensions:
+                raise XBRLError("oime:missingLanguageForNoteFact", "Note fact '%s' does not have the language core dimension" % (self.id))
+            if qname("xbrl:entity") in self.dimensions:
+                raise XBRLError("oime:misplacedNoteFactDimension", "Note fact '%s' has misplaced entity dimension" % (self.id))
+            if qname("xbrl:period") in self.dimensions:
+                raise XBRLError("oime:misplacedNoteFactDimension", "Note fact '%s' has misplaced period dimension" % (self.id))
+            if next(self.taxonomyDefinedDimensions(), None) is not None:
+                raise XBRLError("oime:misplacedNoteFactDimension", "Note fact '%s' has misplaced taxonomy-defined dimensions" % (self.id))
 
     def validateTypedDimensionDatatypes(self):
         for dimname, dimvalue in self.dimensions.items():

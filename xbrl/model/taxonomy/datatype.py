@@ -2,10 +2,10 @@ from xbrl.const import NS
 from xbrl.xml import qname, qnameset
 import re
 
-decimalTypes = qnameset("xs", {
-            # derived from decimal:
-            # we could manually insert the XS schema into the DTS and then
-            # infer all derived types
+# derived from decimal:
+# we could manually insert the XS schema into the DTS and then
+# infer all derived types
+integerTypes = qnameset("xs", {
             'integer', 
             'nonPositiveInteger', 
             'nonNegativeInteger', 
@@ -20,6 +20,9 @@ decimalTypes = qnameset("xs", {
             'byte', 
             'unsignedByte', 
             })
+
+decimalTypes = qnameset("xs", {
+            'decimal' }) | integerTypes
 
 numericTypes = decimalTypes | qnameset("xs", {
             'decimal', 
@@ -75,6 +78,10 @@ class Datatype:
         return not set(self.datatypeChain).isdisjoint(decimalTypes)
 
     @property
+    def isInteger(self):
+        return not set(self.datatypeChain).isdisjoint(integerTypes)
+
+    @property
     def isLegacy(self):
         return not set(self.datatypeChain).isdisjoint(legacyDataTypes)
 
@@ -88,6 +95,19 @@ class Datatype:
     def stringValue(self, v):
         if self.isNumeric and v is not None:
             return v.strip()
+        return v
+
+    def canonicalValue(self, v):
+        if v is None:
+            return None
+        if self.isDecimal:
+            v = v.strip()
+            v = re.sub('^(\+|0(?!\.))+','',v)
+            v = re.sub('(\..+?)0+$', '\1', v)
+            if self.isInteger:
+                v = re.sub('\.0$','', v)
+        elif self.isNumeric:
+            v = v.strip()
         return v
 
     @property
