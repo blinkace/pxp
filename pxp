@@ -7,6 +7,7 @@ import os.path
 import argparse
 import json
 import traceback
+import re
 from xbrl.json.report import JSONSerialiser
 from xbrl.common import DocumentClass
 from urllib.parse import urlparse, urljoin
@@ -50,7 +51,7 @@ def runSuite(src):
     passed = 0
     run = 0
     for v in suite.variations:
-        if args.variations is None or v.id in args.variations:
+        if args.variations is None or (any(re.match(va, v.id) is not None for va in args.variations)):
             run += 1
             if len(v.inputs) != 1:
                 print("Variation has %d inputs" % len(v.inputs))
