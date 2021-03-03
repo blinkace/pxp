@@ -108,6 +108,8 @@ class Datatype:
                 v = re.sub('\.0$','', v)
         elif self.isNumeric:
             v = v.strip()
+        elif self.isLanguage:
+            return v.lower().strip()
         return v
 
     @property

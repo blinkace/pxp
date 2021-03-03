@@ -2,10 +2,10 @@ import json
 import logging
 import os
 from xbrl.json.schema import json_validate, DuplicateKeyError
-from xbrl.const import DocumentType, NS
+from xbrl.const import DocumentType, NS, OIM_COMMON_RESERVED_PREFIX_MAP, LINK_RESERVED_URI_MAP
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
-from xbrl.common.validators import validateURIMap, isValidQName
+from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI
 from xbrl.model.report import Report, Fact
 from xbrl.xml.taxonomy.document import SchemaRef
 from urllib.parse import urljoin, urlparse
@@ -45,17 +45,22 @@ class XBRLJSONReportParser:
             raise XBRLError("xbrlje:invalidJSONStructure", err)
 
         nsmap = docInfo.get("namespaces", {})
+        linkGroups = docInfo.get("linkGroups", {})
+        linkTypes = docInfo.get("linkTypes", {})
         try:
-            validateURIMap(nsmap)
+            validateURIMap(nsmap, reservedPrefixMap = OIM_COMMON_RESERVED_PREFIX_MAP)
+            validateURIMap(linkGroups, reservedPrefixMap = LINK_RESERVED_URI_MAP)
+            validateURIMap(linkTypes, reservedPrefixMap = LINK_RESERVED_URI_MAP)
         except XBRLError as e:
             e.reraise({qname("oimce:invalidStructure"): qname("xbrlje:invalidJSONStructure")})
 
+
         baseURL = docInfo.get("baseURL", None)
         if baseURL is not None:
-            try:
-                urlparse(baseURL)
-            except:
+            if not(isValidAnyURI(baseURL)):
                 raise XBRLError("xbrlje:invalidJSONStructure", "'%s' is not a valid URL" % baseURL)
+            if not(isCanonicalAnyURI(baseURL)):
+                raise XBRLError("xbrlje:invalidJSONStructure", "'%s' is not in canonical form" % baseURL)
 
 
         taxonomy = self.getTaxonomy(docInfo, url)
@@ -74,8 +79,9 @@ class XBRLJSONReportParser:
                 value = v,
                 decimals = fact.get("decimals", None)
             )
-            if f.concept.datatype.canonicalValue(v) != v:
-                raise XBRLError("xbrlje:nonCanonicalValue", "'%s' is not in canonical form (should be '%s')" % (v, f.concept.datatype.canonicalValue(v)))
+            if docInfo.get("features", {}).get("xbrl:canonicalValues", False):
+                if f.concept.datatype.canonicalValue(v) != v:
+                    raise XBRLError("xbrlje:nonCanonicalValue", "'%s' is not in canonical form (should be '%s')" % (v, f.concept.datatype.canonicalValue(v)))
 
 
 

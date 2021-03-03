@@ -26,14 +26,25 @@ class NS:
     xbrlce = 'https://xbrl.org/((~status_date_uri~))/xbrl-csv/error'
     xbrlje = 'https://xbrl.org/((~status_date_uri~))/xbrl-json/error'
 
+
 PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}
 NSMAP = {k: v for k, v in NS.__dict__.items() if not k.startswith("_")}
 
+OIM_COMMON_RESERVED_PREFIXES = { "iso4217", "utr", "xbrl", "xbrli", "xs", "oimce" }
+OIM_COMMON_RESERVED_PREFIX_MAP = { k: getattr(NS, k) for k in OIM_COMMON_RESERVED_PREFIXES }
+
 class LinkType:
-    factFootnote = 'http://www.xbrl.org/2003/arcrole/fact-footnote'
+    footnote = 'http://www.xbrl.org/2003/arcrole/fact-footnote'
+    explanatoryFact = 'http://www.xbrl.org/2009/arcrole/fact-explanatoryFact'
 
 class LinkGroup:
     default = 'http://www.xbrl.org/2003/role/link'
+
+LINK_RESERVED_URI_MAP = {
+    "_": LinkGroup.default,
+    "footnote": LinkType.footnote,
+    "explanatoryFact": LinkType.explanatoryFact,
+}
 
 class DocumentType:
     xbrlcsv = 'https://xbrl.org/((~status_date_uri~))/xbrl-csv'
