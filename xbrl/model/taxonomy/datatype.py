@@ -47,6 +47,7 @@ legacyDataTypes = qnameset("xs", {
                 })
 
 
+
 class Datatype:
 
     def __init__(self, datatypeChain):
@@ -87,6 +88,21 @@ class Datatype:
 
     def isDtrNamespace(self, qname):
         return qname.namespace.startswith("http://www.xbrl.org/dtr/type/")
+
+    @property
+    def isText(self):
+        if qname("xs:string") not in self.datatypeChain:
+            return False
+
+        for dt in self.datatypeChain:
+            if dt in qnameset("xs", { "language", "Name"}):
+                return False
+            if self.isDtrNamespace(dt) and dt.localname in { "domainItemType", "noLangTokenItemType", "noLangStringItemType" }:
+                return False
+
+        return True
+
+
 
     @property
     def isLanguage(self):

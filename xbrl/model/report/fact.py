@@ -103,6 +103,10 @@ class Fact:
     def isNil(self):
         return self.value is None
 
+    @property
+    def isText(self):
+        return self.concept.datatype.isText
+
     def validate(self):
         for linkType, linkGroups in self.links.items():
             for linkGroup, facts in linkGroups.items():
@@ -126,6 +130,10 @@ class Fact:
 
         if not self.isNumeric and qname("xbrl:unit") in self.dimensions:
             raise XBRLError("oime:misplacedUnitDimension", "Fact '%s' has units specified but is not numeric" % self.id)
+
+        if not self.isText and qname("xbrl:language") in self.dimensions:
+            raise XBRLError("oime:misplacedLanguageDimension", "Fact '%s' has language specified but is not a text fact" % self.id)
+
 
         self.validateNoteFact()
 
