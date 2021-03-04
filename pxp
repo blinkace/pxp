@@ -58,16 +58,19 @@ def runSuite(src):
             else:
                 errors = set()
                 try:
-                    report = open_report(urljoin(suite.url, v.inputs[0].url))
-                    if args.test_output_suffix is not None:
-                        (filename, suffix) = os.path.basename(v.inputs[0].url).split('.', 1)
-                        outfile = "%s%s" % (filename, args.test_output_suffix)
-                        print("writing to %s" % outfile)
-                        with open(outfile, "w") as fout:
-                            if args.dont_preserve_prefixes:
-                                report.ns_to_prefix = dict()
-                            js = JSONSerialiser()
-                            json.dump(js.serialise(report), fout, indent=2)
+                    if not args.taxonomy_package:
+                        report = open_report(urljoin(suite.url, v.inputs[0].url))
+                        if args.test_output_suffix is not None:
+                            (filename, suffix) = os.path.basename(v.inputs[0].url).split('.', 1)
+                            outfile = "%s%s" % (filename, args.test_output_suffix)
+                            print("writing to %s" % outfile)
+                            with open(outfile, "w") as fout:
+                                if args.dont_preserve_prefixes:
+                                    report.ns_to_prefix = dict()
+                                js = JSONSerialiser()
+                                json.dump(js.serialise(report), fout, indent=2)
+                    else:
+                        package = xbrl.TaxonomyPackage(urlparse(urljoin(suite.url, v.inputs[0].url)).path)
 
                 except xbrl.XBRLError as e:
                     errors = { e.code }
@@ -101,6 +104,7 @@ parser.add_argument('--packages', '-p', dest="packageDir", action="append", help
 parser.add_argument('--csv', dest="csv", action="store_true", help="Treat input as an xBRL-CSV report")
 parser.add_argument('--json', dest="json", action="store_true", help="Treat input as an xBRL-JSON report")
 parser.add_argument('--xbrl', dest="xbrl", action="store_true", help="Treat input as an XBRL v2.1 report")
+parser.add_argument('--taxonomy-package', dest="taxonomy_package", action="store_true", help="Treat input as Taxonomy Package")
 parser.add_argument('--no-preserve-prefixes', dest="dont_preserve_prefixes", action="store_true", help="Don't preserve prefixes when generating")
 parser.add_argument('--ixbrl', dest="ixbrl", action="store_true", help="Treat input as an Inline XBRL report")
 parser.add_argument('-t', '--testsuite', dest="test", action="store_true", help="Treat the input as a conformance suite index file and run the test suite")

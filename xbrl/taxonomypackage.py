@@ -14,19 +14,33 @@ class TaxonomyPackage:
 
         with self.zipfile() as package:
             self.contents = package.namelist()
+
+            for path in self.contents:
+                if '\\' in path:
+                    raise XBRLError("tpe:invalidArchiveFormat", "Archive contains path with '\\'")
+
             top = {item.split('/')[0] for item in self.contents}
             if len(top) != 1:
                 raise XBRLError("tpe:invalidDirectoryStructure", "Multiple top-level directories")
 
             self.tld = list(top)[0]
 
-            self.loadMetaData(package)
 
             catalogPath = "%s/META-INF/catalog.xml" % self.tld
 
+            metaInfPath = "%s/META-INF/" % self.tld
+            if not any(p.startswith(metaInfPath) for p in self.contents):
+                raise XBRLError("tpe:metadataDirectoryNotFound", "Taxonomy package does not contain '%s' directory" % metaInfPath)
+
+            self.loadMetaData(package)
+
             if catalogPath in package.namelist():
                 with package.open(catalogPath) as catalogXML:
-                    catalog = etree.parse(catalogXML, parser())
+                    try:
+                        catalog = etree.parse(catalogXML, parser())
+                    except etree.XMLSyntaxError as e:
+                        raise XBRLError("tpe:invalidCatalogFile", str(e))
+
 
                     for rewrite in catalog.getroot().childElements(qname("catalog:rewriteURI")):
                         rewriteFrom = rewrite.get("uriStartString")
@@ -41,7 +55,10 @@ class TaxonomyPackage:
             raise XBRLError("tpe:metadataFileNotFound", "%s not found" % mdPath)
 
         with package.open(mdPath) as metadataXML:
-            metadata = etree.parse(metadataXML, parser())
+            try:
+                metadata = etree.parse(metadataXML, parser())
+            except etree.XMLSyntaxError as e:
+                raise XBRLError("tpe:invalidMetaDataFile", str(e))
             root = metadata.getroot()
             names = root.childElements(qname("tp:name"))
             self.name = next(names).text
