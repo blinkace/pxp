@@ -184,7 +184,7 @@ class IXBRLReportParser(XBRLReportParser):
             elif e.tag in qnameset({"ix", "ix10"}, "relationship"):
                 for f in e.get("fromRefs").split():
                     self.relationships.setdefault(f,{}) \
-                        .setdefault(e.get("arcrole", LinkType.factFootnote),{}) \
+                        .setdefault(e.get("arcrole", LinkType.footnote),{}) \
                         .setdefault(e.get("linkRole", LinkGroup.default),[]) \
                         .extend(e.get("toRefs").split())
             else:

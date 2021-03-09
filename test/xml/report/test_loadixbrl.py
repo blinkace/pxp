@@ -24,7 +24,7 @@ def test_loadixbrl():
     assert f.period.end == datetime.datetime(2019, 1, 1, 0, 0, 0)
     assert f.entity.scheme == 'http://www.example.com/entity'
     assert f.entity.identifier == '12345678'
-    footnotes = f.links[LinkType.factFootnote][LinkGroup.default]
+    footnotes = f.links[LinkType.footnote][LinkGroup.default]
     assert len(footnotes) == 2
     fids = set((fn.id for fn in footnotes))
     assert fids == {"fn1", "fn2"}
@@ -43,7 +43,7 @@ def test_loadixbrl():
     assert f.entity.scheme == 'http://www.example.com/entity'
     assert f.entity.identifier == '12345678'
 
-    footnotes = f.links[LinkType.factFootnote][LinkGroup.default]
+    footnotes = f.links[LinkType.footnote][LinkGroup.default]
     assert len(footnotes) == 2
     fids = set((fn.id for fn in footnotes))
     assert fids == {"fn2", "fn4"}
