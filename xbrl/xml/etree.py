@@ -85,3 +85,12 @@ class Element(etree.ElementBase):
             s += t
 
         return s
+
+
+    def effectiveLang(self):
+        l = self.get("{http://www.w3.org/XML/1998/namespace}lang", None)
+        if l is None and self.getparent() is not None:
+            return self.getparent().effectiveLang()
+        if l == "":
+            return None
+        return l
