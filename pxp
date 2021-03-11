@@ -141,6 +141,10 @@ try:
 
     if args.test:
         runSuite(src)
+    elif args.taxonomy_package:
+        if args.verbose:
+            print("Opening taxonomy package %s" % src)
+        package = xbrl.TaxonomyPackage(urlparse(src).path)
     else:
         report = open_report(src)
         if args.output:
