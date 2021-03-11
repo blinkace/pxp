@@ -21,6 +21,8 @@ def getModelDimension(name, value, nsmap, taxonomy):
         raise e
 
     if name == qname("xbrl:language"):
+        if value != value.lower():
+            raise XBRLError("xbrlje:invalidLanguageCodeCase", "Language code '%s' is not expressed in lower-case form" % value)
         return getLanguage(value)
 
     if name == qname("xbrl:noteId"):
