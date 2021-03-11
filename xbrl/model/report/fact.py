@@ -119,7 +119,7 @@ class Fact:
 
         if self.concept.periodType == PeriodType.DURATION:
             if self.period is not None and not isinstance(self.period, DurationPeriod):
-                raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has a duration concept but an instant period '%s'" % (self.id, self.period))
+                raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has a duration concept but an instant period '%s'" % (self.id, self.period.stringValue))
         else:
             if self.period is None:
                 raise XBRLError("oime:missingPeriodDimension", "Fact '%s' has an instant concept but no period dimension" % self.id)
@@ -136,13 +136,15 @@ class Fact:
 
 
         self.validateNoteFact()
-
         self.validateTypedDimensionDatatypes()
 
     def validateNoteFact(self):
         if self.concept.name == qname('xbrl:note'):
-            if qname("xbrl:noteId") not in self.dimensions:
+            noteIdDim = self.dimensions.get(qname("xbrl:noteId"))
+            if noteIdDim is None:
                 raise XBRLError("oime:missingNoteIDDimension", "Note fact '%s' does not have the noteId dimension" % (self.id))
+            if noteIdDim.noteId != self.id:
+                raise XBRLError("oime:invalidNoteIDValue", "Note fact '%s' has noteId dimension '%s' which does not match fact ID '%s'" % (self.id, noteIdDim.noteId, self.id))
             if qname("xbrl:language") not in self.dimensions:
                 raise XBRLError("oime:missingLanguageForNoteFact", "Note fact '%s' does not have the language core dimension" % (self.id))
             if qname("xbrl:entity") in self.dimensions:
@@ -151,13 +153,17 @@ class Fact:
                 raise XBRLError("oime:misplacedNoteFactDimension", "Note fact '%s' has misplaced period dimension" % (self.id))
             if next(self.taxonomyDefinedDimensions(), None) is not None:
                 raise XBRLError("oime:misplacedNoteFactDimension", "Note fact '%s' has misplaced taxonomy-defined dimensions" % (self.id))
+        else:
+            if qname("xbrl:noteId") in self.dimensions:
+                raise XBRLError("oime:misplacedNoteIDDimension", "Fact '%s' has a xbrl:noteId dimension but has concept %s not xbrl:note" % (self.id, str(self.concept.name)))
+
+
 
     def validateTypedDimensionDatatypes(self):
         for dimname, dimvalue in self.dimensions.items():
             if isinstance(dimvalue, TypedTaxonomyDefinedDimensionValue):
                 if dimvalue.datatype.isLegacy:
                     raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' has a datatype which is, or is derived from an unsupported legacy datatype" % (str(dimname), self.id))
-
             
                 if isinstance(dimvalue.datatype, ListBasedDatatype):
                     raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' is derived by list" % (str(dimname), self.id))

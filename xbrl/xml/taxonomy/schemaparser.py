@@ -2,6 +2,7 @@ from lxml import etree
 from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition, ListSimpleTypeDefinition
 from xbrl.qname import parseQName
 from xbrl.const import NS, NSMAP
+from xbrl.common import SQName
 from xbrl.xml.util import qname
 
 
@@ -45,18 +46,17 @@ class SchemaParser:
         dte = e
         isComplex = False
         if dtQName is None:
-            if len(e.xpath("xs:complexType/xs:complexContent", namespaces = NSMAP)) > 0:
-                dtQName = None
-                isComplex = True
+            anonDataTypeName = "#anon-%s.type" % e.get("name")
+            datatype = SQName(schema.targetNamespace, anonDataTypeName)
+            ct = e.childElement(qname("xs:complexType"))
+            if ct is not None:
+                self.parseComplexTypeDefinition(schema, ct, anonDataTypeName)
             else:
-                dte = next(iter(e.xpath("xs:complexType/xs:simpleContent/xs:restriction", namespaces = NSMAP)),None)
-                if dte is not None:
-                    dtQName = dte.get("base", None)
-
-        if dtQName is not None:
-            datatype = parseQName(dte.nsmap, dtQName)
+                st = e.childElement(qname("xs:simpleType"))
+                if st is not None:
+                    self.parseSimpleTypeDefinition(schema, st, anonDataTypeName)
         else:
-            datatype = None
+            datatype = SQName(parseQName(dte.nsmap, dtQName))
 
         periodType = e.get(qname("xbrli:periodType"), None)
 
@@ -66,14 +66,15 @@ class SchemaParser:
             datatype, 
             typedDomainRef = e.get(qname("xbrldt:typedDomainRef"),None),
             elementId = e.get("id", None),
-            isComplex = isComplex,
             periodType = periodType,
             isAbstract = e.get("abstract", "false") in {"true", "1"}
             ))
 
-    def parseComplexTypeDefinition(self, schema, e):
+    def parseComplexTypeDefinition(self, schema, e, name = None):
+        if name is None:
+            name = e.get("name")
         if e.childElement("xs:complexContent") is not None:
-            schema.addType(ComplexTypeDefinition(e.get("name"), None, isComplex = True))
+            schema.addType(ComplexTypeDefinition(name, None, isComplex = True))
         else:
             basetypeElement = next(iter(e.xpath("xs:simpleContent/xs:restriction | xs:simpleContent/xs:extension", namespaces = NSMAP)), None)
             if basetypeElement is not None:
@@ -82,11 +83,15 @@ class SchemaParser:
                 basetype = None
 
             if basetype:
-                basetype = parseQName(e.nsmap, basetype)
+                basetype = SQName(parseQName(e.nsmap, basetype))
 
-            schema.addType(ComplexTypeDefinition(e.get("name"), basetype))
+            schema.addType(ComplexTypeDefinition(name, basetype))
 
-    def parseSimpleTypeDefinition(self, schema, e):
+    # Parse a simple type definition.
+    # In the case of an anonymous type definition, a name must be supplied
+    def parseSimpleTypeDefinition(self, schema, e, name = None):
+        if name is None:
+            name = e.get("name")
         basetypeElement = e.childElement(qname("xs:restriction"))
         if basetypeElement is not None:
             basetype = basetypeElement.get("base")
@@ -94,15 +99,11 @@ class SchemaParser:
             basetype = None
 
         if basetype:
-            basetype = parseQName(e.nsmap, basetype)
+            basetype = SQName(parseQName(e.nsmap, basetype))
 
         if e.childElement(qname("xs:list")) is not None:
-            schema.addType(ListSimpleTypeDefinition(e.get("name")))
+            schema.addType(ListSimpleTypeDefinition(name))
         else:
-            schema.addType(SimpleTypeDefinition(e.get("name"), basetype))
-
-            
-
-
+            schema.addType(SimpleTypeDefinition(name, basetype))
 
 

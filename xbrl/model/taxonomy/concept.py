@@ -1,5 +1,6 @@
 from xbrl.const import NS
 from xbrl.xml import qname
+from xbrl.common import sqname
 from .datatype import Datatype
 from enum import Enum, auto
 
@@ -37,7 +38,15 @@ class Concept:
         return self.datatype.isLanguage
 
     @property
+    def isEnumeration(self):
+        return self.datatype.isEnumeration
+    
+    @property
+    def isEnumerationSet(self):
+        return self.datatype.isEnumerationSet
+
+    @property
     def isDimension(self):
         return qname("xbrldt:dimensionItem") in self.substitutionGroupChain
 
-NoteConcept = Concept(qname("xbrl:note"), Datatype([qname("xs:string")]), [ qname("xbrli:item") ], PeriodType.DURATION)
+NoteConcept = Concept(qname("xbrl:note"), Datatype([sqname("xs:string")]), [ qname("xbrli:item") ], PeriodType.DURATION)

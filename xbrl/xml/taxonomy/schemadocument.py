@@ -1,5 +1,6 @@
 from .document import DTSDocument, XSDImport
 from xbrl.const import NS
+from xbrl.common import SQName
 
 class SchemaDocument(DTSDocument):
 

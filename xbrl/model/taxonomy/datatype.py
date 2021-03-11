@@ -1,11 +1,13 @@
 from xbrl.const import NS
-from xbrl.xml import qname, qnameset
+from xbrl.common import sqname, sqnameset
 import re
+
+# We name types using SQNames because we use deliberately invalid QNames for anonymous types.
 
 # derived from decimal:
 # we could manually insert the XS schema into the DTS and then
 # infer all derived types
-integerTypes = qnameset("xs", {
+integerTypes = sqnameset("xs", {
             'integer', 
             'nonPositiveInteger', 
             'nonNegativeInteger', 
@@ -21,21 +23,21 @@ integerTypes = qnameset("xs", {
             'unsignedByte', 
             })
 
-decimalTypes = qnameset("xs", {
+decimalTypes = sqnameset("xs", {
             'decimal' }) | integerTypes
 
-numericTypes = decimalTypes | qnameset("xs", {
+numericTypes = decimalTypes | sqnameset("xs", {
             'decimal', 
             'float', 
             'double', 
             })
 
-dateTimeTypes = qnameset("xbrli",{ "dateUnion" }) | qnameset("xs", {
+dateTimeTypes = sqnameset("xbrli",{ "dateUnion" }) | sqnameset("xs", {
             'date', 
             'dateTime', 
             })
 
-legacyDataTypes = qnameset("xs", {
+legacyDataTypes = sqnameset("xs", {
                     "ENTITY",
                     "ENTITIES",
                     "ID",
@@ -53,6 +55,10 @@ class Datatype:
     def __init__(self, datatypeChain):
         self.datatypeChain = datatypeChain
 
+    def __repr__(self):
+        return "%s: %s" % (type(self).__name__, ' => '.join(str(d) for d in self.datatypeChain))
+
+
     @property
     def itemType(self):
         return next((dt for dt in self.datatypeChain if dt.namespace == NS.xbrli), None)
@@ -68,7 +74,7 @@ class Datatype:
     @property
     def isText(self):
         for dt in self.datatypeChain:
-            if dt in qnameset("xs", { "language", "Name" }):
+            if dt in sqnameset("xs", { "language", "Name" }):
                 return False
             if self.isDtrNamespace(dt) and dt.localname in {"domainItemType", "noLangTokenItemType", "noLangStringItemType"}:
                 return False
@@ -91,11 +97,11 @@ class Datatype:
 
     @property
     def isText(self):
-        if qname("xs:string") not in self.datatypeChain:
+        if sqname("xs:string") not in self.datatypeChain:
             return False
 
         for dt in self.datatypeChain:
-            if dt in qnameset("xs", { "language", "Name"}):
+            if dt in sqnameset("xs", { "language", "Name"}):
                 return False
             if self.isDtrNamespace(dt) and dt.localname in { "domainItemType", "noLangTokenItemType", "noLangStringItemType" }:
                 return False
@@ -103,10 +109,17 @@ class Datatype:
         return True
 
 
+    @property
+    def isEnumeration(self):
+        return sqname("enum2:enumerationItemType") in set(self.datatypeChain)
 
     @property
+    def isEnumerationSet(self):
+        return sqname("enum2:enumerationSetItemType") in set(self.datatypeChain)
+    
+    @property
     def isLanguage(self):
-        return qname("xs:language") in self.datatypeChain
+        return sqname("xs:language") in self.datatypeChain
 
     def stringValue(self, v):
         if self.isNumeric and v is not None:

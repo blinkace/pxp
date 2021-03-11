@@ -25,6 +25,7 @@ class NS:
     xhtml = 'http://www.w3.org/1999/xhtml'
     xbrlce = 'https://xbrl.org/((~status_date_uri~))/xbrl-csv/error'
     xbrlje = 'https://xbrl.org/((~status_date_uri~))/xbrl-json/error'
+    enum2 = 'http://xbrl.org/2020/extensible-enumerations-2.0'
 
 
 PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}

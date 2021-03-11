@@ -226,11 +226,11 @@ class XBRLCSVReportParser:
         }
 
         taxonomy = []
-        for e in docInfo.get("extends", []):
-            m = self.loadMetaData(urljoin(url, e))
+        for elt in docInfo.get("extends", []):
+            m = self.loadMetaData(urljoin(url, elt))
             importedDocType = m["documentInfo"]["documentType"]
             if importedDocType != docType:
-                raise XBRLError("xbrlce:multipleDocumentTypesInExtensionChain", "Document type for %s conflicts with document type for %s (%s vs %s)" % (e, url, importedDocType, docType))
+                raise XBRLError("xbrlce:multipleDocumentTypesInExtensionChain", "Document type for %s conflicts with document type for %s (%s vs %s)" % (elt, url, importedDocType, docType))
 
             self.mergeDict(j, m, extensible, m["documentInfo"].get("final",{}).keys())
 

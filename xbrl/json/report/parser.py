@@ -6,7 +6,7 @@ from xbrl.const import DocumentType, NS, OIM_COMMON_RESERVED_PREFIX_MAP, LINK_RE
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI
-from xbrl.model.report import Report, Fact
+from xbrl.model.report import Report, Fact, EnumerationSetValue, EnumerationValue
 from xbrl.xml.taxonomy.document import SchemaRef
 from urllib.parse import urljoin, urlparse
 from .dimensions import getModelDimension
@@ -66,20 +66,38 @@ class XBRLJSONReportParser:
         taxonomy = self.getTaxonomy(docInfo, url)
 
         modelReport = Report(taxonomy)
+        canonicalValues = docInfo.get("features", {}).get("xbrl:canonicalValues", False)
         
         for fid, fact in j.get("facts", {}).items():
             factDims = dict()
             for dimname, dimval in fact.get("dimensions", {}).items():
                 dimqname = qname(dimname, { **nsmap, None: NS.xbrl })
                 factDims[dimqname] = getModelDimension(dimqname, dimval, nsmap, taxonomy)
+
             v = fact.get("value", None)
+
+            concept = factDims[qname("xbrl:concept")].concept
+            try:
+                if concept.isEnumerationSet and v is not None:
+                    v = EnumerationSetValue.fromQNameFormat(v, nsmap, requireCanonical = canonicalValues ).toURINotation()
+                elif concept.isEnumeration and v is not None:
+                    v = EnumerationValue.fromQNameFormat(v, nsmap, requireCanonical = canonicalValues ).toURINotation()
+            except XBRLError as e:
+                if e.code == qname('pyxbrle:invalidEnumerationValue'):
+                    raise XBRLError('xbrlje:invalidJSONStructure', e.message)
+                elif e.code == qname('pyxbrle:nonCanonicalEnumerationValue'):
+                    raise XBRLError('xbrlje:nonCanonicalValue', e.message)
+                else:
+                    raise e
+
+
             f = Fact(
                 factId = fid,
                 dimensions = factDims.values(),
                 value = v,
                 decimals = fact.get("decimals", None)
             )
-            if docInfo.get("features", {}).get("xbrl:canonicalValues", False):
+            if canonicalValues:
                 if f.concept.datatype.canonicalValue(v) != v:
                     raise XBRLError("xbrlje:nonCanonicalValue", "'%s' is not in canonical form (should be '%s')" % (v, f.concept.datatype.canonicalValue(v)))
 
