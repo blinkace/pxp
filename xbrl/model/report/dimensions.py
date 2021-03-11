@@ -90,14 +90,14 @@ class LanguageCoreDimension(CoreDimension):
 
 class NoteIdCoreDimension(CoreDimension):
 
-    def __init__(self, noteId):
+    def __init__(self, noteId: str) -> None:
         super().__init__("noteId")
         self.noteId = noteId
 
     @property
-    def stringValue(self):
+    def stringValue(self) -> str:
         return self.noteId
 
     @property
-    def asTuple(self):
+    def asTuple(self) -> tuple:
         return (self.name, self.noteId)

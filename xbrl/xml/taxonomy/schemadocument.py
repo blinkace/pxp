@@ -47,7 +47,8 @@ class SchemaDocument(DTSDocument):
 
 
 class ElementDefinition:
-    def __init__(self, name, substitutionGroup, datatype, typedDomainRef = None, elementId = None, isComplex = False, periodType = None, isAbstract = False):
+
+    def __init__(self, name: str, substitutionGroup, datatype: SQName, typedDomainRef = None, elementId = None, isComplex = False, periodType = None, isAbstract = False) -> None:
         self.id = elementId
         self.name = name
         self.substitutionGroup = substitutionGroup

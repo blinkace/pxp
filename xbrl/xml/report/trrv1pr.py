@@ -8,13 +8,6 @@ class NumComma(IXTransform):
     def _transform(self, vin):
         return re.sub(r',','.',vin)
 
-class NumComma(IXTransform):
-
-    INPUT_RE = r'\d+(,\d+)?'
-
-    def _transform(self, vin):
-        return re.sub(r',','.',vin)
-
 class NumCommaDot(IXTransform):
 
     INPUT_RE = r'\d{1,3}(,\d{3,3})*(\.\d+)?'

@@ -26,11 +26,11 @@ class XBRLProcessor:
         self.documentLoader = DocumentLoader(url_resolver = self.resolver)
 
 
-    def loadXBRLReport(self, report):
+    def loadXBRLReport(self, report: str):
         rp = XBRLReportParser(processor = self)
         return rp.parse(report)
 
-    def loadIXBRLReport(self, url, src=None):
+    def loadIXBRLReport(self, url: str, src=None):
         """
         Load an iXBRL report, optionally taking an open file object from which to pull data
         """
@@ -52,7 +52,7 @@ class XBRLProcessor:
     def addTaxonomyPackage(self, path):
         self.resolver.addPackage(TaxonomyPackage(path))
 
-    def loadTaxonomy(self, entryPoint):
+    def loadTaxonomy(self, entryPoint: list):
         dts = DTS(entryPoint, self.documentLoader)
         dts.discover()
         return dts.buildTaxonomy()

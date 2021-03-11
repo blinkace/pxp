@@ -4,7 +4,7 @@ from xbrl.xml import qname
 
 import re
 
-def parseMeasureList(usr, s, nsmap):
+def parseMeasureList(usr: str, s: str, nsmap: dict) -> list:
     measureStrs = s.split('*')
     if measureStrs != sorted(measureStrs):
         raise XBRLError("oimce:invalidUnitStringRepresentation", "Invalid unit string '%s': measures must be sorted" % (usr))
@@ -17,7 +17,7 @@ def parseMeasureList(usr, s, nsmap):
     return measures
 
 
-def parseHalfUnit(usr, s, nsmap):
+def parseHalfUnit(usr: str, s: str, nsmap: dict) -> list:
     m = re.match('^\((.*)\)$', s)
     if m is not None:
         s = m.group(1)
@@ -29,7 +29,7 @@ def parseHalfUnit(usr, s, nsmap):
     return parseMeasureList(usr, s, nsmap)
 
 
-def parseUnitString(usr, nsmap):
+def parseUnitString(usr: str, nsmap: dict) -> tuple:
     if usr is None:
         raise XBRLError("oimce:invalidUnitStringRepresentation", "Unit dimension must not be 'nil'")
 
