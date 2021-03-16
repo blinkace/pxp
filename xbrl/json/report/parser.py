@@ -105,6 +105,7 @@ class XBRLJSONReportParser:
 
             modelReport.addFact(f)
 
+        self.parseLinks(j, modelReport)
         modelReport.validate()
         features = docInfo.get("features", {})
         for name in features.keys():
@@ -112,6 +113,32 @@ class XBRLJSONReportParser:
         allowedDuplicates = features.get("xbrl:allowedDuplicates", "all")
         self.validateDuplicates(modelReport, allowedDuplicates)
         return modelReport
+
+    def parseLinks(self, jsonReport, modelReport):
+        docInfo = jsonReport.get("documentInfo")
+        linkGroups = docInfo.get("linkGroups", {})
+        linkTypes = docInfo.get("linkTypes", {})
+        for fid, fact in jsonReport.get("facts", {}).items():
+            src = modelReport.facts.get(fid)
+            for linkType, groups in fact.get("links", {}).items():
+                linkTypeURI = linkTypes.get(linkType)
+                if linkTypeURI is None:
+                    raise XBRLError("xbrlje:unknownLinkType", "The link type '%s' is not defined" % linkType)
+                for group, targetIds in groups.items():
+                    linkGroupURI = linkGroups.get(group)
+                    if linkGroupURI is None:
+                        raise XBRLError("xbrlje:unknownLinkGroup", "The link group '%s' is not defined" % group)
+
+                    if src is None:
+                        raise XBRLError("xbrlje:unknownLinkSource", "No fact with id '%s' exists in the report." % srcId)
+
+                    for targetId in targetIds:
+                        target = modelReport.facts.get(targetId)
+                        if target is None:
+                            raise XBRLError("xbrlje:unknownLinkTarget", "No fact with id '%s' exists in the report." % targetId)
+                        src.links.setdefault(linkTypeURI, {}).setdefault(linkGroupURI, []).append(target)
+
+
 
     def validateDuplicates(self, report, mode):
         if mode == 'none':

@@ -111,7 +111,7 @@ class Fact:
         for linkType, linkGroups in self.links.items():
             for linkGroup, facts in linkGroups.items():
                 for f in facts:
-                    if linkType == LinkType.factFootnote and f.concept != NoteConcept:
+                    if linkType == LinkType.footnote and f.concept != NoteConcept:
                         raise XBRLError("oime:illegalStandardFootnoteTarget", "Fact '%s' is not a footnote fact.  fact-footnote relationships must have an xbrl:note fact as the target." % f.id)
 
         if self.concept.isAbstract:
