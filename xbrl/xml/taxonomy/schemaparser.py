@@ -67,7 +67,8 @@ class SchemaParser:
             typedDomainRef = e.get(qname("xbrldt:typedDomainRef"),None),
             elementId = e.get("id", None),
             periodType = periodType,
-            isAbstract = e.get("abstract", "false") in {"true", "1"}
+            isAbstract = e.get("abstract", "false") in {"true", "1"},
+            nillable = e.get("nillable", "false") in {"true", "1"}
             ))
 
     def parseComplexTypeDefinition(self, schema, e, name = None):

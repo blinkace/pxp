@@ -48,7 +48,7 @@ class SchemaDocument(DTSDocument):
 
 class ElementDefinition:
 
-    def __init__(self, name: str, substitutionGroup, datatype: SQName, typedDomainRef = None, elementId = None, isComplex = False, periodType = None, isAbstract = False) -> None:
+    def __init__(self, name: str, substitutionGroup, datatype: SQName, typedDomainRef = None, elementId = None, isComplex = False, periodType = None, isAbstract = False, nillable = False) -> None:
         self.id = elementId
         self.name = name
         self.substitutionGroup = substitutionGroup
@@ -57,6 +57,7 @@ class ElementDefinition:
         self.isComplex = isComplex
         self.isAbstract = isAbstract
         self.periodType = periodType
+        self.nillable = nillable
 
     def substitutionGroups(self):
         sgs = []

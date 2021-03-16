@@ -117,6 +117,9 @@ class Fact:
         if self.concept.isAbstract:
             raise XBRLError("oime:valueForAbstractConcept", "Fact '%s' is reported for an abstract concept ('%s')" % (self.id, str(self.concept.name)))
 
+        if self.value is None and not self.concept.nillable:
+            raise XBRLError("oime:invalidFactValue", "Fact '%s' has nill value by concept %s is not nillable" % (self.id, str(self.concept.name)))
+
         if self.concept.periodType == PeriodType.DURATION:
             if self.period is not None and not isinstance(self.period, DurationPeriod):
                 raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has a duration concept but an instant period '%s'" % (self.id, self.period.stringValue))

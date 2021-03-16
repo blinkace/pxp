@@ -10,12 +10,13 @@ class PeriodType(Enum):
 
 class Concept:
 
-    def __init__(self, name, datatype, substitutionGroupChain, periodType, isAbstract = False):
+    def __init__(self, name, datatype, substitutionGroupChain, periodType, isAbstract = False, nillable = False):
         self.name = name
         self.datatype = datatype
         self.substitutionGroupChain = substitutionGroupChain
         self.periodType = periodType
         self.isAbstract = isAbstract
+        self.nillable = nillable
 
     @property
     def itemType(self):

@@ -98,7 +98,8 @@ class DTS:
                                     datatype,
                                     e.substitutionGroups(),
                                     periodType,
-                                    e.isAbstract
+                                    e.isAbstract,
+                                    e.nillable
                                     )
 
                         taxonomy.addConcept(c)
