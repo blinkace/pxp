@@ -3,4 +3,6 @@ from .unit import parseUnitString
 from .period import parsePeriodString
 from .sqname import parseSQName, InvalidSQName, SQName, sqname, sqnameset
 from .identify import DocumentClass
-from .uri_validate import isValidURI, isValidURIReference, isValidAbsoluteURI
+from .uri_validate import isValidURI, isValidURIReference, isValidAbsoluteURI, encodeXLinkURI
+from .validation_result import ValidationResult
+from .validation_message import ValidationMessage, ValidationSeverity

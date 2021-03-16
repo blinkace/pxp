@@ -10,6 +10,7 @@ import traceback
 import re
 from xbrl.json.report import JSONSerialiser
 from xbrl.common import DocumentClass
+from xbrl import TaxonomyPackageLoader
 from urllib.parse import urlparse, urljoin
 from urllib.request import pathname2url
 from lxml import etree
@@ -39,11 +40,11 @@ def open_report(url):
     elif args.ixbrl:
         documentClass = DocumentClass.INLINE_XBRL
 
-    (report, err) = processor.loadReport(url, documentClass)
+    (report, err, validationResult) = processor.loadReport(url, documentClass)
     if err is not None:
         print(err)
         sys.exit(1)
-    return report
+    return (report, validationResult)
 
 
 def runSuite(src):
@@ -59,7 +60,7 @@ def runSuite(src):
                 errors = set()
                 try:
                     if not args.taxonomy_package:
-                        report = open_report(urljoin(suite.url, v.inputs[0].url))
+                        (report, vr) = open_report(urljoin(suite.url, v.inputs[0].url))
                         if args.test_output_suffix is not None:
                             (filename, suffix) = os.path.basename(v.inputs[0].url).split('.', 1)
                             outfile = "%s%s" % (filename, args.test_output_suffix)
@@ -72,10 +73,9 @@ def runSuite(src):
                     else:
                         package = xbrl.TaxonomyPackage(urlparse(urljoin(suite.url, v.inputs[0].url)).path)
 
-                except xbrl.XBRLError as e:
-                    errors = { e.code }
+                    errors = { e.code for e in vr.messages }
                     if args.verbose or args.variations is not None:
-                        print("[%s] %s" % (e.code, e.message))
+                        print(vr)
                 except Exception as e:
                     errors = { etree.QName("{}UncaughtException") }
                     print(traceback.format_exc())
@@ -142,11 +142,14 @@ try:
     if args.test:
         runSuite(src)
     elif args.taxonomy_package:
+        tpl = TaxonomyPackageLoader(raiseFatal = False, qualityCheck = True)
         if args.verbose:
             print("Opening taxonomy package %s" % src)
-        package = xbrl.TaxonomyPackage(urlparse(src).path)
+        tpl.load(urlparse(src).path)
+        print(tpl.validationResult)
     else:
-        report = open_report(src)
+        (report, vr) = open_report(src)
+        print(vr)
         if args.output:
             if args.dont_preserve_prefixes:
                 report.ns_to_prefix = dict()
