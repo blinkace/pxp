@@ -55,6 +55,8 @@ class XBRLCSVReportParser:
         nsmap = docInfo.get("namespaces", {})
         validateURIMap(nsmap)
 
+        self.validateExtensibleObjects(metadata, nsmap)
+
         self.parameterReferences = set()
 
         taxonomy = self.getTaxonomy(metadata, url)
@@ -206,6 +208,7 @@ class XBRLCSVReportParser:
                 raise XBRLError("xbrlce:invalidJSON", str(e))
         if err is not None:
             raise XBRLError("xbrlce:invalidJSONStructure", err)
+
 
 
         extensible = {
@@ -475,6 +478,13 @@ class XBRLCSVReportParser:
             if not isinstance(value, ExplicitNoValue) and not isinstance(value, RowNumberReference) and not isinstance(value, ParameterReference):
                 getModelDimension(report, name, value)
                 #pass
+
+    def validateExtensibleObjects(self, j, nsmap):
+        for o in ((j, j.get("documentInfo", {})) + 
+                tuple(f for n in ("tableTemplates", "tables") for f in j.get("facts",{}).values())):
+            for k in o.keys():
+                if ':' in k:
+                    qname(k, nsmap = nsmap)
 
 def deep_eq(a, b):
     if type(a) != type(b):

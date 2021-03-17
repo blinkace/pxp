@@ -12,8 +12,9 @@ class EnumerationValue:
         if requireCanonical:
             if value.strip() != value:
                 raise XBRLError("pyxbrle:nonCanonicalEnumerationValue", "Enumeration value '%s' has leading or trailing whitespace" % value)
+        value = value.strip()
 
-        if not isValidQName(value.strip()):
+        if not isValidQName(value):
             raise XBRLError("pyxbrle:invalidEnumerationValue", "Enumeration value '%s' is not a valid QName" % (value))
         return EnumerationValue(qname(value, nsmap))
 
@@ -27,7 +28,7 @@ class EnumerationSetValue:
         self.values = values
 
     def fromQNameFormat(value, nsmap = {}, requireCanonical = False):
-        if re.match(r'(^ | $|  )', value) is not None:
+        if re.search(r'(^ | $|  )', value) is not None:
             raise XBRLError("pyxbrle:invalidEnumerationValue", "Enumeration value '%s' has invalid leading, trailing, or internal space" % value)
         values = value.split(' ')
         if requireCanonical:

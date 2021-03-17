@@ -54,6 +54,7 @@ class XBRLJSONReportParser:
         except XBRLError as e:
             e.reraise({qname("oimce:invalidStructure"): qname("xbrlje:invalidJSONStructure")})
 
+        self.validateExtensibleObjects(j, nsmap)
 
         baseURL = docInfo.get("baseURL", None)
         if baseURL is not None:
@@ -148,6 +149,11 @@ class XBRLJSONReportParser:
         elif mode == 'consistent':
             report.validateDuplicatesAllowConsistent()
 
+    def validateExtensibleObjects(self, j, nsmap):
+        for o in (j, j.get("documentInfo", {})) + tuple(f for f in j.get("facts",{}).values()):
+            for k in o.keys():
+                if ':' in k:
+                    qname(k, nsmap)
 
 
     def getTaxonomy(self, docInfo, url):
