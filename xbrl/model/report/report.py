@@ -40,6 +40,17 @@ class Report:
     def usedPrefixMap(self):
         return { p: n for n, p in self.ns_to_prefix.items() if p in self.usedPrefixes }
 
+    def inboundLinks(self, fact):
+        if not hasattr(self, '_inboundLinkMap'):
+            self._inboundLinkMap = dict()
+            for src in self.facts.values():
+                for linkType, linkGroups in src.links.items():
+                    for linkGroup, facts in linkGroups.items():
+                        for target in facts:
+                            self._inboundLinkMap.setdefault(target, {}).setdefault(linkType, {}).setdefault(linkGroup, set()).add(src)
+        return self._inboundLinkMap.get(fact, {})
+
+
     def validate(self):
         for f in self.facts.values():
             f.validate()

@@ -156,6 +156,12 @@ class Fact:
                 raise XBRLError("oime:misplacedNoteFactDimension", "Note fact '%s' has misplaced period dimension" % (self.id))
             if next(self.taxonomyDefinedDimensions(), None) is not None:
                 raise XBRLError("oime:misplacedNoteFactDimension", "Note fact '%s' has misplaced taxonomy-defined dimensions" % (self.id))
+            if next((src 
+                for linkGroups in self.report.inboundLinks(self).values()
+                    for srcs in linkGroups.values()
+                        for src in srcs), None) is None:
+                raise XBRLError("oime:unusedNoteFact", "Note fact '%s' is not referenced by any links" % (self.id))
+
         else:
             if qname("xbrl:noteId") in self.dimensions:
                 raise XBRLError("oime:misplacedNoteIDDimension", "Fact '%s' has a xbrl:noteId dimension but has concept %s not xbrl:note" % (self.id, str(self.concept.name)))
@@ -176,4 +182,10 @@ class Fact:
 
     def isEqual(self, other, checkId = True):
         return self.frozenDimensionSet == other.frozenDimensionSet and self.typedValue == other.typedValue and (self.id == other.id or not checkId)
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return self.id == other.id
 
