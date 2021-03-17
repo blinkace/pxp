@@ -84,7 +84,7 @@ class XBRLJSONReportParser:
                     v = EnumerationValue.fromQNameFormat(v, nsmap, requireCanonical = canonicalValues ).toURINotation()
             except XBRLError as e:
                 if e.code == qname('pyxbrle:invalidEnumerationValue'):
-                    raise XBRLError('xbrlje:invalidJSONStructure', e.message)
+                    raise XBRLError('xbrlje:invalidFactValue', e.message)
                 elif e.code == qname('pyxbrle:nonCanonicalEnumerationValue'):
                     raise XBRLError('xbrlje:nonCanonicalValue', e.message)
                 else:
