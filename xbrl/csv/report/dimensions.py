@@ -25,12 +25,7 @@ def getModelDimension(report, name, value):
     if name == qname("xbrl:period"):
         return getCSVPeriod(value)
     if name == qname("xbrl:entity"):
-        try:
-            return getEntity(report.nsmap, value)
-        except XBRLError as e:
-            if e.code == qname("oimce:invalidSQName"):
-                raise XBRLError("xbrlce:invalidSQName", e.message)
-            raise e
+        return getEntity(report.nsmap, value)
     if name == qname("xbrl:language"):
         return getLanguage(value)
     dim = report.taxonomy.getDimension(name)
