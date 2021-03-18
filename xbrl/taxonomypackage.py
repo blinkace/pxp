@@ -47,6 +47,6 @@ class TaxonomyPackage:
     @property
     def name(self):
         # XXX replace with a MultiLingualElement object and a sensible way to get a default
-        self.metadata["names"][list(self.metadata["names"].keys())[0]]
+        return self.metadata["names"][list(self.metadata["names"].keys())[0]]
 
             
