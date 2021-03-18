@@ -21,7 +21,8 @@ class XBRLProcessor:
     def __init__(self, packageDirs = None):
 
         self.resolver = URLResolver()
-        self.addTaxonomyPackage(os.path.join(os.path.dirname(__file__), "..", "xbrl-specification-files-20170118.zip"))
+        self.addTaxonomyPackage(os.path.join(os.path.dirname(__file__), "packages","xbrl-specification-files-20170118.zip"))
+        self.addTaxonomyPackage(os.path.join(os.path.dirname(__file__), "packages","dtr-2020-01-21.zip"))
         self.validationResult = ValidationResult()
         if packageDirs is not None:
             for d in packageDirs:

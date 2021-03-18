@@ -83,4 +83,20 @@
     - dei-pre-2020-01-31.xml
     - dei-ref-2020-01-31.xml
     - dei-std-2020-01-31.xsd
-
+    - dei-all-2020-01-31.xsd
+    - dei-def-2020-01-31.xml
+    - dei-dep-def-2020-01-31.xml
+    - dei-dep-pre-2020-01-31.xml
+    - dei-doc-2020-01-31.xml
+    - dei-ent-all-2020-01-31.xsd
+    - dei-ent-dep-2020-01-31.xsd
+    - dei-ent-std-2020-01-31.xsd
+    - dei-lab-2020-01-31.xml
+    - dei-pre-2020-01-31.xml
+    - dei-ref-2020-01-31.xml
+    - dei-std-2020-01-31.xsd
+- name: dtr
+  version: 2020-01-21
+  prefix: http://www.xbrl.org/dtr/type/2020-01-21/
+  files:
+    - types.xsd
