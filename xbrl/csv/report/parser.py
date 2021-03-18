@@ -481,7 +481,8 @@ class XBRLCSVReportParser:
 
     def validateExtensibleObjects(self, j, nsmap):
         for o in ((j, j.get("documentInfo", {})) + 
-                tuple(f for n in ("tableTemplates", "tables") for f in j.get("facts",{}).values())):
+                tuple(f for n in ("tableTemplates", "tables") for f in j.get(n, {}).values()) +
+                tuple(c for tt in j.get("tableTemplates", {}).values() for c in tt.get("columns",{}).values())):
             for k in o.keys():
                 if ':' in k:
                     qname(k, nsmap = nsmap)
