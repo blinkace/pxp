@@ -13,7 +13,7 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString, parseSQName, InvalidSQName
 from xbrl.const import NS
 from xbrl.model.taxonomy import NoteConcept
-from xbrl.model.report import Fact
+from xbrl.model.report import Fact, EnumerationSetValue, EnumerationValue
 import urllib.error
 import io
 import logging
@@ -168,6 +168,17 @@ class Table:
                                 elif isinstance(decimals, ExplicitNoValue):
                                     decimals = None
                         else:
+                            try:
+                                if concept.isEnumerationSet and factValue is not None:
+                                    factValue = EnumerationSetValue.fromQNameFormat(factValue, self.template.report.nsmap).toURINotation()
+                                elif concept.isEnumeration and factValue is not None:
+                                    factValue = EnumerationValue.fromQNameFormat(factValue, self.template.report.nsmap).toURINotation()
+                            except XBRLError as e:
+                                if e.code == qname('pyxbrle:invalidEnumerationValue'):
+                                    raise XBRLError('xbrlce:invalidFactValue', e.message)
+                                else:
+                                    raise e
+
                             # Remove excluded dimensions
                             factDimValues.pop(qname("xbrl:unit"), None)
                             usedColumnsByDimension.pop(qname("xbrl:unit"), None)

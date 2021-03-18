@@ -2,6 +2,7 @@ import re
 from xbrl.common.validators import isValidQName
 from xbrl.xbrlerror import XBRLError
 from xbrl.xml.util import qname
+import lxml.etree as etree
 
 class EnumerationValue:
 
@@ -18,9 +19,16 @@ class EnumerationValue:
             raise XBRLError("pyxbrle:invalidEnumerationValue", "Enumeration value '%s' is not a valid QName" % (value))
         return EnumerationValue(qname(value, nsmap))
 
-    def toURINotation(self):
-        s = "{%s}%s" % (self.value.namespace, self.value.localname)
+    def toQNameFormat(self, report):
+        return report.asQName(self.value)
 
+    def toURINotation(self):
+        return "%s#%s" % (self.value.namespace, self.value.localname)
+
+    def fromURINotation(value):
+
+        (namespace, localname) = value.split('#', maxsplit=2)
+        return EnumerationValue(etree.QName(namespace, localname))
 
 class EnumerationSetValue:
 
@@ -30,7 +38,7 @@ class EnumerationSetValue:
     def fromQNameFormat(value, nsmap = {}, requireCanonical = False):
         if re.search(r'(^ | $|  )', value) is not None:
             raise XBRLError("pyxbrle:invalidEnumerationValue", "Enumeration value '%s' has invalid leading, trailing, or internal space" % value)
-        values = value.split(' ')
+        values = value.split(' ') if value != '' else []
         if requireCanonical:
             if sorted(values) != values:
                 raise XBRLError("pyxbrle:nonCanonicalEnumerationValue", "Canonical enumeration value must be in lexicographical order (%s)" % value)
@@ -43,9 +51,17 @@ class EnumerationSetValue:
         return EnumerationSetValue(enumValues)
 
     def toURINotation(self):
-        s = " ".join("{%s}%s" % (v.namespace, v.localname) for v in self.values)
+        return " ".join(sorted("%s#%s" % (v.namespace, v.localname) for v in self.values))
 
+    def toQNameFormat(self, report):
+        return " ".join(sorted(report.asQName(v) for v in self.values))
 
+    def fromURINotation(value):
+        values = []
 
+        for v in value.strip().split():
+            print("[[%s]]" % v)
+            (namespace, localname) = v.split('#', maxsplit=2)
+            values.append(etree.QName(namespace, localname))
 
-
+        return EnumerationSetValue(values)
