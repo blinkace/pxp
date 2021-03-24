@@ -2,7 +2,6 @@ from .urlresolver import URLResolver
 from .taxonomypackageloader import TaxonomyPackageLoader
 from .xml.report import XBRLReportParser
 from .xml.report import IXBRLReportParser
-from .common import DocumentClass
 from .csv.report import XBRLCSVReportParser
 from .json.report import XBRLJSONReportParser
 from .conformance.loader import SuiteLoader
@@ -10,7 +9,7 @@ from .dts import DTS
 import logging
 from xbrl.xbrlerror import XBRLError
 from xbrl.documentloader import DocumentLoader
-from xbrl.common import ValidationResult, ValidationMessage, ValidationSeverity
+from xbrl.common import ValidationResult, ValidationMessage, ValidationSeverity, DocumentClass, UnknownDocumentClassError, MissingDocumentClassError
 from xbrl.xml import qname
 import os.path
 
@@ -65,9 +64,9 @@ class XBRLProcessor:
     def loadReport(self, url, documentClass = None):
         validationResult = ValidationResult()
         report = None
-        if documentClass is None:
-            documentClass = self.identifyDocumentClass(url)
         try:
+            if documentClass is None:
+                documentClass = self.identifyDocumentClass(url)
             if documentClass is None:
                 return (None, "Unable to identify document type")
             elif documentClass == DocumentClass.INLINE_XBRL:
@@ -86,6 +85,10 @@ class XBRLProcessor:
                 return (None, "Unsupported document class: %s" % documentClass.name, None)
         except XBRLError as e:
             validationResult.add(ValidationMessage(e.code, ValidationSeverity.FATAL, e.message))
+        except UnknownDocumentClassError as e:
+            validationResult.addFatalError("oimce:unsupportedDocumentType", str(e))
+        except MissingDocumentClassError as e:
+            validationResult.addFatalError("oimce:unsupportedDocumentType", str(e))
         return (report, None, validationResult)
 
     def loadPackages(self, packageDir):
