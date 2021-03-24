@@ -201,17 +201,13 @@ class Table:
                         for ucd in usedColumnsByDimension.values():
                             usedColumns = usedColumns | ucd
 
+                        factId = "%s.%s.%s" % (self.name, rowId, fc.name)
                         # XXX This is should move to model-level validation
                         if concept == NoteConcept:
-                            if set(factDims.keys()) & qnameset("xbrl", {"period", "entity"}):
-                                raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have the Period or Entity core dimensions")
-                            if qname("xbrl:language") not in factDims.keys():
-                                raise XBRLError("oime:missingLanguageForNoteFact", "xbrl:note facts must have the Language core dimensions")
-                            for k in factDims.keys():
-                                if k.namespace != NS.xbrl:
-                                    raise XBRLError("oime:misplacedNoteFactDimension", "xbrl:note facts must not have any taxonomy defined dimensions (%s)" % str(k))
+                            factDims[qname("xbrl:NoteID")] = NoteIdCoreDimension(factId)
+
                         fact = Fact( 
-                            factId = "%s.%s.%s" % (self.name, rowId, fc.name),
+                            factId = factId,
                             dimensions = factDims.values(),
                             value = factValue,
                             decimals = decimals
