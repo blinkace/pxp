@@ -24,7 +24,7 @@ class SchemaDocument(DTSDocument):
         datatype.schemaDocument = self
 
     def addXSDImport(self, ns, url):
-        i = XSDImport(self.resolveURL(url))
+        i = XSDImport(self.resolveURL(url), src = self)
         self.dtsReferences.add(i)
         self.imports[ns] = i
 

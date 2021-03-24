@@ -3,7 +3,7 @@ from .xml.taxonomy.schemadocument import SchemaDocument
 from lxml import etree
 from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype, PeriodType, ListBasedDatatype, ComplexDatatype
 from .xbrlerror import XBRLError
-from xbrl.xml import qname
+from xbrl.xml import qname, qnameset
 from urllib.parse import urldefrag, urlparse
 import logging
 
@@ -28,7 +28,13 @@ class DTS:
             if ref.href in self.documents:
                 continue
 
-            doc = self.documentCache.loadDTSReference(ref)
+            try:
+                doc = self.documentCache.loadDTSReference(ref)
+            except XBRLError as e:
+                if e.code in qnameset("pyxbrle", { "HTTPError", "URLError"}) and ref.src is not None:
+                    e.message += " (referenced by %s in %s)" % (ref.reftype, ref.src.url)
+                raise e
+
             logging.info("Loaded %s" % ref.href)
             self.documents[ref.href] = doc
             for d in doc.dtsReferences:

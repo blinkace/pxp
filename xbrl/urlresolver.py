@@ -25,8 +25,6 @@ class URLResolver:
             return urllib.request.urlopen(url)
         except urllib.error.HTTPError as e:
             raise XBRLError("pyxbrle:HTTPError", "Unable to open %s: %s %s" % (url, e.code, e.reason))
-
-
-
-    
+        except urllib.error.URLError as e:
+            raise XBRLError("pyxbrle:URLError", "Unable to open %s: %s" % (url, e.reason))
 
