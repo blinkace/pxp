@@ -13,7 +13,7 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.common import parseUnitString, parseSQName, InvalidSQName, isValidQName
 from xbrl.const import NS
 from xbrl.model.taxonomy import NoteConcept
-from xbrl.model.report import Fact, EnumerationSetValue, EnumerationValue
+from xbrl.model.report import Fact, EnumerationSetValue, EnumerationValue, NoteIdCoreDimension
 import urllib.error
 import io
 import logging
@@ -228,8 +228,8 @@ class Table:
 
                 
 
-        except urllib.error.URLError as e:
-            if isinstance(e.reason, FileNotFoundError):
+        except XBRLError as e:
+            if e.code == qname("pyxbrle:FileNotFoundError"):
                 if not self.optional:
                     raise XBRLError("xbrlce:missingRequiredCSVFile", "File '%s' does not exist" % self.url)
             else:

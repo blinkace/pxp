@@ -393,8 +393,8 @@ class XBRLCSVReportParser:
 
                         rownum += 1
 
-            except urllib.error.URLError as e:
-                if isinstance(e.reason, FileNotFoundError):
+            except XBRLError as e:
+                if e.code == qname("pyxbrle:FileNotFoundError"):
                     raise XBRLError("xbrlce:missingParametersFile", "Parameter CSV file '%s' does not exist" % url)
                 raise e
             except csv.Error as e:
