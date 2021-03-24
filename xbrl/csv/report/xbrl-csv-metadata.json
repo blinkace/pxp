@@ -83,7 +83,7 @@
         "TableTemplates": {
             "type": "object",
             "patternProperties": {
-                "^[^:]*$": {
+                "^.*$": {
                     "$ref": "#/definitions/TableTemplate"
                 }
             },
@@ -127,7 +127,7 @@
         "Columns": {
             "type": "object",
             "patternProperties": {
-                "^[^:]*$": {
+                "^.*$": {
                     "$ref": "#/definitions/Column"
                 }
             },
@@ -168,7 +168,7 @@
         "Tables": {
             "type": "object",
             "patternProperties": {
-                "^[^:]*$": {
+                "^.*$": {
                     "$ref": "#/definitions/Table"
                 }
             },
@@ -203,7 +203,7 @@
         "Parameters": {
             "type": "object",
             "patternProperties": {
-                "^[^:]*$": {
+                "^.*$": {
                     "type": [
                         "string",
                         "number"

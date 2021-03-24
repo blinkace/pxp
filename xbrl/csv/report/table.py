@@ -10,7 +10,7 @@ from .dimensions import getModelDimension
 from xbrl.common.dimensions import getConcept
 from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
-from xbrl.common import parseUnitString, parseSQName, InvalidSQName
+from xbrl.common import parseUnitString, parseSQName, InvalidSQName, isValidQName
 from xbrl.const import NS
 from xbrl.model.taxonomy import NoteConcept
 from xbrl.model.report import Fact, EnumerationSetValue, EnumerationValue
@@ -152,6 +152,9 @@ class Table:
                         if isinstance(conceptName, ExplicitNoValue):
                             raise XBRLError("oime:missingConceptDimension", "No concept dimension for fact")
 
+                        if not isValidQName(conceptName):
+                            raise XBRLError("xbrlce:invalidConceptQName", "'%s' is not a valid QName" % conceptName)
+                        
                         concept = getConcept(self.template.report.nsmap, self.template.report.taxonomy, conceptName).concept
 
                         if concept.isNumeric:
