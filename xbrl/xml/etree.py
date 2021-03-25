@@ -2,11 +2,26 @@ import lxml.etree as etree
 from xbrl.qname import parseQName
 import xml.sax.saxutils as saxutils 
 
-def parser():
+def parser(url_resolver = None):
     parser_lookup = etree.ElementDefaultClassLookup(element=Element)
     parser = etree.XMLParser()
     parser.set_element_class_lookup(parser_lookup)
+    if url_resolver is not None:
+        parser.resolvers.add(CustomResolver(url_resolver))
     return parser
+
+class CustomResolver(etree.Resolver):
+
+    def __init__(self, url_resolver):
+        self.url_resolver = url_resolver
+
+    def resolve(self, url, id, context):
+        if url is None:
+            return None
+
+        # Using "resolve_file" on the result of .open() causes segfaults
+        s = self.url_resolver.open(url).read()
+        return self.resolve_string(s, context)
 
 
 class Element(etree.ElementBase):

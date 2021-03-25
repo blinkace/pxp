@@ -71,7 +71,9 @@ def runSuite(src):
                                 js = JSONSerialiser()
                                 json.dump(js.serialise(report), fout, indent=2)
                     else:
-                        package = xbrl.TaxonomyPackage(urlparse(urljoin(suite.url, v.inputs[0].url)).path)
+                        tpl = TaxonomyPackageLoader(processor, raiseFatal = False, qualityCheck = False)
+                        tpl.load(urlparse(urljoin(suite.url, v.inputs[0].url)).path)
+                        vr = tpl.validationResult
 
                     errors = { e.code for e in vr.messages }
                     if args.verbose or args.variations is not None:
@@ -142,7 +144,7 @@ try:
     if args.test:
         runSuite(src)
     elif args.taxonomy_package:
-        tpl = TaxonomyPackageLoader(raiseFatal = False, qualityCheck = True)
+        tpl = TaxonomyPackageLoader(processor, raiseFatal = False, qualityCheck = True)
         if args.verbose:
             print("Opening taxonomy package %s" % src)
         tpl.load(urlparse(src).path)

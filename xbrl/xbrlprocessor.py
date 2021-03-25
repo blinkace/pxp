@@ -20,7 +20,13 @@ class XBRLProcessor:
     def __init__(self, packageDirs = None):
 
         self.resolver = URLResolver()
-        self.addTaxonomyPackage(os.path.join(os.path.dirname(__file__), "packages","xbrl-specification-files-20170118.zip"))
+
+        # Bootstrap taxonomy packages: load these with skipSchemaValidation
+        # because they're needed to do schema validation
+        tpl = TaxonomyPackageLoader(self, skipSchemaValidation = True)
+        self.resolver.addPackage(tpl.load(os.path.join(os.path.dirname(__file__), "packages","xbrl-specification-files-20170118.zip")))
+        self.resolver.addPackage(tpl.load(os.path.join(os.path.dirname(__file__), "packages","xml-2001-03.zip")))
+
         self.addTaxonomyPackage(os.path.join(os.path.dirname(__file__), "packages","dtr-2020-01-21.zip"))
         self.validationResult = ValidationResult()
         if packageDirs is not None:
@@ -53,7 +59,7 @@ class XBRLProcessor:
         return cl.load(suite)
 
     def addTaxonomyPackage(self, path):
-        tp = TaxonomyPackageLoader().load(path)
+        tp = TaxonomyPackageLoader(self).load(path)
         self.resolver.addPackage(tp)
 
     def loadTaxonomy(self, entryPoint: list):

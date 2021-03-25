@@ -13,9 +13,14 @@ logger = logging.getLogger(__name__)
 
 class TaxonomyPackageLoader:
 
-    def __init__(self, raiseFatal = True, qualityCheck = False):
+    def __init__(self, processor, raiseFatal = True, qualityCheck = False, skipSchemaValidation = False):
         self.qualityCheck = qualityCheck
         self.raiseFatal = raiseFatal
+
+        self.metadataSchema = None
+        if not skipSchemaValidation:
+            with processor.resolver.open("http://www.xbrl.org/2016/taxonomy-package.xsd") as f:
+                self.metadataSchema = etree.XMLSchema(etree.parse(f, parser(processor.resolver)))
 
     def load(self, path):
         self.validationResult = ValidationResult()
@@ -68,7 +73,7 @@ class TaxonomyPackageLoader:
         except XBRLError as e:
             if self.raiseFatal:
                 raise e
-            validationResult.addException(e)
+            self.validationResult.addException(e)
         return None
 
     def loadMetaData(self, package, tld):
@@ -83,6 +88,11 @@ class TaxonomyPackageLoader:
                 metadataXML = etree.parse(metadataXML, parser())
             except etree.XMLSyntaxError as e:
                 raise XBRLError("tpe:invalidMetaDataFile", str(e))
+            if self.metadataSchema is not None:
+                try:
+                    self.metadataSchema.assertValid(metadataXML)
+                except etree.DocumentInvalid as e:
+                    raise XBRLError("tpe:invalidMetadataFile", str(e))
             root = metadataXML.getroot()
             metadata["names"] = self.multiLingualElement(list(root.childElements(qname("tp:name"))))
 

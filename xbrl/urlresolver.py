@@ -16,12 +16,14 @@ class URLResolver:
         self.packages.append(package)
 
     def open(self, url):
+        logger.debug("Considering %d packagess" % len(self.packages))
         for p in self.packages:
+            logger.debug("Considering package %s" % p.name)
             if p.hasFile(url):
                 logger.debug("Opening %s from package" % url)
                 return p.open(url)
         try:
-            logger.debug("Opening %s" % url)
+            logger.debug("Opening %s directly" % url)
             return urllib.request.urlopen(url)
         except urllib.error.HTTPError as e:
             if e.code == 404:

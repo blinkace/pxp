@@ -16,7 +16,7 @@ class ValidationResult:
         return s
 
     def addException(self, e):
-        self.messages.append(ValidationMessage(e.code, ValidationSeverity.FATAL_ERROR, e.message))
+        self.messages.append(ValidationMessage(e.code, ValidationSeverity.FATAL, e.message))
 
     def addFatalError(self, code, message):
         self.messages.append(ValidationMessage(qname(code), ValidationSeverity.ERROR, message))
