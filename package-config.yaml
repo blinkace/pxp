@@ -100,3 +100,8 @@
   prefix: http://www.xbrl.org/dtr/type/2020-01-21/
   files:
     - types.xsd
+- name: xml
+  version: 2001-03
+  prefix: http://www.w3.org/2001/03/
+  files:
+    - xml.xsd
