@@ -9,6 +9,7 @@ import xbrl.model.report as report
 import xbrl.model.taxonomy as taxonomy 
 import logging
 import copy
+import decimal
 
 from .context import Context
 from .unit import Unit
@@ -118,6 +119,13 @@ class IXBRLReportParser(XBRLReportParser):
                 content = content.strip()
                 if fe.get("sign", None) == "-":
                     content = "-" + content
+
+            if etree.QName(fe.tag).localname == 'nonFraction':
+                content = content.strip()
+                scale = fe.get("scale", "0")
+
+                content = str(decimal.Decimal(content) * decimal.Decimal(10**int(scale)))
+
 
 
             rels = self.relationships.get(fe.get("id", None), {})
