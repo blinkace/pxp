@@ -2,6 +2,7 @@ from .trrv1pr import TRRv1PR
 from .trrv1 import TRRv1
 from .trrv2 import TRRv2
 from .trrv3 import TRRv3
+from .trrv4 import TRRv4
 from xbrl.xbrlerror import XBRLError
 
 class TRRCollection:
@@ -25,4 +26,5 @@ def buildTRRCollection():
     rc.addRegistry(TRRv1())
     rc.addRegistry(TRRv2())
     rc.addRegistry(TRRv3())
+    rc.addRegistry(TRRv4())
     return rc

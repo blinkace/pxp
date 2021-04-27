@@ -84,7 +84,10 @@ class TRRegistry:
 
         self.transforms = dict()
         for c in type(self).TRANSFORMS:
-            name = c.__name__.lower()
+            if hasattr(c, 'name'):
+                name = c.name
+            else:
+                name = c.__name__.lower()
             self.transforms[name] = c(name)
 
     @property
