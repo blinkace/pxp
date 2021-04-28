@@ -204,10 +204,7 @@
             "type": "object",
             "patternProperties": {
                 "^.*$": {
-                    "type": [
-                        "string",
-                        "number"
-                    ]
+                    "type": "string"
                 }
             },
             "additionalProperties": false
