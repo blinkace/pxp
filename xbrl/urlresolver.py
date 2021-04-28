@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 class URLResolver:
 
-    def __init__(self):
+    def __init__(self, packagesOnly = False):
+        self.packagesOnly = packagesOnly
         self.packages = []
 
     def addPackage(self, package):
@@ -29,6 +30,8 @@ class URLResolver:
                 logger.debug("Loading '%s' from ZIP file '%s'" % (unquote(purl.fragment), unquote(purl.path)))
                 return zf.open(unquote(purl.fragment))
         try:
+            if self.packagesOnly:
+                raise XBRLError("pyxbrle:UnresolvableReference", "URL %s cannot be obtained from loaded taxonomy packages" % url)
             logger.debug("Opening %s directly" % url)
             return urllib.request.urlopen(url)
         except urllib.error.HTTPError as e:

@@ -11,15 +11,17 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.documentloader import DocumentLoader
 from xbrl.common import ValidationResult, ValidationMessage, ValidationSeverity, DocumentClass, UnknownDocumentClassError, MissingDocumentClassError
 from xbrl.xml import qname
+from urllib.parse import urlparse
+from .reportpackageloader import ReportPackageLoader
 import os.path
 
 logger = logging.getLogger(__name__)
 
 class XBRLProcessor:
 
-    def __init__(self, packageDirs = None):
+    def __init__(self, packageDirs = None, packagesOnly = False):
 
-        self.resolver = URLResolver()
+        self.resolver = URLResolver(packagesOnly = packagesOnly)
 
         # Bootstrap taxonomy packages: load these with skipSchemaValidation
         # because they're needed to do schema validation
