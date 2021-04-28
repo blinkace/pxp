@@ -61,6 +61,12 @@ class TaxonomyPackageLoader:
                         except etree.XMLSyntaxError as e:
                             raise XBRLError("tpe:invalidCatalogFile", str(e))
 
+                        if self.catalogSchema is not None:
+                            try:
+                                self.catalogSchema.assertValid(catalog)
+                            except etree.DocumentInvalid as e:
+                                raise XBRLError("tpe:invalidCatalogFile", str(e))
+
                         for rewrite in catalog.getroot().childElements(qname("catalog:rewriteURI")):
                             rewriteFrom = rewrite.get("uriStartString")
                             rewriteTo = rewrite.get("rewritePrefix")
