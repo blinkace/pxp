@@ -376,6 +376,8 @@ class XBRLCSVReportParser:
 
                     rownum = 1
 
+                    seen = set()
+
                     for row in reader:
                         r = iter(row)
                         name = next(r, None)
@@ -384,7 +386,10 @@ class XBRLCSVReportParser:
                             if value == "":
                                 raise XBRLError("xbrlce:invalidParameterCSVFile", "Invalid parameter CSV file '%s': value must be supplied for parameter (use '#empty' or '#none' for empty string or no-value)" % url)
 
+                            if name in seen:
+                                raise XBRLError("xbrlce:invalidParameterCSVFile", "Parameter %s is repeated in parameter CSV file '%s'" % (name, url))
 
+                            seen.add(name)
                             reportParameters[name] = value
 
                         for c in r:
