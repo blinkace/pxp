@@ -1,6 +1,7 @@
 import json
 from xbrl.xml import parser, qname
 import lxml.etree as etree
+from urllib.parse import urlparse
 from enum import Enum
 
 class UnknownDocumentClassError(Exception):
@@ -14,8 +15,12 @@ class DocumentClass(Enum):
     INLINE_XBRL = 2
     XBRL_JSON = 3
     XBRL_CSV = 4
+    REPORT_PACKAGE = 5
 
     def identify(resolver, url):
+        purl = urlparse(url)
+        if purl.scheme != 'zip' and purl.path.lower().endswith(".zip"):
+            return DocumentClass.REPORT_PACKAGE
         with resolver.open(url) as fin:
             try:
                 j = json.load(fin)
@@ -36,7 +41,7 @@ class DocumentClass(Enum):
                 if root.tag == qname("xbrli:xbrl"):
                     return DocumentClass.XBRL_2_1
                 if root.tag == qname("xhtml:html"):
-                    return DocumentClass.IXBRL
+                    return DocumentClass.INLINE_XBRL
             except etree.LxmlError:
                 pass
         return None

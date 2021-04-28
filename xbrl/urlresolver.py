@@ -2,6 +2,8 @@ import io
 import urllib.request
 import urllib.error
 import logging
+import zipfile
+from urllib.parse import urlparse, quote, unquote
 
 from .xbrlerror import XBRLError
 
@@ -16,12 +18,16 @@ class URLResolver:
         self.packages.append(package)
 
     def open(self, url):
-        logger.debug("Considering %d packagess" % len(self.packages))
         for p in self.packages:
-            logger.debug("Considering package %s" % p.name)
             if p.hasFile(url):
                 logger.debug("Opening %s from package" % url)
                 return p.open(url)
+
+        purl = urlparse(url)
+        if purl.scheme == 'zip':
+            with zipfile.ZipFile(unquote(purl.path)) as zf:
+                logger.debug("Loading '%s' from ZIP file '%s'" % (unquote(purl.fragment), unquote(purl.path)))
+                return zf.open(unquote(purl.fragment))
         try:
             logger.debug("Opening %s directly" % url)
             return urllib.request.urlopen(url)

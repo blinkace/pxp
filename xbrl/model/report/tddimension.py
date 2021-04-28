@@ -18,7 +18,7 @@ class ExplicitTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 
     @property
     def stringValue(self):
-        return self.fact.report.asQName(self.value) 
+        return self.fact.report.asQName(self.value.name) 
 
 class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 

@@ -13,14 +13,19 @@ logger = logging.getLogger(__name__)
 
 class TaxonomyPackageLoader:
 
-    def __init__(self, processor, raiseFatal = True, qualityCheck = False, skipSchemaValidation = False):
+    def __init__(self, processor, raiseFatal = True, qualityCheck = False, skipSchemaValidation = False, tolerateInvalidMetadata = False):
         self.qualityCheck = qualityCheck
         self.raiseFatal = raiseFatal
+        self.tolerateInvalidMetadata = tolerateInvalidMetadata
 
         self.metadataSchema = None
+        self.catalogSchema = None
         if not skipSchemaValidation:
+            p = parser(processor.resolver)
             with processor.resolver.open("http://www.xbrl.org/2016/taxonomy-package.xsd") as f:
-                self.metadataSchema = etree.XMLSchema(etree.parse(f, parser(processor.resolver)))
+                self.metadataSchema = etree.XMLSchema(etree.parse(f, p))
+            with processor.resolver.open("http://www.xbrl.org/2016/taxonomy-package-catalog.xsd") as f:
+                self.catalogSchema = etree.XMLSchema(etree.parse(f, p))
 
     def load(self, path):
         self.validationResult = ValidationResult()
@@ -82,6 +87,7 @@ class TaxonomyPackageLoader:
             raise XBRLError("tpe:metadataFileNotFound", "%s not found" % mdPath)
 
         metadata = dict()
+        invalid = False
 
         with package.open(mdPath) as metadataXML:
             try:
@@ -92,9 +98,23 @@ class TaxonomyPackageLoader:
                 try:
                     self.metadataSchema.assertValid(metadataXML)
                 except etree.DocumentInvalid as e:
-                    raise XBRLError("tpe:invalidMetadataFile", str(e))
+                    if not self.tolerateInvalidMetadata:
+                        raise XBRLError("tpe:invalidMetadataFile", str(e))
+                    self.validationResult.addException(e)
+                    invalid = True
             root = metadataXML.getroot()
-            metadata["names"] = self.multiLingualElement(list(root.childElements(qname("tp:name"))))
+
+            # Try to get the package name, even if metadata is invalid
+            try:
+                metadata["names"] = self.multiLingualElement(list(root.childElements(qname("tp:name"))))
+            except XBRLError as e:
+                if not self.tolerateInvalidMetadata:
+                    raise e
+                self.validationResult.addException(e)
+
+            if invalid:
+                # Give up now if we failed schema validity
+                return metadata
 
             self.multiLingualElement(list(root.childElements(qname("tp:description"))))
             self.multiLingualElement(list(root.childElements(qname("tp:publisher"))))

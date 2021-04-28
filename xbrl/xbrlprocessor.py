@@ -59,7 +59,7 @@ class XBRLProcessor:
         return cl.load(suite)
 
     def addTaxonomyPackage(self, path):
-        tp = TaxonomyPackageLoader(self).load(path)
+        tp = TaxonomyPackageLoader(self, tolerateInvalidMetadata = True).load(path)
         self.resolver.addPackage(tp)
 
     def loadTaxonomy(self, entryPoint: list):
@@ -87,6 +87,9 @@ class XBRLProcessor:
             elif documentClass == DocumentClass.XBRL_2_1:
                 logger.info("Loading xBRL-XML file: %s" % url)
                 report = self.loadXBRLReport(url)
+            elif documentClass == DocumentClass.REPORT_PACKAGE:
+                logger.info("Loading Report Package: %s" % url)
+                return self.loadReportPackage(url)
             else:
                 return (None, "Unsupported document class: %s" % documentClass.name, None)
         except XBRLError as e:
@@ -96,6 +99,21 @@ class XBRLProcessor:
         except MissingDocumentClassError as e:
             validationResult.addFatalError("oimce:unsupportedDocumentType", str(e))
         return (report, None, validationResult)
+
+    def loadReportPackage(self, reportPackageURL: str):
+        purl = urlparse(reportPackageURL)
+        if purl.scheme != 'file':
+            raise XBRLError("pyxbrle:unsupportedURLScheme", "Report Packages can only be loaded from file URLs")
+
+        self.addTaxonomyPackage(purl.path)
+        rp = ReportPackageLoader().load(purl.path)
+        urls = rp.reportURLs()
+        if len(urls) != 1:
+            raise XBRLError("pyxbrle:reportNotFound", "Report Package does not contain exactly one report")
+
+        return self.loadReport(urls[0])
+
+        
 
     def loadPackages(self, packageDir):
         if not os.path.isdir(packageDir):
