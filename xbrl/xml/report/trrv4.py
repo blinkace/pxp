@@ -7,8 +7,26 @@ class FixedFalse(trrv2.BooleanFalse):
 class FixedTrue(trrv2.BooleanTrue):
     name = 'fixed-true'
 
+class FixedZero(trrv2.ZeroDash):
+    name = 'fixed-zero'
+
+class FixedEmpty(trrv2.NoContent):
+    name = 'fixed-empty'
+
 class DateDayMonth(trrv2.DateDayMonth):
     name = 'date-day-month'
+
+class DateDayMonthEn(trrv2.DateDayMonthEn):
+    name = 'date-day-monthname-en'
+
+class DateDayMonthYearEn(trrv2.DateDayMonthYearEn):
+    name = 'date-day-monthname-year-en'
+
+class DateMonthDay(trrv2.DateMonthDay):
+    name = 'date-month-day'
+
+class DateMonthDayNameEn(trrv2.DateMonthDayEn):
+    name = 'date-monthname-day-en'
 
 class NumDotDecimal(trrv2.NumDotDecimal):
     name = 'num-dot-decimal'
@@ -20,7 +38,14 @@ class TRRv4(TRRegistry):
     TRANSFORMS = (
         FixedFalse,
         FixedTrue,
-        NumDotDecimal
+        FixedZero,
+        FixedEmpty,
+        DateDayMonth,
+        DateDayMonthEn,
+        DateDayMonthYearEn,
+        DateMonthDay,
+        DateMonthDayNameEn,
+        NumDotDecimal,
 
         )
 
