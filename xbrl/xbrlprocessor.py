@@ -11,7 +11,7 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.documentloader import DocumentLoader
 from xbrl.common import ValidationResult, ValidationMessage, ValidationSeverity, DocumentClass, UnknownDocumentClassError, MissingDocumentClassError
 from xbrl.xml import qname
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 from .reportpackageloader import ReportPackageLoader
 import os.path
 
@@ -76,7 +76,7 @@ class XBRLProcessor:
             if documentClass is None:
                 documentClass = self.identifyDocumentClass(url)
             if documentClass is None:
-                return (None, "Unable to identify document type")
+                return (None, "Unable to identify document type", None)
             elif documentClass == DocumentClass.INLINE_XBRL:
                 logger.info("Loading Inline XBRL file: %s" % url)
                 report = self.loadIXBRLReport(url)
@@ -107,8 +107,8 @@ class XBRLProcessor:
         if purl.scheme != 'file':
             raise XBRLError("pyxbrle:unsupportedURLScheme", "Report Packages can only be loaded from file URLs")
 
-        self.addTaxonomyPackage(purl.path)
-        rp = ReportPackageLoader().load(purl.path)
+        self.addTaxonomyPackage(unquote(purl.path))
+        rp = ReportPackageLoader().load(unquote(purl.path))
         urls = rp.reportURLs()
         if len(urls) != 1:
             raise XBRLError("pyxbrle:reportNotFound", "Report Package does not contain exactly one report")

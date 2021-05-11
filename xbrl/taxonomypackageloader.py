@@ -75,12 +75,13 @@ class TaxonomyPackageLoader:
                             mappings[rewriteFrom] = rewriteTo
                     prefixes = list(reversed(sorted(mappings.keys(), key = lambda x: len(x))))
 
-                logger.info("Loaded '%s'" % metadata["names"][list(metadata["names"].keys())[0]])
 
                 if self.qualityCheck:
                     self.checkCharacterSetEncoding(package)
 
-            return TaxonomyPackage(path, mappings, prefixes, tld, metadata)
+            tp = TaxonomyPackage(path, mappings, prefixes, tld, metadata)
+            logger.info("Loaded '%s'" % tp.name)
+            return tp
         except XBRLError as e:
             if self.raiseFatal:
                 raise e
@@ -104,9 +105,10 @@ class TaxonomyPackageLoader:
                 try:
                     self.metadataSchema.assertValid(metadataXML)
                 except etree.DocumentInvalid as e:
+                    ee = XBRLError("tpe:invalidMetaDataFile", str(e))
                     if not self.tolerateInvalidMetadata:
-                        raise XBRLError("tpe:invalidMetadataFile", str(e))
-                    self.validationResult.addException(e)
+                        raise ee
+                    self.validationResult.addException(ee)
                     invalid = True
             root = metadataXML.getroot()
 
@@ -132,7 +134,7 @@ class TaxonomyPackageLoader:
                     for epd in ep.childElements(qname("tp:entryPointDocument")):
                         href = epd.get("href", None)
                         if href is None:
-                            self.validationResult.addError("tpe:invalidMetadataFile", "Missing href attribute on <entryPointDocument>")
+                            self.validationResult.addError("tpe:invalidMetaDataFile", "Missing href attribute on <entryPointDocument>")
                             continue;
 
                         uri = encodeXLinkURI(href)

@@ -3,6 +3,9 @@ from xbrl.xml import parser, qname
 import lxml.etree as etree
 from urllib.parse import urlparse
 from enum import Enum
+import logging
+
+logger = logging.getLogger(__name__)
 
 class UnknownDocumentClassError(Exception):
     pass
@@ -33,7 +36,7 @@ class DocumentClass(Enum):
                     raise UnknownDocumentClassError("Unknown document type: %s" % dt)
 
                 raise MissingDocumentClassError("Input file is valid JSON, but does not contain a document type")
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
         with resolver.open(url) as fin:
             try:
@@ -42,7 +45,9 @@ class DocumentClass(Enum):
                     return DocumentClass.XBRL_2_1
                 if root.tag == qname("xhtml:html"):
                     return DocumentClass.INLINE_XBRL
-            except etree.LxmlError:
+                logger.debug("Found XML root element: %s" % root.tag)
+            except etree.LxmlError as e:
+                logger.debug("Document is invalid XML: %s" % str(e))
                 pass
         return None
 
