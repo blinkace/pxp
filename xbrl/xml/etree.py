@@ -4,7 +4,7 @@ import xml.sax.saxutils as saxutils
 
 def parser(url_resolver = None):
     parser_lookup = etree.ElementDefaultClassLookup(element=Element)
-    parser = etree.XMLParser()
+    parser = etree.XMLParser(huge_tree = True)
     parser.set_element_class_lookup(parser_lookup)
     if url_resolver is not None:
         parser.resolvers.add(CustomResolver(url_resolver))
