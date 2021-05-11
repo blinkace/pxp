@@ -1,5 +1,6 @@
 from . import trrv2 as trrv2
 from .trr import TRRegistry, IXTransform, DateTransform
+import re
 
 class FixedFalse(trrv2.BooleanFalse):
     name = 'fixed-false'
@@ -7,8 +8,12 @@ class FixedFalse(trrv2.BooleanFalse):
 class FixedTrue(trrv2.BooleanTrue):
     name = 'fixed-true'
 
-class FixedZero(trrv2.ZeroDash):
+class FixedZero(IXTransform):
     name = 'fixed-zero'
+    INPUT_RE = r'.*'
+
+    def _transform(self, v):
+        return "0"
 
 class FixedEmpty(trrv2.NoContent):
     name = 'fixed-empty'
@@ -28,8 +33,19 @@ class DateMonthDay(trrv2.DateMonthDay):
 class DateMonthDayNameEn(trrv2.DateMonthDayEn):
     name = 'date-monthname-day-en'
 
-class NumDotDecimal(trrv2.NumDotDecimal):
+class NumDotDecimal(IXTransform):
     name = 'num-dot-decimal'
+    INPUT_RE = r'[,  0-9]*(\.[ 0-9]+)?'
+
+    def _transform(self, vin):
+        return re.sub(r'[^0-9.]','',vin)
+
+class NumCommaDecimal(IXTransform):
+    name = 'num-comma-decimal'
+    INPUT_RE = r'[\.  0-9]*(,[  0-9]+)?'
+
+    def _transform(self, vin):
+        return re.sub(r'[^0-9,]','',vin).replace(',','.')
 
 class TRRv4(TRRegistry):
 
@@ -46,6 +62,7 @@ class TRRv4(TRRegistry):
         DateMonthDay,
         DateMonthDayNameEn,
         NumDotDecimal,
+        NumCommaDecimal,
 
         )
 
