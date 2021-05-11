@@ -200,7 +200,7 @@ class IXBRLReportParser(XBRLReportParser):
 
 
     def parseIXHidden(self, hidden):
-        pass
+        self.parseChildren(hidden)
 
 
 
