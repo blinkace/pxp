@@ -59,7 +59,7 @@ def runSuite(src):
             else:
                 errors = set()
                 try:
-                    if not args.taxonomy_package:
+                    if not v.isTaxonomyPackageInput:
                         (report, vr) = open_report(urljoin(suite.url, v.inputs[0].url))
                         if args.test_output_suffix is not None:
                             (filename, suffix) = os.path.basename(v.inputs[0].url).split('.', 1)
