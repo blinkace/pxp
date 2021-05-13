@@ -82,23 +82,25 @@ class IXBRLReportParser(XBRLReportParser):
             cid = fe.get("contextRef")
             ctxt = self.getContext(cid)
 
-
             dims.update(ctxt.asDimensions(self.taxonomy))
 
             escape = etree.QName(fe.tag).localname == 'nonNumeric' and fe.boolAttrValue("escape")
-            content = ''
             ce = fe
-            while True:
-                if escape:
-                    content += self.getRelevantContentWithTags(ce).fragmentToString(current_ns = NS.xhtml, escape = True)
-                else:
-                    content += self.getRelevantContent(ce)
-                contId = ce.get("continuedAt", None)
-                if contId is None:
-                    break
-                ce = self.ixContinuations.get(contId, None)
-                if ce is None:
-                    raise XBRLError("ixe:missingContext", "No continuation element with ID '%s'" % cid)
+            if fe.get(qname('xsi:nil'), 'false') in ['1', 'true']:
+                content = None
+            else:
+                content = ''
+                while True:
+                    if escape:
+                        content += self.getRelevantContentWithTags(ce).fragmentToString(current_ns = NS.xhtml, escape = True)
+                    else:
+                        content += self.getRelevantContent(ce)
+                    contId = ce.get("continuedAt", None)
+                    if contId is None:
+                        break
+                    ce = self.ixContinuations.get(contId, None)
+                    if ce is None:
+                        raise XBRLError("ixe:missingContext", "No continuation element with ID '%s'" % cid)
 
             uid = fe.get("unitRef", None)
             if uid is not None:
@@ -107,26 +109,24 @@ class IXBRLReportParser(XBRLReportParser):
                     raise XBRLError("ixe:missingUnit", "No unit with ID '%s'" % cid)
                 dims.update(unit.asDimensions())
 
-            fmt = fe.qnameAttrValue("format")
-            if fmt is not None:
-                transform = trr.getTransform(fmt)
-                if transform is None:
-                    logging.error("Unknown transform: %s" % fmt.text)
-                else:
-                    content = transform.transform(content)
+            if content is not None:
+                fmt = fe.qnameAttrValue("format")
+                if fmt is not None:
+                    transform = trr.getTransform(fmt)
+                    if transform is None:
+                        logging.error("Unknown transform: %s" % fmt.text)
+                    else:
+                        content = transform.transform(content)
 
-            if etree.QName(fe.tag).localname == 'nonFraction':
-                content = content.strip()
-                if fe.get("sign", None) == "-":
-                    content = "-" + content
+                if etree.QName(fe.tag).localname == 'nonFraction':
+                    content = content.strip()
+                    if fe.get("sign", None) == "-":
+                        content = "-" + content
 
-            if etree.QName(fe.tag).localname == 'nonFraction':
-                content = content.strip()
-                scale = fe.get("scale", "0")
-
-                content = str(decimal.Decimal(content) * decimal.Decimal(10**int(scale)))
-
-
+                if etree.QName(fe.tag).localname == 'nonFraction':
+                    content = content.strip()
+                    scale = fe.get("scale", "0")
+                    content = str(decimal.Decimal(content) * decimal.Decimal(10**int(scale)))
 
             rels = self.relationships.get(fe.get("id", None), {})
             links = {}
