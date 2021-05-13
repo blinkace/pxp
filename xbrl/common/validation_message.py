@@ -1,8 +1,8 @@
-from enum import Enum
+from enum import IntEnum
 import lxml.etree as etree
 from xbrl.const import PREFIX
 
-class ValidationSeverity(Enum):
+class ValidationSeverity(IntEnum):
     FATAL = 4
     ERROR = 3
     WARNING = 2
