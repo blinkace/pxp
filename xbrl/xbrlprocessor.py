@@ -61,8 +61,10 @@ class XBRLProcessor:
         return cl.load(suite)
 
     def addTaxonomyPackage(self, path):
-        tp = TaxonomyPackageLoader(self, tolerateInvalidMetadata = True).load(path)
+        tpl = TaxonomyPackageLoader(self, tolerateInvalidMetadata = True)
+        tp = tpl.load(path)
         self.resolver.addPackage(tp)
+        return tpl.validationResult
 
     def loadTaxonomy(self, entryPoint: list):
         dts = DTS(entryPoint, self.documentLoader)
@@ -107,15 +109,15 @@ class XBRLProcessor:
         if purl.scheme != 'file':
             raise XBRLError("pyxbrle:unsupportedURLScheme", "Report Packages can only be loaded from file URLs")
 
-        self.addTaxonomyPackage(unquote(purl.path))
+        vr = self.addTaxonomyPackage(unquote(purl.path))
         rp = ReportPackageLoader().load(unquote(purl.path))
         urls = rp.reportURLs()
         if len(urls) != 1:
             raise XBRLError("pyxbrle:reportNotFound", "Report Package does not contain exactly one report")
 
-        return self.loadReport(urls[0])
-
-        
+        (report, err, report_vr) = self.loadReport(urls[0])
+        vr.merge(report_vr) 
+        return (report, err, vr)
 
     def loadPackages(self, packageDir):
         if not os.path.isdir(packageDir):
