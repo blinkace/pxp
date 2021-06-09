@@ -5,6 +5,7 @@ from xbrl.xml import qname, parser
 from xbrl.xbrlerror import XBRLError
 from math import log10, fabs, floor
 import xbrl.model.report as report 
+from xbrl.util import urljoinz
 
 from .context import Context
 from .unit import Unit
@@ -94,11 +95,9 @@ class XBRLReportParser:
         return int(d)
 
     def getTaxonomy(self, root):
-        schemaRefs = list(SchemaRef(urljoin(self.url, e.get(qname("xlink:href")))) 
+        schemaRefs = list(SchemaRef(urljoinz(self.url, e.get(qname("xlink:href")))) 
             for e in root.childElements(qname('link:schemaRef')))
         return self.processor.loadTaxonomy(schemaRefs)
-        documentLoader.load(schemaRefs)
-        return dts.buildTaxonomy()
 
     def getContext(self, cid):
         c = self.contexts.get(cid)

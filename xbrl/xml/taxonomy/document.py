@@ -1,4 +1,4 @@
-from urllib.parse import urljoin
+from xbrl.util import urljoinz
 from enum import Enum
 
 class DTSReference:
@@ -58,7 +58,7 @@ class DTSDocument:
         self.dts = dts
 
     def resolveURL(self, url):
-        return urljoin(self.url, url)
+        return urljoinz(self.url, url)
 
     def addLinkbaseRef(self, url):
         self.dtsReferences.add(LinkbaseRef(self.resolveURL(url), src = self))
