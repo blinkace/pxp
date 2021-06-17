@@ -103,6 +103,8 @@ class XBRLCSVReportParser:
                     if "propertyGroups" in coldef:
                         pgs = dict()
                         for pgName, pg in coldef["propertyGroups"].items():
+                            if not(isValidIdentifier(pgName)):
+                                raise XBRLError("xbrlce:invalidIdentifier", "Property Group name '%s' is not a valid identifier" % pgName)
                             pgs[pgName] = self.parseProperties(pg, nsmap)
 
                         columns[colname] = PropertyGroupColumn(colname, pgs)
