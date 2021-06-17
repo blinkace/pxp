@@ -40,9 +40,17 @@ class TaxonomyPackageLoader:
                     if '\\' in p:
                         raise XBRLError("tpe:invalidArchiveFormat", "Archive contains path with '\\'")
 
-                top = {item.split('/')[0] for item in contents}
-                if len(top) != 1:
+                top = {item.split('/')[0] for item in contents if '/' in item}
+                if len(top) > 1:
                     raise XBRLError("tpe:invalidDirectoryStructure", "Multiple top-level directories")
+                elif len(top) == 0:
+                    raise XBRLError("tpe:invalidDirectoryStructure", "No directories found")
+                tli = list(item for item in contents if '/' not in item)
+                if len(tli) > 0:
+                    ee = XBRLError("tpe:invalidDirectoryStructure", 'Files found at top-level: %s' % ", ".join(tli))
+                    if not self.tolerateInvalidMetadata:
+                        raise(ee)
+                    self.validationResult.addException(ee)
 
                 tld = list(top)[0]
 
