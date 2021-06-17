@@ -12,7 +12,7 @@ def qname(qstr, nsmap = NSMAP):
 
     """
     if ":" in qstr:
-        (prefix, local) = qstr.split(":")
+        (prefix, local) = qstr.split(":", 1)
     else:
         (prefix, local) = (None, qstr)
     try:
