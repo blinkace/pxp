@@ -12,6 +12,12 @@ class NumDotComma(IXTransform):
     def transform(self, vin):
         return re.sub(r'[^0-9,]','',vin).replace(',','.')
 
+class NumDash(IXTransform):
+    INPUT_RE = r'\s*-\s*'
+
+    def transform(self, vin):
+        return "0";
+
 
 class DateLongUK(DateTransform):
 
@@ -24,6 +30,7 @@ class TRRv1(TRRegistry):
     TRANSFORMS = (
         NumCommaDot,
         NumDotComma,
+        NumDash,
         DateLongUK
     )
 
