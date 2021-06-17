@@ -6,6 +6,9 @@ from .uri_validate import isValidAbsoluteURI, encodeXLinkURI, isValidURIReferenc
 def isValidQName(i):
     return RE_QNAME.match(i) is not None 
 
+def isValidNCName(i):
+    return RE_NCNAME.match(i) is not None 
+
 def validateURIMap(uriMap, reservedPrefixMap = {}):
     reservedURIMap = { reservedPrefixMap.get(k): k for k in reservedPrefixMap }
     r = set()

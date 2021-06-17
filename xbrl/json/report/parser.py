@@ -5,7 +5,7 @@ from xbrl.json.schema import json_validate, DuplicateKeyError
 from xbrl.const import DocumentType, NS, OIM_COMMON_RESERVED_PREFIX_MAP, LINK_RESERVED_URI_MAP
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
-from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI
+from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI, isValidNCName
 from xbrl.model.report import Report, Fact, EnumerationSetValue, EnumerationValue
 from xbrl.xml.taxonomy.document import SchemaRef
 from urllib.parse import urljoin, urlparse
@@ -72,6 +72,8 @@ class XBRLJSONReportParser:
         for fid, fact in j.get("facts", {}).items():
             factDims = dict()
             for dimname, dimval in fact.get("dimensions", {}).items():
+                if not isValidQName(dimname) and not isValidNCName(dimname):
+                    raise XBRLError("xbrlje:invalidJSONStructure", "'%s' is not a valid dimension name" % dimname)
                 dimqname = qname(dimname, { **nsmap, None: NS.xbrl })
                 factDims[dimqname] = getModelDimension(dimqname, dimval, nsmap, taxonomy)
 

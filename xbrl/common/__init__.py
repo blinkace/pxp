@@ -6,4 +6,4 @@ from .identify import DocumentClass, MissingDocumentClassError, UnknownDocumentC
 from .uri_validate import isValidURI, isValidURIReference, isValidAbsoluteURI, encodeXLinkURI
 from .validation_result import ValidationResult
 from .validation_message import ValidationMessage, ValidationSeverity
-from .validators import isValidQName
+from .validators import isValidQName, isValidNCName

@@ -12,7 +12,7 @@ from xbrl.xml import qname
 from xbrl.const import NS, DocumentType
 from xbrl.xml.taxonomy.document import SchemaRef
 from xbrl.model.report import Report
-from xbrl.common.validators import validateURIMap, isValidQName
+from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI
 
 from .report import CSVReport
 from .tabletemplate import TableTemplate
