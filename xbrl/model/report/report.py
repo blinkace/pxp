@@ -1,6 +1,7 @@
 from xbrl.const import NS
 from xbrl.xbrlerror import XBRLError
 from .compare import completeDuplicates, consistentDuplicates
+from xbrl.common import isValidAbsoluteURI
 import itertools
 
 class Report:
@@ -11,6 +12,7 @@ class Report:
         self.ns_to_prefix = taxonomy.ns_to_prefix.copy()
         self.usedPrefixes = set()
         self.factsByDimensions = dict()
+        self.baseURL = None
 
     def addFact(self, fact):
         self.facts[fact.id] = fact
@@ -54,6 +56,11 @@ class Report:
     def validate(self):
         for f in self.facts.values():
             f.validate()
+        self.validateBaseURL()
+
+    def validateBaseURL(self):
+        if self.baseURL is not None and not isValidAbsoluteURI(self.baseURL):
+            raise XBRLError("oime:invalidBaseURL", "Base URL '%s' is not an absolute URL" % (self.baseURL))
 
     def getDuplicateFacts(self):
         duplicates = set()

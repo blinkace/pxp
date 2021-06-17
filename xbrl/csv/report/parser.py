@@ -59,6 +59,13 @@ class XBRLCSVReportParser:
 
         self.parameterReferences = set()
 
+        baseURL = docInfo.get("baseURL", None)
+        if baseURL is not None:
+            if not(isValidAnyURI(baseURL)):
+                raise XBRLError("xbrlce:invalidJSONStructure", "'%s' is not a valid URL" % baseURL)
+            if not(isCanonicalAnyURI(baseURL)):
+                raise XBRLError("xbrlce:invalidJSONStructure", "'%s' is not in canonical form" % baseURL)
+
         taxonomy = self.getTaxonomy(metadata, url)
 
         templates = dict()
@@ -147,6 +154,7 @@ class XBRLCSVReportParser:
         self.validateAllTemplates(csvReport)
 
         modelReport = Report(taxonomy)
+        modelReport.baseURL = baseURL
         facts = csvReport.loadTables(self.processor.resolver)
         for f in facts:
             modelReport.addFact(f)
@@ -440,7 +448,6 @@ class XBRLCSVReportParser:
         validateURIMap(linkTypes)
 
         links = metadata.get("links", {})
-        #print(list(modelReport.facts.keys()))
         for linkType, groups in links.items():
             linkTypeURI = linkTypes.get(linkType)
             if linkTypeURI is None:

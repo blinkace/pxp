@@ -67,6 +67,7 @@ class XBRLJSONReportParser:
         taxonomy = self.getTaxonomy(docInfo, url)
 
         modelReport = Report(taxonomy)
+        modelReport.baseURL = baseURL
         canonicalValues = docInfo.get("features", {}).get("xbrl:canonicalValues", False)
         
         for fid, fact in j.get("facts", {}).items():
