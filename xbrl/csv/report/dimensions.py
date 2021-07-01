@@ -27,7 +27,12 @@ def getModelDimension(report, name, value):
     if name == qname("xbrl:entity"):
         return getEntity(report.nsmap, value)
     if name == qname("xbrl:language"):
-        return getLanguage(value)
+        try:
+            return getLanguage(value)
+        except XBRLError as e:
+            if e.code == qname("oime:invalidLanguage"):
+                raise XBRLError("xbrlce:invalidLanguageCode", e.message)
+            raise e
     dim = report.taxonomy.getDimension(name)
     if dim is None:
         raise XBRLError("oime:unknownDimension", "Dimension %s is not defined in taxonomy" % name)

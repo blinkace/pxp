@@ -4,6 +4,7 @@ from xbrl.common import parseUnitString, parseSQName, InvalidSQName
 from xbrl.model.report import ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension
 from xbrl.model.taxonomy import TypedDimension
 from xbrl.common.validators import isValidQName
+from xbrl.common.language import isValidLanguageCode
 from xbrl.const import NS
 from .period import parsePeriodString
 import datetime
@@ -51,4 +52,6 @@ def getEntity(nsmap, entityStr):
     return EntityCoreDimension(scheme, identifier)
 
 def getLanguage(langstr):
+    if not isValidLanguageCode(langstr):
+        raise XBRLError("oime:invalidLanguage", "'%s' is not a valid language code" % langstr)
     return LanguageCoreDimension(langstr)

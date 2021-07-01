@@ -7,3 +7,4 @@ from .uri_validate import isValidURI, isValidURIReference, isValidAbsoluteURI, e
 from .validation_result import ValidationResult
 from .validation_message import ValidationMessage, ValidationSeverity
 from .validators import isValidQName, isValidNCName
+from .language import isValidLanguageCode

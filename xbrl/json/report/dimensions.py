@@ -16,14 +16,19 @@ def getModelDimension(name, value, nsmap, taxonomy):
             return getEntity(nsmap, value)
 
     except XBRLError as e:
-        if e.code in qnameset({"oimce"},{"invalidSQName","invalidQName"}):
+        if e.code in qnameset({"oimce"},{"invalidQName"}):
             raise XBRLError("xbrlje:invalidJSONStructure", e.message)
         raise e
 
     if name == qname("xbrl:language"):
         if value != value.lower():
             raise XBRLError("xbrlje:invalidLanguageCodeCase", "Language code '%s' is not expressed in lower-case form" % value)
-        return getLanguage(value)
+        try:
+            return getLanguage(value)
+        except XBRLError as e:
+            if e.code == qname("oime:invalidLanguage"):
+                raise XBRLError("xbrlje:invalidJSONStructure", e.message)
+            raise e
 
     if name == qname("xbrl:noteId"):
         return NoteIdCoreDimension(value)
