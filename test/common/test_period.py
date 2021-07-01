@@ -2,7 +2,7 @@ from xbrl.common import parsePeriodString
 from xbrl import XBRLError
 import unittest
 
-class UnitStringTests(unittest.TestCase):
+class PeriodTests(unittest.TestCase):
 
     def test_periodStringRepresentation(self):
 
@@ -21,6 +21,9 @@ class UnitStringTests(unittest.TestCase):
             "2020-01-01T10:00:00+29:00",
             "2020-13-01T10:00:00.000",
             "2020-1-1T10:00:00.000+10",
+            "2020-12-01T24:00:00",
+            "2020-12-01T24:00:01",
+            "2020-12-01T25:00:01",
         )
 
         for f in fails:

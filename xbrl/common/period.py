@@ -2,7 +2,7 @@ import dateutil.parser
 import re
 from xbrl.xbrlerror import XBRLError
 
-dateTimeRe = re.compile(r'^(\d{4,}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?)((?:(?:\+|-)\d{2}(?:\:\d{2})?|Z)?)$')
+dateTimeRe = re.compile(r'^(\d{4,}-\d{2}-\d{2}T(\d{2}):\d{2}:\d{2}(?:\.\d+)?)((?:(?:\+|-)\d{2}(?:\:\d{2})?|Z)?)$')
 dateRe = re.compile(r'^(\d{4,}-\d{2}-\d{2})((?:(?:\+|-)\d{2}(?:\:\d{2})?|Z)?)$')
 
 def fromISODateTime(s):
@@ -10,8 +10,11 @@ def fromISODateTime(s):
     if m is None:
         raise ValueError("%s is not a valid ISO8601 date time" % s)
 
+    if m.group(2) == '24':
+        raise ValueError("Hour component of '24' is not permitted in the canonical form for xs:dateTime (%s)" % s)
+
     # XML Schema requires ':' in TZ specifiers, Python requires no colon
-    s = m.group(1) + re.sub(':', '', m.group(2))
+    s = m.group(1) + re.sub(':', '', m.group(3))
 
     return dateutil.parser.isoparse(s)
 
