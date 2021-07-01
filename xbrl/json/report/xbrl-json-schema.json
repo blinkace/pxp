@@ -57,7 +57,7 @@
             "type": "object",
             "properties": {
                 "baseURL": {
-                    "$ref": "#/definitions/URI"
+                    "type": "string"
                 },
                 "documentType": {
                     "type": "string"
@@ -112,7 +112,7 @@
                 }
             },
             "patternProperties": {
-                "^(?!xbrl:).*:.*": {
+                "^(?!xbrl:)[^:]+:[^:]+$": {
                     "$ref": "#/definitions/ValueOrNull"
                 }
             },
@@ -150,7 +150,7 @@
         },
         "Lang": {
             "type": "string",
-            "pattern": "^[-A-Za-z]+$"
+            "pattern": "^[0-9-A-Za-z]+$"
         },
         "Links": {
             "type": "object",
@@ -195,7 +195,8 @@
             "additionalProperties": false
         },
         "URI": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-z]+:.*\\S+$"
         },
         "Taxonomy": {
             "type": "array",
