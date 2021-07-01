@@ -49,6 +49,9 @@ def getEntity(nsmap, entityStr):
     except InvalidSQName as e:
         raise XBRLError("oimce:invalidSQName", str(e))
 
+    if scheme in [NS.entities, NS.entities_cr7] and identifier == 'NA':
+        raise XBRLError("oime:invalidUseOfReservedIdentifier", "The reserved entity identifier {%s}%s must not be used" % (scheme, identifier))
+
     return EntityCoreDimension(scheme, identifier)
 
 def getLanguage(langstr):

@@ -27,6 +27,8 @@ class NS:
     xbrlje = 'https://xbrl.org/((~status_date_uri~))/xbrl-json/error'
     enum2 = 'http://xbrl.org/2020/extensible-enumerations-2.0'
     xsi = 'http://www.w3.org/2001/XMLSchema-instance'
+    entities = "https://xbrl.org/((~status_date_uri~))/entities"
+    entities_cr7 = "https://xbrl.org/2021-02-03/entities"
 
 
 PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}
