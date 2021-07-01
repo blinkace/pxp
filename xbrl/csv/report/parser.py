@@ -12,7 +12,7 @@ from xbrl.xml import qname
 from xbrl.const import NS, DocumentType
 from xbrl.xml.taxonomy.document import SchemaRef
 from xbrl.model.report import Report
-from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI
+from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI, isValidNCName
 
 from .report import CSVReport
 from .tabletemplate import TableTemplate
@@ -188,7 +188,7 @@ class XBRLCSVReportParser:
         if len(taxonomy) == 0:
             raise XBRLError("oime:noTaxonomy", "No taxonomy specified in metadata")
 
-        schemaRefs = list(SchemaRef(urljoin(url, t)) for t in taxonomy)
+        schemaRefs = list(SchemaRef(t) for t in taxonomy)
         return self.processor.loadTaxonomy(schemaRefs)
 
 
@@ -219,8 +219,6 @@ class XBRLCSVReportParser:
         if err is not None:
             raise XBRLError("xbrlce:invalidJSONStructure", err)
 
-
-
         extensible = {
             "documentInfo": {
                 "namespaces": dict,
@@ -238,7 +236,8 @@ class XBRLCSVReportParser:
             "parameters": dict,
         }
 
-        taxonomy = []
+        j["documentInfo"]["taxonomy"] = list(urljoin(url, u) for u in j["documentInfo"].get("taxonomy",[]))
+
         for elt in docInfo.get("extends", []):
             m = self.loadMetaData(urljoin(url, elt))
             importedDocType = m["documentInfo"]["documentType"]
@@ -451,10 +450,14 @@ class XBRLCSVReportParser:
 
         links = metadata.get("links", {})
         for linkType, groups in links.items():
+            if not isValidNCName(linkType):
+                raise XBRLError("xbrlce:invalidJSONStructure", "'%s' is not a valid NCName" % linkType)
             linkTypeURI = linkTypes.get(linkType)
             if linkTypeURI is None:
                 raise XBRLError("xbrlce:unknownLinkType", "The link type '%s' is not defined" % linkType)
             for group, srcFactIds in groups.items():
+                if not isValidNCName(group):
+                    raise XBRLError("xbrlce:invalidJSONStructure", "'%s' is not a valid NCName" % group)
                 linkGroupURI = linkGroups.get(group)
                 if linkGroupURI is None:
                     raise XBRLError("xbrlce:unknownLinkGroup", "The link group '%s' is not defined" % group)
