@@ -80,7 +80,6 @@ class Table:
                             rowId = getCell(row, rowIdCol)
                             if rowId != "":
                                 rowId = "r_" + rowId
-                                usedColumns.add(self.template.rowIdColumn.name)
                             # We deal with empty cells later, if the row has a value.
                             if rowId != "" and not isValidIdentifier(rowId):
                                 raise XBRLError("xbrlce:invalidRowIdentifier", "'%s' is not a valid identifier" % rowId)
@@ -101,6 +100,8 @@ class Table:
 
                         decimals = None
                         usedColumns.add(fc.name)
+                        if self.template.rowIdColumn is not None:
+                            usedColumns.add(self.template.rowIdColumn.name)
 
                         if rowId == "":
                             raise XBRLError("xbrlce:missingRowIdentifier", "Row does not have a row identifier")
