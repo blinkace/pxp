@@ -106,12 +106,12 @@ class Context:
             if not dimconcept.isDimension:
                 raise XBRLError("xbrldie:ExplicitMemberNotExplicitDimensionError", "Concept %s is not a dimension" % dim)
             if isinstance(dimconcept, TypedDimension):
-                dims.add(report.TypedTaxonomyDefinedDimensionValue(dimconcept.name, dval))
+                dims.add(report.TypedTaxonomyDefinedDimensionValue(taxonomy, dimconcept.name, dval))
             else:
                 valconcept = taxonomy.concepts.get(dval, None)
                 if valconcept is None:
                     raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % dval)
-                dims.add(report.ExplicitTaxonomyDefinedDimensionValue(dimconcept.name, valconcept))
+                dims.add(report.ExplicitTaxonomyDefinedDimensionValue(taxonomy, dimconcept.name, valconcept))
 
         dims.add(report.EntityCoreDimension(self.scheme, self.identifier))
 

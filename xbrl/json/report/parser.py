@@ -6,7 +6,7 @@ from xbrl.const import DocumentType, NS, OIM_COMMON_RESERVED_PREFIX_MAP, LINK_RE
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI, isValidNCName
-from xbrl.model.report import Report, Fact, EnumerationSetValue, EnumerationValue
+from xbrl.model.report import Report, Fact, EnumerationSetValue, EnumerationValue, TypedTaxonomyDefinedDimensionValue
 from xbrl.xml.taxonomy.document import SchemaRef
 from urllib.parse import urljoin, urlparse
 from .dimensions import getModelDimension
@@ -101,13 +101,17 @@ class XBRLJSONReportParser:
                 value = v,
                 decimals = fact.get("decimals", None)
             )
-            if canonicalValues:
-                if f.concept.datatype.canonicalValue(v) != v:
-                    raise XBRLError("xbrlje:nonCanonicalValue", "'%s' is not in canonical form (should be '%s')" % (v, f.concept.datatype.canonicalValue(v)))
-
-
 
             modelReport.addFact(f)
+            if canonicalValues:
+                msg = f.concept.datatype.validateCanonicalValue(v)
+                if msg is not None:
+                    raise XBRLError("xbrlje:nonCanonicalValue", msg)
+                for d in f.dimensions.values():
+                    if isinstance(d, TypedTaxonomyDefinedDimensionValue):
+                        msg = d.dimension.typedDomainDatatype.validateCanonicalValue(d.value)
+                        if msg is not None:
+                            raise XBRLError("xbrlje:nonCanonicalValue", msg)
 
         self.parseLinks(j, modelReport)
         modelReport.validate()

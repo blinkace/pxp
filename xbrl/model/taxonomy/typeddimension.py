@@ -6,3 +6,4 @@ class TypedDimension(Concept):
         super().__init__(name, datatype, substitutionGroupChain, periodType)
         self.typedDomainDatatype = typedDomainDatatype
 
+

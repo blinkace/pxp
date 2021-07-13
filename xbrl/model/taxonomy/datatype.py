@@ -1,5 +1,5 @@
 from xbrl.const import NS
-from xbrl.common import sqname, sqnameset
+from xbrl.common import sqname, sqnameset, validateCanonicalDateTime
 import re
 
 # We name types using SQNames because we use deliberately invalid QNames for anonymous types.
@@ -121,10 +121,30 @@ class Datatype:
     def isLanguage(self):
         return sqname("xs:language") in self.datatypeChain
 
+
+    @property
+    def isPrefixedContent(self):
+        return any(self.isDtrNamespace(dt) and dt.localname in { 'prefixedContentType', 'prefixedContentItemType' } for dt in self.datatypeChain)
+
+    @property
+    def isFraction(self):
+        return sqname("xbrli:fractionItemType") in self.datatypeChain
+
     def stringValue(self, v):
         if self.isNumeric and v is not None:
             return v.strip()
         return v
+
+    def validateCanonicalValue(self, v):
+        if v is None:
+            return None
+
+        if self.isDateTime:
+            return validateCanonicalDateTime(v)
+        else:
+            if v != self.canonicalValue(v):
+                return "%s is not in canonical form (should be '%s')" % (v, self.canonicalValue(v))
+        return None
 
     def canonicalValue(self, v):
         if v is None:
@@ -139,6 +159,7 @@ class Datatype:
             v = v.strip()
         elif self.isLanguage:
             return v.lower().strip()
+
         return v
 
     @property

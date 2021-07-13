@@ -3,7 +3,7 @@ from xbrl.xbrlerror import XBRLError
 from .period import parseCSVPeriodString
 from .values import ExplicitNoValue
 from xbrl.common import parseUnitString, parseSQName, InvalidSQName
-from xbrl.model.report import ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension
+from xbrl.model.report import UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension
 from xbrl.model.taxonomy import TypedDimension
 from xbrl.common.validators import isValidQName
 from xbrl.common.dimensions import getUnit, getConcept, getEntity, getLanguage
@@ -15,9 +15,13 @@ def getModelDimension(report, name, value):
         return getUnit(report.nsmap, value)
     if name == qname("xbrl:concept"):
         if value is None:
-            raise XBRLError("xbrlce:invalidJSONStructure", "Concept dimension must not be nil")
+            raise XBRLError("xbrlce:invalidConceptQName", "Concept dimension must not be nil")
         try:
-            return getConcept(report.nsmap, report.taxonomy, value)
+            conceptDimension = getConcept(report.nsmap, report.taxonomy, value)
+            if conceptDimension.concept.isAbstract:
+                raise XBRLError("oime:valueForAbstractConcept", "%s is an abstract concept" % str(value))
+            conceptDimension.validateConceptDatatype()
+            return conceptDimension
         except XBRLError as e:
             if e.code == qname("oimce:invalidQName"):
                 raise XBRLError("xbrlce:invalidConceptQName", e.message)
@@ -37,9 +41,11 @@ def getModelDimension(report, name, value):
     if dim is None:
         raise XBRLError("oime:unknownDimension", "Dimension %s is not defined in taxonomy" % name)
     if isinstance(dim, TypedDimension):
-        return TypedTaxonomyDefinedDimensionValue(name, value)
+        dv = TypedTaxonomyDefinedDimensionValue(report.taxonomy, name, value)
+        dv.validateDatatype()
+        return dv
     else:
-        return ExplicitTaxonomyDefinedDimensionValue(name, qname(value, report.nsmap))
+        return ExplicitTaxonomyDefinedDimensionValue(report.taxonomy, name, qname(value, report.nsmap))
 
 def getCSVPeriod(period):
     # #nil or JSON null

@@ -60,7 +60,6 @@ class EnumerationSetValue:
         values = []
 
         for v in value.strip().split():
-            print("[[%s]]" % v)
             (namespace, localname) = v.split('#', maxsplit=2)
             values.append(etree.QName(namespace, localname))
 

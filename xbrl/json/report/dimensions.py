@@ -37,7 +37,7 @@ def getModelDimension(name, value, nsmap, taxonomy):
     if dim is None:
         raise XBRLError("oime:unknownDimension", "Dimension %s is not defined in taxonomy" % name)
     if isinstance(dim, TypedDimension):
-        return TypedTaxonomyDefinedDimensionValue(name, value)
+        return TypedTaxonomyDefinedDimensionValue(taxonomy, name, value)
     else:
-        return ExplicitTaxonomyDefinedDimensionValue(name, value)
+        return ExplicitTaxonomyDefinedDimensionValue(taxonomy, name, value)
 

@@ -30,7 +30,7 @@ def getConcept(nsmap, taxonomy, conceptNameStr):
 def getPeriod(period):
     if period is None:
         raise XBRLError("xbrlce:invalidPeriodRepresentation", "nil is not a valid period value")
-    (start, end) = parsePeriodString(period)
+    (start, end) = parsePeriodString(period, requireCanonical = True)
     if end is None:
         return InstantPeriod(start)
     else:

@@ -4,7 +4,7 @@ from .period import InstantPeriod, DurationPeriod
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.const import LinkType
-from xbrl.model.taxonomy import NoteConcept, PeriodType, ListBasedDatatype, ComplexDatatype
+from xbrl.model.taxonomy import NoteConcept, PeriodType
 from xbrl.common.period import DateTimeUnion
 import decimal
 
@@ -120,6 +120,7 @@ class Fact:
         if self.value is None and not self.concept.nillable:
             raise XBRLError("oime:invalidFactValue", "Fact '%s' has nill value by concept %s is not nillable" % (self.id, str(self.concept.name)))
 
+
         if self.concept.periodType == PeriodType.DURATION:
             if self.period is not None and not isinstance(self.period, DurationPeriod):
                 raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has a duration concept but an instant period '%s'" % (self.id, self.period.stringValue))
@@ -130,6 +131,9 @@ class Fact:
                 raise XBRLError("oime:invalidPeriodDimension", "Fact '%s' has an instant concept but a duration period" % self.id)
         if not self.isNumeric and self.decimals is not None:
             raise XBRLError("oime:misplacedDecimalsProperty", "Fact '%s' has decimals specified but is not numeric" % self.id)
+
+        if self.value is None and self.decimals is not None:
+            raise XBRLError("oime:misplacedDecimalsProperty", "Fact '%s' has decimals specified but has a nil value" % self.id)
 
         if not self.isNumeric and qname("xbrl:unit") in self.dimensions:
             raise XBRLError("oime:misplacedUnitDimension", "Fact '%s' has units specified but is not numeric" % self.id)
@@ -166,19 +170,13 @@ class Fact:
             if qname("xbrl:noteId") in self.dimensions:
                 raise XBRLError("oime:misplacedNoteIDDimension", "Fact '%s' has a xbrl:noteId dimension but has concept %s not xbrl:note" % (self.id, str(self.concept.name)))
 
-
-
     def validateTypedDimensionDatatypes(self):
         for dimname, dimvalue in self.dimensions.items():
             if isinstance(dimvalue, TypedTaxonomyDefinedDimensionValue):
-                if dimvalue.datatype.isLegacy:
-                    raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' has a datatype which is, or is derived from an unsupported legacy datatype" % (str(dimname), self.id))
-            
-                if isinstance(dimvalue.datatype, ListBasedDatatype):
-                    raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' is derived by list" % (str(dimname), self.id))
-
-                if isinstance(dimvalue.datatype, ComplexDatatype):
-                    raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' on fact '%s' is complex" % (str(dimname), self.id))
+                try:
+                    dimvalue.validateDatatype()
+                except XBRLError as e:
+                    raise XBRLError(e.code, e.message + " on fact %s" % self.id)
 
     def isEqual(self, other, checkId = True):
         return self.frozenDimensionSet == other.frozenDimensionSet and self.typedValue == other.typedValue and (self.id == other.id or not checkId)
