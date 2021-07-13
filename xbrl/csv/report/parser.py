@@ -236,7 +236,8 @@ class XBRLCSVReportParser:
             "parameters": dict,
         }
 
-        j["documentInfo"]["taxonomy"] = list(urljoin(url, u) for u in j["documentInfo"].get("taxonomy",[]))
+        if "taxonomy" in j["documentInfo"]:
+            j["documentInfo"]["taxonomy"] = list(urljoin(url, u) for u in j["documentInfo"]["taxonomy"])
 
         for elt in docInfo.get("extends", []):
             m = self.loadMetaData(urljoin(url, elt))
@@ -505,10 +506,14 @@ class XBRLCSVReportParser:
                     qname(k, nsmap = nsmap)
 
 def deep_eq(a, b):
+
+    if type(a) in {float, int} and type(b) in {float, int}:
+        return a == b
+
     if type(a) != type(b):
         return False
 
-    if type(a) in {str, float, int}:
+    if type(a) == str:
         return a == b
 
     if type(a) == list:
