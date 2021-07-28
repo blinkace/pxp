@@ -33,13 +33,6 @@ class ConceptCoreDimension(CoreDimension):
     def stringValue(self):
         return self.fact.report.asQName(self.concept.name)
 
-    def validateConceptDatatype(self):
-        if self.concept.datatype.isFraction:
-            raise XBRLError("oime:unsupportedConceptDataType", "Concept '%s' has unsupported fractionItemType" % self.concept.name)
-        if self.concept.datatype.isPrefixedContent:
-            raise XBRLError("oime:unsupportedConceptDataType", "Concept '%s' has unsupported prefixed content type" % self.concept.name)
-
-
 class UnitCoreDimension(CoreDimension):
 
     def __init__(self, numerators, denominators):

@@ -4,7 +4,7 @@ from .period import InstantPeriod, DurationPeriod
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.const import LinkType
-from xbrl.model.taxonomy import NoteConcept, PeriodType
+from xbrl.model.taxonomy import NoteConcept, PeriodType, ComplexDatatype
 from xbrl.common.period import DateTimeUnion
 import decimal
 
@@ -120,6 +120,11 @@ class Fact:
         if self.value is None and not self.concept.nillable:
             raise XBRLError("oime:invalidFactValue", "Fact '%s' has nill value by concept %s is not nillable" % (self.id, str(self.concept.name)))
 
+        try:
+            self.concept.validateDatatype()
+        except XBRLError as e:
+            e.message = e.message + " on fact %s" % self.id
+            raise e
 
         if self.concept.periodType == PeriodType.DURATION:
             if self.period is not None and not isinstance(self.period, DurationPeriod):
@@ -143,7 +148,7 @@ class Fact:
 
 
         self.validateNoteFact()
-        self.validateTypedDimensionDatatypes()
+        self.validateTypedDimensions()
 
     def validateNoteFact(self):
         if self.concept.name == qname('xbrl:note'):
@@ -170,13 +175,15 @@ class Fact:
             if qname("xbrl:noteId") in self.dimensions:
                 raise XBRLError("oime:misplacedNoteIDDimension", "Fact '%s' has a xbrl:noteId dimension but has concept %s not xbrl:note" % (self.id, str(self.concept.name)))
 
-    def validateTypedDimensionDatatypes(self):
+    def validateTypedDimensions(self):
         for dimname, dimvalue in self.dimensions.items():
             if isinstance(dimvalue, TypedTaxonomyDefinedDimensionValue):
                 try:
                     dimvalue.validateDatatype()
+                    dimvalue.validate()
                 except XBRLError as e:
-                    raise XBRLError(e.code, e.message + " on fact %s" % self.id)
+                    e.message = e.message + " on fact %s" % self.id
+                    raise e
 
     def isEqual(self, other, checkId = True):
         return self.frozenDimensionSet == other.frozenDimensionSet and self.typedValue == other.typedValue and (self.id == other.id or not checkId)

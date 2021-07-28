@@ -35,7 +35,7 @@ class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 
     def validateDatatype(self):
         if self.datatype.isLegacy:
-            raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' has a datatype which is, or is derived from an unsupported legacy datatype" % (str(dimname), self.id))
+            raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' has a datatype which is, or is derived from an unsupported legacy datatype" % self.dimension.name)
     
         if isinstance(self.datatype, ListBasedDatatype):
             raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' is derived by list" % self.dimension.name)

@@ -1,7 +1,8 @@
 from xbrl.const import NS
 from xbrl.xml import qname
 from xbrl.common import sqname
-from .datatype import Datatype
+from xbrl.xbrlerror import XBRLError
+from .datatype import Datatype, ComplexDatatype
 from enum import Enum, auto
 
 class PeriodType(Enum):

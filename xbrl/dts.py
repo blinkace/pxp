@@ -72,16 +72,19 @@ class DTS:
                 if d.preferredPrefix is not None:
                     taxonomy.addPrefix(d.preferredPrefix, d.targetNamespace)
                 for n, e in d.elements.items():
-                    if qname('xbrli:item') in e.substitutionGroups():
-
-                        datatype = Datatype(e.datatypeChain())
-                        if datatype.itemType is None:
-                            raise XBRLError("xbrl21e:invalidItemType", "Concept '%s' is not derived from an XBRL Item Type" % e.name, spec_ref = '5.1.1.3')
-
+                    if qnameset({'xbrli'}, {'item', 'tuple'}) & set(e.substitutionGroups()):
                         conceptName = etree.QName(d.targetNamespace, e.name)
-                        if e.periodType is None:
-                            raise XBRLError("xbrl21e:missingPeriodType", "Concept '%s' does not have a period type" % e.name)
-                        periodType = PeriodType.INSTANT if e.periodType == 'instant' else PeriodType.DURATION
+                        if e.isComplex or any(dt.isComplex for dt in e.datatypeChainTypes()):
+                            datatype = ComplexDatatype(e.datatypeChain())
+                        else:
+                            datatype = Datatype(e.datatypeChain())
+                            if datatype.itemType is None:
+                                raise XBRLError("xbrl21e:invalidItemType", "Concept '%s' is not derived from an XBRL Item Type" % e.name, spec_ref = '5.1.1.3')
+
+                        if qname('xbrli:item') in e.substitutionGroups():
+                            if e.periodType is None:
+                                raise XBRLError("xbrl21e:missingPeriodType", "Concept '%s' does not have a period type" % e.name)
+                            periodType = PeriodType.INSTANT if e.periodType == 'instant' else PeriodType.DURATION
                         if e.typedDomainRef:
                             tde = self.getElementByURL(d.resolveURL(e.typedDomainRef))
                             if not tde.isComplex:
