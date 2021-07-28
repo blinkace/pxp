@@ -261,6 +261,9 @@ class Table:
         if type(val) == str:
             val = processSpecialValues(val)
 
+        if isinstance(val, ExplicitNoValue):
+            return val
+
         if p.periodSpecifier:
             period = parseCSVPeriodString(val)
             if None in period:
