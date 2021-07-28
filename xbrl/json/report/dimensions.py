@@ -3,6 +3,7 @@ from xbrl.xbrlerror import XBRLError
 from xbrl.model.report import ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension, NoteIdCoreDimension
 from xbrl.model.taxonomy import TypedDimension
 from xbrl.common.dimensions import getUnit, getConcept, getPeriod, getEntity, getLanguage
+from xbrl.common import isValidQName
 
 def getModelDimension(name, value, nsmap, taxonomy):
     if name == qname("xbrl:unit"):
@@ -39,5 +40,9 @@ def getModelDimension(name, value, nsmap, taxonomy):
     if isinstance(dim, TypedDimension):
         return TypedTaxonomyDefinedDimensionValue(taxonomy, name, value)
     else:
+        if not isValidQName(value):
+            raise XBRLError("xbrlje:invalidDimensionValue", "Value '%s' for explicit dimension '%s' is not a valid QName" % (value, name))
+            
+        qname(value)
         return ExplicitTaxonomyDefinedDimensionValue(taxonomy, name, value)
 
