@@ -215,6 +215,10 @@ class Table:
                         )
                         facts.add(fact)
 
+                    for i, cell in enumerate(row):
+                        if getCell(headerRow, i) == '' and cell != "":
+                            raise XBRLError("xbrlce:unmappedCellValue", "Value '%s' in column %d has a value but column has no header" % (cell, i+1))
+
                     for ncc in self.template.nonCommentColumns:
                         if ncc.name in colMap and getCell(row, colMap[ncc.name]) != '' and ncc.name not in usedColumns:
                             raise XBRLError("xbrlce:unmappedCellValue", "Column '%s' has a value but is not used by any fact columns" % ncc.name)
