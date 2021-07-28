@@ -8,7 +8,7 @@ class Taxonomy:
         self.concepts = dict()
         self.ns_to_prefix = PREFIX.copy()
         self.prefix_to_ns = dict()
-        self.addConcept(NoteConcept)
+        self.addConcept(NoteConcept())
         #self.dataTypes = builtInTypes.copy()
         self.identifier = identifier
 

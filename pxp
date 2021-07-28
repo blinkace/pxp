@@ -116,6 +116,7 @@ parser.add_argument('-d', '--debug', dest="debug", action="append", help="Enable
 parser.add_argument('-V', '--variation', dest="variations", action="append", help="Run specific variations from a test suite.  Requires -t and implies -v.")
 parser.add_argument('--test-output-suffix', dest="test_output_suffix", action="store")
 parser.add_argument('--packages-only', dest="packages_only", action="store_true", help="Only permit files references from taxonomy packages")
+parser.add_argument('--oim-version', dest="oim_version", action="store", help="Set OIM version")
 parser.add_argument('reports', metavar='REPORT', nargs="+")
 args = parser.parse_args()
 
@@ -128,6 +129,9 @@ if args.debug is not None:
             logging.getLogger("").setLevel(logging.DEBUG)
         else:
             logging.getLogger(d).setLevel(logging.DEBUG)
+
+if args.oim_version:
+    xbrl.const.setOIMVersion(args.oim_version)
 
 processor = xbrl.XBRLProcessor(packageDirs=args.packageDir, packagesOnly = args.packages_only)
 

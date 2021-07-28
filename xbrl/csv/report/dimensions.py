@@ -20,7 +20,7 @@ def getModelDimension(report, name, value):
             conceptDimension = getConcept(report.nsmap, report.taxonomy, value)
             if conceptDimension.concept.isAbstract:
                 raise XBRLError("oime:valueForAbstractConcept", "%s is an abstract concept" % str(value))
-            conceptDimension.validateConceptDatatype()
+            conceptDimension.concept.validateDatatype()
             return conceptDimension
         except XBRLError as e:
             if e.code == qname("oimce:invalidQName"):

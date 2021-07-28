@@ -186,7 +186,7 @@ class Table:
                             # Remove excluded dimensions
                             factDimValues.pop(qname("xbrl:unit"), None)
                             usedColumnsByDimension.pop(qname("xbrl:unit"), None)
-                            if not concept.isText and concept != NoteConcept:
+                            if not concept.isText and concept != NoteConcept():
                                 factDimValues.pop(qname("xbrl:language"), None)
                                 usedColumnsByDimension.pop(qname("xbrl:language"), None)
 
@@ -204,7 +204,7 @@ class Table:
 
                         factId = "%s.%s.%s" % (self.name, rowId, fc.name)
                         # XXX This is should move to model-level validation
-                        if concept == NoteConcept:
+                        if concept == NoteConcept():
                             factDims[qname("xbrl:NoteID")] = NoteIdCoreDimension(factId)
 
                         fact = Fact( 

@@ -51,4 +51,16 @@ class Concept:
     def isDimension(self):
         return qname("xbrldt:dimensionItem") in self.substitutionGroupChain
 
-NoteConcept = Concept(qname("xbrl:note"), Datatype([sqname("xs:string")]), [ qname("xbrli:item") ], PeriodType.DURATION)
+    def validateDatatype(self):
+        if self.datatype.isFraction:
+            raise XBRLError("oime:unsupportedConceptDataType", "Concept '%s' has unsupported fractionItemType" % self.name)
+        if self.datatype.isPrefixedContent:
+            raise XBRLError("oime:unsupportedConceptDataType", "Concept '%s' has unsupported prefixed content type" % self.name)
+        if isinstance(self.datatype, ComplexDatatype):
+            raise XBRLError("oime:unsupportedConceptDataType", "Concept '%s' has a datatype with complex content" % self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+def NoteConcept():
+    return Concept(qname("xbrl:note"), Datatype([sqname("xs:string")]), [ qname("xbrli:item") ], PeriodType.DURATION)

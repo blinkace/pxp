@@ -1,3 +1,4 @@
+import re
 
 class NS:
     xs = 'http://www.w3.org/2001/XMLSchema'
@@ -30,12 +31,40 @@ class NS:
     entities = "https://xbrl.org/((~status_date_uri~))/entities"
     entities_cr7 = "https://xbrl.org/2021-02-03/entities"
 
+PREFIX = {}
+NSMAP = {}
+OIM_COMMON_RESERVED_PREFIXES = {}
+OIM_COMMON_RESERVED_PREFIX_MAP = {}
 
-PREFIX = {v: k for k, v in NS.__dict__.items() if not k.startswith("_")}
-NSMAP = {k: v for k, v in NS.__dict__.items() if not k.startswith("_")}
 
-OIM_COMMON_RESERVED_PREFIXES = { "iso4217", "utr", "xbrl", "xbrli", "xs", "oimce" }
-OIM_COMMON_RESERVED_PREFIX_MAP = { k: getattr(NS, k) for k in OIM_COMMON_RESERVED_PREFIXES }
+def buildPrefixMaps():
+    global PREFIX 
+    PREFIX.clear()
+    for k, v in NS.__dict__.items():
+        if not k.startswith("_"):
+            PREFIX[v] = k
+
+    global NSMAP 
+    NSMAP.clear()
+    for k, v in NS.__dict__.items():
+        if not k.startswith("_"):
+            NSMAP[k] = v
+
+    global OIM_COMMON_RESERVED_PREFIXES
+    OIM_COMMON_RESERVED_PREFIXES = { "iso4217", "utr", "xbrl", "xbrli", "xs", "oimce" }
+    global OIM_COMMON_RESERVED_PREFIX_MAP
+    OIM_COMMON_RESERVED_PREFIX_MAP.clear()
+
+    for k in OIM_COMMON_RESERVED_PREFIXES:
+        OIM_COMMON_RESERVED_PREFIX_MAP[k] = getattr(NS, k) 
+
+buildPrefixMaps()
+
+def setOIMVersion(version):
+    for k, v in NS.__dict__.items():
+        if not k.startswith("_"):
+            setattr(NS, k, re.sub(r'\(\(~status_date_uri~\)\)', version, v))
+    buildPrefixMaps()
 
 class LinkType:
     footnote = 'http://www.xbrl.org/2003/arcrole/fact-footnote'
@@ -53,6 +82,8 @@ LINK_RESERVED_URI_MAP = {
 class DocumentType:
     xbrlcsv = 'https://xbrl.org/((~status_date_uri~))/xbrl-csv'
     xbrlcsv_cr7 = 'https://xbrl.org/CR/2021-02-03/xbrl-csv'
+    xbrlcsv_cr9 = 'https://xbrl.org/CR/2021-07-07/xbrl-csv'
     xbrljson_git = 'https://xbrl.org/((~status_date_uri~))/xbrl-json'
     xbrljson_wgwd = 'https://xbrl.org/WGWD/YYYY-MM-DD/xbrl-json'
-    xbrljson_cr7 = 'https://xbrl.org/CR/2021-02-02/xbrl-csv'
+    xbrljson_cr7 = 'https://xbrl.org/CR/2021-02-02/xbrl-json'
+    xbrljson_cr9 = 'https://xbrl.org/CR/2021-07-07/xbrl-json'

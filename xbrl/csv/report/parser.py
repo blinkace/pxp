@@ -9,7 +9,7 @@ import logging
 from xbrl.json.schema import json_validate, DuplicateKeyError
 from xbrl.xbrlerror import XBRLError
 from xbrl.xml import qname
-from xbrl.const import NS, DocumentType
+from xbrl.const import NS, DocumentType, OIM_COMMON_RESERVED_PREFIX_MAP, LINK_RESERVED_URI_MAP
 from xbrl.xml.taxonomy.document import SchemaRef
 from xbrl.model.report import Report
 from xbrl.common.validators import validateURIMap, isValidQName, isValidAnyURI, isCanonicalAnyURI, isValidNCName
@@ -53,7 +53,7 @@ class XBRLCSVReportParser:
         docInfo = metadata.get("documentInfo")
 
         nsmap = docInfo.get("namespaces", {})
-        validateURIMap(nsmap)
+        validateURIMap(nsmap, reservedPrefixMap = OIM_COMMON_RESERVED_PREFIX_MAP)
 
         self.validateExtensibleObjects(metadata, nsmap)
 
@@ -444,10 +444,10 @@ class XBRLCSVReportParser:
         docInfo = metadata.get("documentInfo")
         
         linkGroups = docInfo.get("linkGroups",{})
-        validateURIMap(linkGroups)
+        validateURIMap(linkGroups, reservedPrefixMap = LINK_RESERVED_URI_MAP)
 
         linkTypes = docInfo.get("linkTypes",{})
-        validateURIMap(linkTypes)
+        validateURIMap(linkTypes, reservedPrefixMap = LINK_RESERVED_URI_MAP)
 
         links = metadata.get("links", {})
         for linkType, groups in links.items():

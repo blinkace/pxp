@@ -140,7 +140,7 @@ class IXBRLReportParser(XBRLReportParser):
                                 raise XBRLError("ixe:missingTargetFact", "Non-existent fact with id '%s' referenced from relationship" % target)
                             fnf = report.Fact(
                                     target, 
-                                    dimensions = { report.ConceptCoreDimension(taxonomy.NoteConcept) },
+                                    dimensions = { report.ConceptCoreDimension(taxonomy.NoteConcept()) },
                                     value = self.getRelevantContentWithTags(fn).fragmentToString(current_ns=NS.xhtml))
                             rpt.addFact(fnf)
 

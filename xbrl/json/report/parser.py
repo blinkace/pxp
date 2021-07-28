@@ -33,7 +33,7 @@ class XBRLJSONReportParser:
 
         docInfo = j.get("documentInfo",{})
         docType = docInfo.get("documentType", None) if type(docInfo) == dict else None
-        if type(docType) != str or docType not in {DocumentType.xbrljson_git, DocumentType.xbrljson_wgwd, DocumentType.xbrljson_cr7}:
+        if type(docType) != str or docType not in {DocumentType.xbrljson_git, DocumentType.xbrljson_wgwd, DocumentType.xbrljson_cr7, DocumentType.xbrljson_cr9}:
             raise XBRLError("oimce:unsupportedDocumentType", "Unsupported document type: %s" % docType)
 
         with self.processor.resolver.open(url) as src:
