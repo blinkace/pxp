@@ -42,7 +42,8 @@ def getModelDimension(name, value, nsmap, taxonomy):
     else:
         if not isValidQName(value):
             raise XBRLError("xbrlje:invalidDimensionValue", "Value '%s' for explicit dimension '%s' is not a valid QName" % (value, name))
-            
-        qname(value)
-        return ExplicitTaxonomyDefinedDimensionValue(taxonomy, name, value)
+        valConcept = getConcept(nsmap, taxonomy, value)
+        if valConcept is None:
+            raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % (value))
+        return ExplicitTaxonomyDefinedDimensionValue(taxonomy, name, valConcept)
 

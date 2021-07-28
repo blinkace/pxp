@@ -163,7 +163,13 @@ class XBRLCSVReportParser:
 
         self.parseLinks(metadata, modelReport)
 
-        modelReport.validate()
+        try:
+            modelReport.validate()
+        except XBRLError as e:
+            # Recast invalid use of nil as an xbrlce error
+            if e.code == qname('oime:invalidDimensionValue'):
+                e.code = qname('xbrlce:invalidDimensionValue')
+            raise e
 
         for t in tables:
             for p in t.parameters:

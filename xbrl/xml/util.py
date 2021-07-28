@@ -18,7 +18,7 @@ def qname(qstr, nsmap = NSMAP):
     try:
         return etree.QName(nsmap[prefix], local)
     except KeyError:
-        raise XBRLError("oimce:unboundPrefix", "Missing namespace prefix (%s)" % prefix)
+        raise XBRLError("oimce:unboundPrefix", "Missing namespace prefix '%s' in QName '%s'" % (prefix, qstr))
 
 
 def qnameset(prefixset, localset, nsmap = NSMAP):

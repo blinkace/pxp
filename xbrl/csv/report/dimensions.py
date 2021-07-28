@@ -45,7 +45,10 @@ def getModelDimension(report, name, value):
         dv.validateDatatype()
         return dv
     else:
-        return ExplicitTaxonomyDefinedDimensionValue(report.taxonomy, name, qname(value, report.nsmap))
+        valConcept = getConcept(report.nsmap, report.taxonomy, value)
+        if valConcept is None:
+            raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % (value))
+        return ExplicitTaxonomyDefinedDimensionValue(report.taxonomy, name, valConcept)
 
 def getCSVPeriod(period):
     # #nil or JSON null
