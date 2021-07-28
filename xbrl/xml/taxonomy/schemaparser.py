@@ -74,7 +74,9 @@ class SchemaParser:
     def parseComplexTypeDefinition(self, schema, e, name = None):
         if name is None:
             name = e.get("name")
-        if e.childElement("xs:complexContent") is not None:
+
+        # Any of the following elements indicate complex content
+        if any(e.childElement(qname(elt)) is not None for elt in ("xs:complexContent", "xs:sequence", "xs:group", "xs:choice", "xs:all")):
             schema.addType(ComplexTypeDefinition(name, None, isComplex = True))
         else:
             basetypeElement = next(iter(e.xpath("xs:simpleContent/xs:restriction | xs:simpleContent/xs:extension", namespaces = NSMAP)), None)

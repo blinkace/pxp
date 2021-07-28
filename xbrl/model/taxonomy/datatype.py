@@ -32,11 +32,6 @@ numericTypes = decimalTypes | sqnameset("xs", {
             'double', 
             })
 
-dateTimeTypes = sqnameset("xbrli",{ "dateUnion" }) | sqnameset("xs", {
-            'date', 
-            'dateTime', 
-            })
-
 legacyDataTypes = sqnameset("xs", {
                     "ENTITY",
                     "ENTITIES",
@@ -69,7 +64,15 @@ class Datatype:
 
     @property
     def isDateTime(self):
-        return not set(self.datatypeChain).isdisjoint(dateTimeTypes)
+        return sqname("xs:dateTime") in self.datatypeChain
+
+    @property
+    def isDate(self):
+        return sqname("xs:date") in self.datatypeChain
+
+    @property
+    def isDateTimeUnion(self):
+        return sqname("xbrli:dateUnion") in self.datatypeChain
 
     @property
     def isText(self):
@@ -139,7 +142,10 @@ class Datatype:
         if v is None:
             return None
 
-        if self.isDateTime:
+        if self.isDateTimeUnion:
+            if 'T' in v:
+                return validateCanonicalDateTime(v)
+        elif self.isDateTime:
             return validateCanonicalDateTime(v)
         else:
             if v != self.canonicalValue(v):
