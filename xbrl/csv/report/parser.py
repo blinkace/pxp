@@ -206,7 +206,7 @@ class XBRLCSVReportParser:
         # invalidJSONStructure if documentType is not present.
         try:
             with self.processor.resolver.open(url) as src:
-                jsonStr = src.read().decode("utf-8") 
+                jsonStr = src.read().decode("utf-8-sig") 
                 j = json.loads(jsonStr)
         except UnicodeDecodeError as e:
             raise XBRLError("xbrlce:invalidJSON", "Unicode decode error loading %s: %s" % (src, str(e)))
