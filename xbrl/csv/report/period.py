@@ -53,7 +53,7 @@ def parseAbbreviatedForm(s):
 def parseCSVPeriodString(s):
 
     try:
-        return parsePeriodString(s)
+        return parsePeriodString(s, requireCanonical = True)
     except XBRLError as e:
         # YYYY-MM-DD..YYYY-MM-DD
         m = re.match('^(' + RE_ISODATE + r')\.\.(' + RE_ISODATE + r')$', s) 

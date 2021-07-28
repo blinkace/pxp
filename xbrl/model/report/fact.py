@@ -84,7 +84,7 @@ class Fact:
             return None
         if self.isNumeric:
             return self.numericValue
-        if self.concept.isDateTime:
+        if self.concept.datatype.isDateTimeUnion or self.concept.datatype.isDateTime or self.concept.datatype.isDate:
             return DateTimeUnion(self.value)
 
         return self.value
