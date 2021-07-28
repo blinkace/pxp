@@ -58,3 +58,15 @@ def getLanguage(langstr):
     if not isValidLanguageCode(langstr):
         raise XBRLError("oime:invalidLanguage", "'%s' is not a valid language code" % langstr)
     return LanguageCoreDimension(langstr)
+
+def getExplicitDimensionValue(nsmap, taxonomy, dimensionName, conceptNameStr):
+    if not isValidQName(conceptNameStr):
+        raise XBRLError("oimce:invalidQName", "'%s' is not a valid QName" % conceptNameStr)
+
+    conceptName = qname(conceptNameStr, { "xbrl": NS.xbrl, **nsmap})
+
+    concept = taxonomy.concepts.get(conceptName)
+    if concept is None:
+        raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % (conceptNameStr))
+
+    return ExplicitTaxonomyDefinedDimensionValue(taxonomy, dimensionName, concept)

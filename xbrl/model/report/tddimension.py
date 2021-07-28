@@ -19,9 +19,15 @@ class TaxonomyDefinedDimensionValue(Dimension):
 
 class ExplicitTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 
+    # Value should be a model.taxonomy.Concept object
+
     @property
     def stringValue(self):
         return self.fact.report.asQName(self.value.name) 
+
+    @property
+    def asTuple(self):
+        return (self.name, self.value.name)
 
 class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 

@@ -2,7 +2,7 @@ from xbrl.xml import qname, qnameset
 from xbrl.xbrlerror import XBRLError
 from xbrl.model.report import ConceptCoreDimension, UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension, NoteIdCoreDimension
 from xbrl.model.taxonomy import TypedDimension
-from xbrl.common.dimensions import getUnit, getConcept, getPeriod, getEntity, getLanguage
+from xbrl.common.dimensions import getUnit, getConcept, getPeriod, getEntity, getLanguage, getExplicitDimensionValue
 from xbrl.common import isValidQName
 
 def getModelDimension(name, value, nsmap, taxonomy):
@@ -42,8 +42,5 @@ def getModelDimension(name, value, nsmap, taxonomy):
     else:
         if not isValidQName(value):
             raise XBRLError("xbrlje:invalidDimensionValue", "Value '%s' for explicit dimension '%s' is not a valid QName" % (value, name))
-        valConcept = getConcept(nsmap, taxonomy, value)
-        if valConcept is None:
-            raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % (value))
-        return ExplicitTaxonomyDefinedDimensionValue(taxonomy, name, valConcept)
+        return getExplicitDimensionValue(nsmap, taxonomy, name, value)
 

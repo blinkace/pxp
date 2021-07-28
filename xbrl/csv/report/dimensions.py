@@ -6,7 +6,7 @@ from xbrl.common import parseUnitString, parseSQName, InvalidSQName
 from xbrl.model.report import UnitCoreDimension, DurationPeriod, InstantPeriod, ExplicitTaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue, EntityCoreDimension, LanguageCoreDimension
 from xbrl.model.taxonomy import TypedDimension
 from xbrl.common.validators import isValidQName
-from xbrl.common.dimensions import getUnit, getConcept, getEntity, getLanguage
+from xbrl.common.dimensions import getUnit, getConcept, getEntity, getLanguage, getExplicitDimensionValue
 from xbrl.const import NS
 import datetime
 
@@ -45,10 +45,9 @@ def getModelDimension(report, name, value):
         dv.validateDatatype()
         return dv
     else:
-        valConcept = getConcept(report.nsmap, report.taxonomy, value)
-        if valConcept is None:
-            raise XBRLError("xbrldie:ExplicitMemberUndefinedQNameError", "Could not find member for dimension value %s" % (value))
-        return ExplicitTaxonomyDefinedDimensionValue(report.taxonomy, name, valConcept)
+        if not isValidQName(value):
+            raise XBRLError("xbrlce:invalidDimensionValue", "Value '%s' for explicit dimension '%s' is not a valid QName" % (value, name))
+        return getExplicitDimensionValue(report.nsmap, report.taxonomy, name, value)
 
 def getCSVPeriod(period):
     # #nil or JSON null
