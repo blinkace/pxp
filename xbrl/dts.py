@@ -99,7 +99,8 @@ class DTS:
                                 datatype,
                                 e.substitutionGroups(),
                                 tddt,
-                                periodType
+                                periodType,
+                                tde.nillable
                                 )
                         else:
                             c = Concept(

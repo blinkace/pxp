@@ -45,3 +45,8 @@ class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
         if self.datatype.isPrefixedContent:
             raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' has unsupported prefixed content type" % self.dimension.name)
 
+    def validate(self):
+        if self.value is None and not self.dimension.nillable:
+            raise XBRLError("oime:invalidDimensionValue", "Invalid nil value for non-nillable dimension '%s'" % self.dimension.name)
+
+
