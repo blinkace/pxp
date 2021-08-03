@@ -48,6 +48,7 @@ class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
 
         if isinstance(self.datatype, ComplexDatatype):
             raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' is complex" % self.dimension.name)
+
         if self.datatype.isPrefixedContent:
             raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' has unsupported prefixed content type" % self.dimension.name)
 

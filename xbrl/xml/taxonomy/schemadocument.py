@@ -48,13 +48,12 @@ class SchemaDocument(DTSDocument):
 
 class ElementDefinition:
 
-    def __init__(self, name: str, substitutionGroup, datatype: SQName, typedDomainRef = None, elementId = None, isComplex = False, periodType = None, isAbstract = False, nillable = False) -> None:
+    def __init__(self, name: str, substitutionGroup, datatype: SQName, typedDomainRef = None, elementId = None, periodType = None, isAbstract = False, nillable = False) -> None:
         self.id = elementId
         self.name = name
         self.substitutionGroup = substitutionGroup
         self.datatype = datatype
         self.typedDomainRef = typedDomainRef
-        self.isComplex = isComplex
         self.isAbstract = isAbstract
         self.periodType = periodType
         self.nillable = nillable
@@ -102,6 +101,13 @@ class ElementDefinition:
     @property
     def derivedByList(self):
         return any(isinstance(t, ListSimpleTypeDefinition) for t in self.datatypeChainTypes())
+
+    @property
+    def isComplex(self):
+        if self.datatype.namespace != NS.xs:
+            baseType = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname)
+            return baseType.isComplex
+        return False
         
 
 class TypeDefinition:
