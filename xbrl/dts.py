@@ -1,7 +1,7 @@
 from .const import NS
 from .xml.taxonomy.schemadocument import SchemaDocument
 from lxml import etree
-from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype, PeriodType, ListBasedDatatype, ComplexDatatype
+from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype, PeriodType, ListBasedDatatype, ComplexDatatype, UnionBasedDatatype
 from .xbrlerror import XBRLError
 from xbrl.xml import qname, qnameset
 from urllib.parse import urldefrag, urlparse
@@ -74,7 +74,7 @@ class DTS:
                 for n, e in d.elements.items():
                     if qnameset({'xbrli'}, {'item', 'tuple'}) & set(e.substitutionGroups()):
                         conceptName = etree.QName(d.targetNamespace, e.name)
-                        if e.isComplex or any(dt.isComplex for dt in e.datatypeChainTypes()):
+                        if e.isComplexContent or any(dt.isComplexContent for dt in e.datatypeChainTypes()):
                             datatype = ComplexDatatype(e.datatypeChain())
                         else:
                             datatype = Datatype(e.datatypeChain())
@@ -90,6 +90,8 @@ class DTS:
                             if not tde.isComplex:
                                 if tde.derivedByList:
                                     tddt = ListBasedDatatype(tde.datatypeChain()) 
+                                elif tde.derivedByUnion:
+                                    tddt = UnionBasedDatatype(tde.datatypeChain()) 
                                 else:
                                     tddt = Datatype(tde.datatypeChain()) 
                             else:

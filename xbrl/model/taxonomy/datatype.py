@@ -175,6 +175,9 @@ class Datatype:
 class ListBasedDatatype(Datatype):
     pass
 
+class UnionBasedDatatype(Datatype):
+    pass
+
 class ComplexDatatype(Datatype):
     pass
 

@@ -1,5 +1,5 @@
 from .dimensions import Dimension
-from xbrl.model.taxonomy import ListBasedDatatype, ComplexDatatype
+from xbrl.model.taxonomy import ListBasedDatatype, ComplexDatatype, UnionBasedDatatype
 from xbrl.xbrlerror import XBRLError
 
 class TaxonomyDefinedDimensionValue(Dimension):
@@ -45,6 +45,9 @@ class TypedTaxonomyDefinedDimensionValue(TaxonomyDefinedDimensionValue):
     
         if isinstance(self.datatype, ListBasedDatatype):
             raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' is derived by list" % self.dimension.name)
+
+        if isinstance(self.datatype, UnionBasedDatatype) and not self.datatype.isDateTimeUnion:
+            raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' is derived by union" % self.dimension.name)
 
         if isinstance(self.datatype, ComplexDatatype):
             raise XBRLError("oime:unsupportedDimensionDataType", "Dimension '%s' is complex" % self.dimension.name)

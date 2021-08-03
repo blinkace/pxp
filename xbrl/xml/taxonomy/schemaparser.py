@@ -1,5 +1,5 @@
 from lxml import etree
-from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition, ListSimpleTypeDefinition
+from .schemadocument import SchemaDocument, ElementDefinition, ComplexTypeDefinition, SimpleTypeDefinition, ListSimpleTypeDefinition, UnionSimpleTypeDefinition
 from xbrl.qname import parseQName
 from xbrl.const import NS, NSMAP
 from xbrl.common import SQName
@@ -44,7 +44,6 @@ class SchemaParser:
 
         dtQName = e.get("type", None)
         dte = e
-        isComplex = False
         if dtQName is None:
             anonDataTypeName = "#anon-%s.type" % e.get("name")
             datatype = SQName(schema.targetNamespace, anonDataTypeName)
@@ -77,7 +76,7 @@ class SchemaParser:
 
         # Any of the following elements indicate complex content
         if any(e.childElement(qname(elt)) is not None for elt in ("xs:complexContent", "xs:sequence", "xs:group", "xs:choice", "xs:all")):
-            schema.addType(ComplexTypeDefinition(name, None, isComplex = True))
+            schema.addType(ComplexTypeDefinition(name, None, isComplexContent = True))
         else:
             basetypeElement = next(iter(e.xpath("xs:simpleContent/xs:restriction | xs:simpleContent/xs:extension", namespaces = NSMAP)), None)
             if basetypeElement is not None:
@@ -106,6 +105,8 @@ class SchemaParser:
 
         if e.childElement(qname("xs:list")) is not None:
             schema.addType(ListSimpleTypeDefinition(name))
+        elif e.childElement(qname("xs:union")) is not None:
+            schema.addType(UnionSimpleTypeDefinition(name))
         else:
             schema.addType(SimpleTypeDefinition(name, basetype))
 

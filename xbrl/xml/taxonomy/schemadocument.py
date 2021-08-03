@@ -103,18 +103,29 @@ class ElementDefinition:
         return any(isinstance(t, ListSimpleTypeDefinition) for t in self.datatypeChainTypes())
 
     @property
+    def derivedByUnion(self):
+        return any(isinstance(t, UnionSimpleTypeDefinition) for t in self.datatypeChainTypes())
+
+    @property
+    def isComplexContent(self):
+        if self.datatype.namespace != NS.xs:
+            baseType = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname)
+            return baseType.isComplexContent
+        return False
+
+    @property
     def isComplex(self):
         if self.datatype.namespace != NS.xs:
             baseType = self.schemaDocument.getSchemaForNamespace(self.datatype.namespace).getType(self.datatype.localname)
-            return baseType.isComplex
+            return isinstance(baseType, ComplexTypeDefinition)
         return False
         
 
 class TypeDefinition:
-    def __init__(self, name, base, isComplex = False):
+    def __init__(self, name, base, isComplexContent = False):
         self.name = name
         self.base = base
-        self.isComplex = isComplex
+        self.isComplexContent = isComplexContent
 
     def datatypeChain(self):
         if self.base is not None:
@@ -146,3 +157,7 @@ class ListSimpleTypeDefinition(SimpleTypeDefinition):
         super().__init__(name, None)
 
 
+class UnionSimpleTypeDefinition(SimpleTypeDefinition):
+
+    def __init__(self, name):
+        super().__init__(name, None)
