@@ -1,6 +1,7 @@
 from .dimensions import ConceptCoreDimension
 from .tddimension import TaxonomyDefinedDimensionValue, TypedTaxonomyDefinedDimensionValue
 from .period import InstantPeriod, DurationPeriod
+from .footnote import validateXHTMLContent
 from xbrl.xml import qname
 from xbrl.xbrlerror import XBRLError
 from xbrl.const import LinkType
@@ -170,6 +171,7 @@ class Fact:
                     for srcs in linkGroups.values()
                         for src in srcs), None) is None:
                 raise XBRLError("oime:unusedNoteFact", "Note fact '%s' is not referenced by any links" % (self.id))
+            validateXHTMLContent(self.value)
 
         else:
             if qname("xbrl:noteId") in self.dimensions:
