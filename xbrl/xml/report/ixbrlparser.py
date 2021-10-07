@@ -42,6 +42,10 @@ class IXBRLReportParser(XBRLReportParser):
         for e in parent.childElements():
             name = etree.QName(e.tag)
             if name.namespace in [NS.ix, NS.ix10]:
+                td = e.get("target", None) 
+                if td is not None:
+                    logging.error("Ignoring target document '%s'" % td)
+                    continue
                 if name.localname == 'header':
                     self.hasHeader = True
                     self.parseIXHeader(e)
