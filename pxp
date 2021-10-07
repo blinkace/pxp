@@ -101,7 +101,7 @@ def urlise(urlOrPath):
     return urlOrPath
 
 parser = argparse.ArgumentParser(description="XBRL Processor")
-parser.add_argument('--addTaxonomy', dest="packages", action="append", help="Load a taxonomy package.")
+parser.add_argument('--add-taxonomy', '--tp', dest="packages", action="append", help="Load a taxonomy package.")
 parser.add_argument('--packages', '-p', dest="packageDir", action="append", help="Load all taxonomy packages from a directory.")
 parser.add_argument('--csv', dest="csv", action="store_true", help="Treat input as an xBRL-CSV report")
 parser.add_argument('--json', dest="json", action="store_true", help="Treat input as an xBRL-JSON report")
