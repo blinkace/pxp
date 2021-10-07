@@ -19,7 +19,8 @@ def getConcept(nsmap, taxonomy, conceptNameStr):
     if not isValidQName(conceptNameStr):
         raise XBRLError("oimce:invalidQName", "'%s' is not a valid QName" % conceptNameStr)
 
-    conceptName = qname(conceptNameStr, { "xbrl": NS.xbrl, **nsmap})
+    #conceptName = qname(conceptNameStr, { "xbrl": NS.xbrl, **nsmap})
+    conceptName = qname(conceptNameStr, nsmap)
 
     concept = taxonomy.concepts.get(conceptName)
     if concept is None:
