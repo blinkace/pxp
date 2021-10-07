@@ -198,7 +198,12 @@ class XBRLCSVReportParser:
         return self.processor.loadTaxonomy(schemaRefs)
 
 
-    def loadMetaData(self, url):
+    def loadMetaData(self, url, seen = None):
+        if seen is None:
+            seen = []
+        if url in seen:
+            raise XBRLError("xbrlce:illegalCycle", "Illegal metadata cycle detected at '%s'" % url)
+        seen.append(url)
 
         logger.debug("Loading xBRL-CSV metadata file from %s" % url)
         
@@ -246,12 +251,14 @@ class XBRLCSVReportParser:
             j["documentInfo"]["taxonomy"] = list(urljoin(url, u) for u in j["documentInfo"]["taxonomy"])
 
         for elt in docInfo.get("extends", []):
-            m = self.loadMetaData(urljoin(url, elt))
+            m = self.loadMetaData(urljoin(url, elt), seen)
             importedDocType = m["documentInfo"]["documentType"]
             if importedDocType != docType:
                 raise XBRLError("xbrlce:multipleDocumentTypesInExtensionChain", "Document type for %s conflicts with document type for %s (%s vs %s)" % (elt, url, importedDocType, docType))
 
             self.mergeDict(j, m, extensible, m["documentInfo"].get("final",{}).keys())
+
+        seen.pop()
 
         return j
 
@@ -294,8 +301,11 @@ class XBRLCSVReportParser:
                         # If it's final then it must be deep equal if present in both.
                         if isFinal and not deep_eq(a[k], bv):
                             raise XBRLError("xbrlce:illegalExtensionOfFinalProperty", "'%s' is final, but '%s' redefined with a different value." % (finalValues[keyPath], keyPath))
+                    a[k] = bv
+                    for i in a.get(k, []):
+                        if i not in a[k]:
+                            a[k].append(i)
 
-                    a[k] = bv + a.get(k, [])
                 elif ext is not None:
                     raise ValueError("Unexpected value in extensible dict: %s" % bv)
 
@@ -519,7 +529,7 @@ def deep_eq(a, b):
     if type(a) != type(b):
         return False
 
-    if type(a) == str:
+    if type(a) == str or type(a) == bool:
         return a == b
 
     if type(a) == list:

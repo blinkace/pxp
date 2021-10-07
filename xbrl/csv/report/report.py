@@ -1,5 +1,3 @@
-from xbrl.model.report import Report
-
 class CSVReport:
 
     def __init__(self, templates, properties, parameters, nsmap, tables, taxonomy, allowedDuplicates):
