@@ -3,6 +3,12 @@ from xbrl.xbrlerror import XBRLError
 import dateutil.parser
 import datetime
 
+def number_format(x):
+    x = re.sub(r'^0+(\d)', r'\1', x)
+    x = re.sub(r'\.([^0]*)0+$', r'.\1', x)
+    x = re.sub(r'\.$', '', x)
+    return re.sub(r'^\.', '0.', x)
+
 class IXTransformError(Exception):
     pass
 

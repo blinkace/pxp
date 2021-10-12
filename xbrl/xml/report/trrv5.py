@@ -1,16 +1,11 @@
 from . import trrv4 as trrv4
-from .trr import TRRegistry, IXTransform, DateTransform
+from .trr import TRRegistry, IXTransform, DateTransform, number_format
 import re
 
-def number_format(x):
-    x = re.sub(r'^0+(\d)', r'\1', x)
-    x = re.sub(r'\.([^0]*)0+$', r'.\1', x)
-    x = re.sub(r'\.$', '', x)
-    return re.sub(r'^\.', '0.', x)
 
 
-class NumDotDecimal(IXTransform):
-    name = 'num-dot-decimal'
+class NumDotDecimalApos(IXTransform):
+    name = 'num-dot-decimal-apos'
     INPUT_RE = r'[,\x27\x60\xb4\u2019\u2032 \xa00-9]*(\.[ \xa00-9]+)?'
 
     def validate(self, vin):
@@ -21,12 +16,12 @@ class NumDotDecimal(IXTransform):
     def _transform(self, vin):
         return number_format(re.sub(r'[^0-9.]','',vin))
 
-class NumUnitDecimal(IXTransform):
-    name = 'num-unit-decimal'
+class NumUnitDecimalApos(IXTransform):
+    name = 'num-unit-decimal-apos'
     INPUT_RE = r'([0-9０-９\.,，\x27\x60\xB4\u2019\u2032\uFF07]+)([^0-9０-９\.,，\x27\x60\xB4\u2019\u2032\uFF07][^0-9０-９]*)([0-9０-９]{1,2})([^0-9０-９]*)'
 
     def validate(self, vin):
-        m = re.fullmatch(NumUnitDecimal.INPUT_RE, vin)
+        m = re.fullmatch(NumUnitDecimalApos.INPUT_RE, vin)
         if m is None:
             return False
         if re.search(r'[0-9０-９]', m.group(1)) is None:
@@ -34,14 +29,14 @@ class NumUnitDecimal(IXTransform):
         return True
 
     def _transform(self, vin):
-        m = re.match(NumUnitDecimal.INPUT_RE, vin)
+        m = re.match(NumUnitDecimalApos.INPUT_RE, vin)
         int_part = re.sub(r'[^0-9０-９]', '', m.group(1)) 
         if int_part == '':
             int_part = '0'
         return number_format("%d" % int(int_part) + '.' + "%02d" % int(m.group(3)))
 
-class NumCommaDecimal(IXTransform):
-    name = 'num-comma-decimal'
+class NumCommaDecimalApos(IXTransform):
+    name = 'num-comma-decimal-apos'
     INPUT_RE = r'[\.\x27\x60\xb4\u2019\u2032 \xa00-9]*(,[ \xa00-9]+)?'
 
     def validate(self, vin):
@@ -67,9 +62,12 @@ class TRRv5(TRRegistry):
         trrv4.DateDayMonthYearEn,
         trrv4.DateMonthDay,
         trrv4.DateMonthDayNameEn,
-        NumDotDecimal,
-        NumCommaDecimal,
-        NumUnitDecimal,
+        trrv4.NumDotDecimal,
+        trrv4.NumCommaDecimal,
+        trrv4.NumUnitDecimal,
+        NumDotDecimalApos,
+        NumCommaDecimalApos,
+        NumUnitDecimalApos,
 
         )
 

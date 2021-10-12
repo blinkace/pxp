@@ -1,6 +1,7 @@
 from . import trrv2 as trrv2
-from .trr import TRRegistry, IXTransform, DateTransform
+from .trr import TRRegistry, IXTransform, DateTransform, number_format
 import re
+
 
 class FixedFalse(trrv2.BooleanFalse):
     name = 'fixed-false'
@@ -37,15 +38,48 @@ class NumDotDecimal(IXTransform):
     name = 'num-dot-decimal'
     INPUT_RE = r'[,  0-9]*(\.[ 0-9]+)?'
 
+    # If decimal separator is present, must be at least one digit after
+    # separator, otherwise must be at least one non-fractional digit.
+    def validate(self, vin):
+        if re.search(r'[0-9]', vin) is None:
+            return False
+        return super().validate(vin)
+
     def _transform(self, vin):
-        return re.sub(r'[^0-9.]','',vin)
+        return number_format(re.sub(r'[^0-9.]','',vin))
 
 class NumCommaDecimal(IXTransform):
     name = 'num-comma-decimal'
     INPUT_RE = r'[\.  0-9]*(,[  0-9]+)?'
 
+    # If decimal separator is present, must be at least one digit after
+    # separator, otherwise must be at least one non-fractional digit.
+    def validate(self, vin):
+        if re.search(r'[0-9]', vin) is None:
+            return False
+        return super().validate(vin)
+
     def _transform(self, vin):
-        return re.sub(r'[^0-9,]','',vin).replace(',','.')
+        return number_format(re.sub(r'[^0-9,]','',vin).replace(',','.'))
+
+class NumUnitDecimal(IXTransform):
+    name = 'num-unit-decimal'
+    INPUT_RE = r'([0-9０-９\.,，]+)([^0-9０-９\.,，][^0-9０-９]*)([0-9０-９]{1,2})([^0-9０-９]*)'
+
+    def validate(self, vin):
+        m = re.fullmatch(NumUnitDecimal.INPUT_RE, vin)
+        if m is None:
+            return False
+        if re.search(r'[0-9０-９]', m.group(1)) is None:
+            return False
+        return True
+
+    def _transform(self, vin):
+        m = re.match(NumUnitDecimal.INPUT_RE, vin)
+        int_part = re.sub(r'[^0-9０-９]', '', m.group(1)) 
+        if int_part == '':
+            int_part = '0'
+        return number_format("%d" % int(int_part) + '.' + "%02d" % int(m.group(3)))
 
 class TRRv4(TRRegistry):
 
@@ -63,6 +97,7 @@ class TRRv4(TRRegistry):
         DateMonthDayNameEn,
         NumDotDecimal,
         NumCommaDecimal,
+        NumUnitDecimal
 
         )
 
