@@ -95,7 +95,7 @@ class Fact:
     @property
     def valueRange(self):
         val = decimal.Decimal(self.value)
-        if self.decimals is None:
+        if self.decimals is None or not val.is_finite():
             return (val, val)
         r = decimal.Decimal(10)**(decimal.Decimal(self.decimals)*-1)
         return (val - r/2, val + r/2)
