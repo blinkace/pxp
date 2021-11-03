@@ -217,6 +217,10 @@ class XBRLCSVReportParser:
             raise XBRLError("xbrlce:invalidJSON", "Unicode decode error loading %s: %s" % (src, str(e)))
         except json.JSONDecodeError as e:
             raise XBRLError("xbrlce:invalidJSON", "JSON decode error %s: %s" % (src, str(e)))
+        except XBRLError as e:
+            if e.code == qname('pyxbrle:FileNotFoundError'):
+                e.code = qname('xbrlce:unresolvableBaseMetadataFile')
+            raise e
         docInfo = j.get("documentInfo",{})
         docType = docInfo.get("documentType", None) if type(docInfo) == dict else None
         if type(docType) != str or docType not in {DocumentType.xbrlcsv, DocumentType.xbrlcsv_cr7}:

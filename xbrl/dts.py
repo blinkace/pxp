@@ -1,5 +1,6 @@
 from .const import NS
 from .xml.taxonomy.schemadocument import SchemaDocument
+from .xml.taxonomy.document import SchemaRef
 from lxml import etree
 from .model.taxonomy import Concept, Taxonomy, TypedDimension, Datatype, PeriodType, ListBasedDatatype, ComplexDatatype, UnionBasedDatatype
 from .xbrlerror import XBRLError
@@ -31,8 +32,11 @@ class DTS:
             try:
                 doc = self.documentCache.loadDTSReference(ref)
             except XBRLError as e:
-                if e.code in qnameset("pyxbrle", { "HTTPError", "URLError"}) and ref.src is not None:
+                if e.code in qnameset("pyxbrle", { "HTTPError", "URLError", "FileNotFoundError"}) and ref.src is not None:
                     e.message += " (referenced by %s in %s)" % (ref.reftype, ref.src.url)
+                if e.code in qnameset("pyxbrle", { "FileNotFoundError"}) and isinstance(ref, SchemaRef):
+                    e.code = qname('oime:unresolvableTaxonomy')
+
                 raise e
 
             logging.info("Loaded %s" % ref.href)
