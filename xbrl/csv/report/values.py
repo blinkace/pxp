@@ -56,6 +56,9 @@ def parseNumericValue(v):
 
     try:
         float(num)
+        # XML Schema requires correct case for INF and NaN
+        if num.lower() in ["nan","inf","-inf"] and not num in ["NaN", "INF", "-INF"]:
+            raise XBRLError("xbrlce:invalidFactValue", "%s is not a valid numeric value" % (num))
     except ValueError:
         raise XBRLError("xbrlce:invalidFactValue", "%s is not a valid numeric value" % (num))
         
