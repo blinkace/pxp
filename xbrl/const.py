@@ -51,7 +51,7 @@ def buildPrefixMaps():
             NSMAP[k] = v
 
     global OIM_COMMON_RESERVED_PREFIXES
-    OIM_COMMON_RESERVED_PREFIXES = { "iso4217", "utr", "xbrl", "xbrli", "xs", "oimce" }
+    OIM_COMMON_RESERVED_PREFIXES = { "iso4217", "utr", "xbrl", "xbrli", "xs" }
     global OIM_COMMON_RESERVED_PREFIX_MAP
     OIM_COMMON_RESERVED_PREFIX_MAP.clear()
 
