@@ -223,7 +223,7 @@ class XBRLCSVReportParser:
             raise e
         docInfo = j.get("documentInfo",{})
         docType = docInfo.get("documentType", None) if type(docInfo) == dict else None
-        if type(docType) != str or docType not in {DocumentType.xbrlcsv, DocumentType.xbrlcsv_cr7}:
+        if type(docType) != str or docType not in {DocumentType.xbrlcsv_git, DocumentType.xbrlcsv_cr7, DocumentType.xbrlcsv_pr1, DocumentType.xbrlcsv}:
             raise XBRLError("oimce:unsupportedDocumentType", "Unsupported document type: %s" % docType)
 
         with self.processor.resolver.open(url) as src:
