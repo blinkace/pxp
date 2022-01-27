@@ -26,7 +26,7 @@ pxp supports loading from the following formats:
 
 * OIM-compatible xBRL-XML
 * Inline XBRL
-** Support for Transformation Rules Registry versions 4 and 5 is incomplete
+    * Support for Transformation Rules Registry versions 4 and 5 is incomplete
 * xBRL-CSV
 * xBRL-JSON
 
