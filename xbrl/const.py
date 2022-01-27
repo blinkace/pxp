@@ -15,7 +15,7 @@ class NS:
     oimce = "https://xbrl.org/((~status_date_uri~))/oim-common/error"
     xbrlxe = "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-xml/error"
     xbrl21e = "http://www.blinkace.com/python-xbrl-oim/xbrl-2.1/error"
-    xbrl = "https://xbrl.org/((~status_date_uri~))"
+    xbrl = "https://xbrl.org/2021"
     iso4217 = "http://www.xbrl.org/2003/iso4217"
     utr = "http://www.xbrl.org/2009/utr"
     ix = "http://www.xbrl.org/2013/inlineXBRL"
